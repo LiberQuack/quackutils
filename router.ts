@@ -1,9 +1,19 @@
 import {State} from "./state";
+import {Drafted} from "immer/dist/types/types-internal";
+import {query} from "express";
 
 type RouteStateType = {
     path: string;
+    fullPath: string;
     pathTemplate: string;
     params: { [x: string]: string };
+    queryObj: { [x: string]: string };
+    navigationHistory: string[];
+
+    /**
+     * Start with ? (eg: ?foo=bar&food=good)
+     */
+    queryStr: string;
 };
 
 const paramValueRegex = /(.+?)(?=\/|$|#|\?)/g;
@@ -11,20 +21,27 @@ const paramRegex = new RegExp(`:${paramValueRegex.source}`, "g");
 
 export const initRouter = (pathTemplates: string[]) => {
 
-    function _buildNextState(path: string, search: string, hash: string, state: any = {}): RouteStateType {
+    function getQueryObj(search: string) {
+        return Object.fromEntries(new URLSearchParams(search));
+    }
+
+    function _buildNextState(history: RouteStateType["navigationHistory"], path: string, search: string, hash: string, state = {} as RouteStateType): RouteStateType {
         state.path = path;
+        state.fullPath =  path + search + hash;
         state.pathTemplate = getMatchingRoute(path) ?? "";
         state.params = getParams(state.pathTemplate, state.path);
+        state.queryObj = getQueryObj(search);
+        state.queryStr = search;
+        state.navigationHistory = history
         return state;
     }
 
-    const routeState = new State<RouteStateType>(
-        _buildNextState(location.pathname, location.search, location.hash)
-    );
+    const routeState = new State<RouteStateType>({} as any);
 
-    function _update() {
+    function _update(history: RouteStateType["navigationHistory"]) {
+        console.log("router", history);
         routeState.update(draftState => {
-            _buildNextState(location.pathname, location.search, location.hash, draftState)
+            _buildNextState(history || draftState.navigationHistory, location.pathname, location.search, location.hash, draftState);
         })
     }
 
@@ -32,17 +49,41 @@ export const initRouter = (pathTemplates: string[]) => {
         return pathTemplates.find(route => matchRoute(route, currentRoute));
     }
 
+    function queryObjToString(queryObj: RouteStateType["queryObj"]): string {
+        const keys = Object.keys(queryObj);
+        return keys.length > 0 ? "?" + keys.map(key => `${encodeURIComponent(key)}=${encodeURIComponent(queryObj[key])}`) : "";
+    }
+
     function navigate(to: string): void {
-        history.pushState(null, "", to);
-        _update();
+        const {navigationHistory} = routeState.getState();
+        if (to !== navigationHistory[navigationHistory.length - 1]) {
+            history.pushState(null, "", to);
+            _update([...navigationHistory, to]);
+        } else {
+            _update([...navigationHistory]);
+        }
     }
 
     function replace(to: string): void {
-        history.replaceState(null, "", to);
-        _update();
+        const navigationHistory = [...routeState.getState().navigationHistory];
+
+        if (to === navigationHistory[navigationHistory.length - 2]) {
+            history.back();
+        } else {
+            history.replaceState(null, "", to);
+            const nextNavHistory = [...navigationHistory.slice(0, navigationHistory.length - 1), to]
+            _update(nextNavHistory);
+        }
     }
 
-    window.addEventListener("popstate", _update)
+    const {pathname, search, hash} = location
+    _update([pathname + search + hash]);
+
+    window.addEventListener("popstate", e => {
+        const navHistory = routeState.getState().navigationHistory;
+        _update(navHistory.slice(0, navHistory.length - 1))
+    });
+
     window.addEventListener("click", function (e: Event) {
         let elm = e.target as HTMLAnchorElement | HTMLElement;
 
@@ -50,7 +91,7 @@ export const initRouter = (pathTemplates: string[]) => {
             //@ts-ignore
             if (elm.localName.toLowerCase() === "a" && (elm.protocol === location.protocol && elm.origin === location.origin && !elm.target)) {
                 //@ts-ignore
-                navigate(elm.pathname + location.search)
+                navigate(elm.pathname + elm.search + elm.hash)
                 e.preventDefault();
             }
             if (elm.localName.toLowerCase() === "a") {
@@ -60,7 +101,7 @@ export const initRouter = (pathTemplates: string[]) => {
         } while (elm && elm.parentElement)
     });
 
-    return {routeState, navigate, replace}
+    return {routeState, navigate, replace, queryObjToString}
 };
 
 export function matchRoute(templatePath: string, inputPath: string) {

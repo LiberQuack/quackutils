@@ -9,5 +9,5 @@ export function listToDictionary<T>(list: T[], key: keyof T): Dictionary<T> {
 }
 
 export function dictionaryToList<T>(dict: Dictionary<T>): T[] {
-    return Object.keys(dict).map(key => dict[key]);
+    return Object.keys(dict).map(key => dict[key]!);
 }
