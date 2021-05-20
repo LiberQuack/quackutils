@@ -1,6 +1,4 @@
-export type Dictionary<T> = {
-    [x: string]: T;
-};
+import {Dictionary} from "./types";
 
 export function listToDictionary<T>(list: T[], key: keyof T): Dictionary<T> {
     return list.reduce((acc, item) => {

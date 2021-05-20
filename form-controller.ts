@@ -1,10 +1,10 @@
 import {ReactiveController, ReactiveControllerHost} from "lit";
 import * as s from "superstruct";
 import objectPath from "object-path"
-import {Dictionary} from "./dictionary";
+import {Dictionary} from "./types";
 
-export type FormControllerOpts = Partial<{
-    onSubmit: (valid: boolean) => void;
+export type FormControllerOpts<T> = Partial<{
+    onSubmit: (isFormValid: boolean) => void
     debug: boolean;
 }>
 
@@ -15,13 +15,8 @@ type FieldStatus = {
     dirty: boolean,
 };
 
-class FormController implements ReactiveController {
-
-    data = {} as { [x: string]: any | undefined; };
-    errors = {} as ErrorDictionary;
-    submitted = false;
-
-    status = new Proxy({} as Dictionary<FieldStatus>, {
+function buildStatusProxy() {
+    return new Proxy({} as Dictionary<FieldStatus>, {
         get(target: Dictionary<FieldStatus>, p: string | symbol, receiver: any): FieldStatus {
             const status = target[p as any];
             return status ? status : {dirty: false, pristine: true}
@@ -30,13 +25,22 @@ class FormController implements ReactiveController {
             target[p as any] = value;
             return true;
         }
-    });
+    })
+}
+
+class FormController<T = Dictionary<any>> implements ReactiveController {
+
+    data = {} as Partial<T>;
+    errors = {} as ErrorDictionary;
+    submitted = false;
+
+    status = buildStatusProxy();
 
     private host: ReactiveControllerHost;
-    private opts: FormControllerOpts;
-    private schema?: s.Struct;
+    private opts: FormControllerOpts<T>;
+    private schema?: s.Struct<T>;
 
-    constructor(host: ReactiveControllerHost, schema: s.Struct<any>, opts?: FormControllerOpts) {
+    constructor(host: ReactiveControllerHost, schema?: s.Struct<T>, opts?: FormControllerOpts<T>) {
         this.host = host;
         this.schema = schema;
         this.opts = opts || {};
@@ -48,7 +52,20 @@ class FormController implements ReactiveController {
         return Object.keys(this.errors).length > 0
     }
 
-    setData = (nextData: { [x: string]: any }) => {
+    reset = () => {
+        this.errors = {};
+        this.status = buildStatusProxy();
+        this.data = {};
+        this.host.requestUpdate();
+
+        if (this.opts.debug) {
+            console.groupCollapsed("FormController:", "Reset called");
+            console.log("controller", this);
+            console.groupEnd();
+        }
+    }
+
+    setData = (nextData: Partial<T>) => {
         this.data = nextData;
         this.validate();
         this.host.requestUpdate();
@@ -60,13 +77,14 @@ class FormController implements ReactiveController {
         if (elm) {
             const nextValue = elm.value;
             const nextData = {...this.data};
-            objectPath.set(nextData, elm.name, nextValue);
+            objectPath.set(nextData as any, elm.name, nextValue);
             this.status[elm.name] = {pristine: false, dirty: [undefined, null, false, ""].indexOf(elm.value) > -1};
             this.setData(nextData);
 
             if (this.opts.debug) {
-                console.groupCollapsed("FormController", nextValue);
-                console.log("host", this);
+                console.groupCollapsed("FormController:", nextValue);
+                console.log("controller", this);
+                console.log("host", this.host);
                 console.log("listenerAttachedOn", e.currentTarget);
                 console.log("eventOrigin", e.target);
                 console.log("controllerData", this.data);
@@ -79,7 +97,16 @@ class FormController implements ReactiveController {
         e.preventDefault();
         this.submitted = true;
         this.host.requestUpdate();
-        this.opts.onSubmit?.(!this.hasErrors);
+
+        const isValid = !this.hasErrors;
+
+        if (this.opts.debug) {
+            console.groupCollapsed("FormController:", "Form submission triggered");
+            console.log("controller", this);
+            console.groupEnd();
+        }
+
+        this.opts.onSubmit?.(isValid);
     }
 
     hostDisconnected(): void {
