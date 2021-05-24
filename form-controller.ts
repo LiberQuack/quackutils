@@ -4,7 +4,7 @@ import objectPath from "object-path"
 import {Dictionary} from "./types";
 
 export type FormControllerOpts = Partial<{
-    onSubmit: (isFormValid: boolean) => void
+    onSubmit: (isFormValid: boolean) => undefined | Promise<void>
     debug: boolean;
 }>
 
@@ -33,6 +33,7 @@ export class FormController<T = Dictionary<any>> implements ReactiveController {
     data = {} as Partial<T>;
     errors = {} as ErrorDictionary;
     submitAttempted = false;
+    isSubmitting = false
 
     status = buildStatusProxy();
 
@@ -93,9 +94,10 @@ export class FormController<T = Dictionary<any>> implements ReactiveController {
         }
     }
 
-    submitListener = (e: Event) => {
+    submitListener = async (e: Event) => {
         e.preventDefault();
         this.submitAttempted = true;
+        this.isSubmitting = Boolean(this.opts.onSubmit);
         this.host.requestUpdate();
 
         const isValid = !this.hasErrors;
@@ -106,7 +108,10 @@ export class FormController<T = Dictionary<any>> implements ReactiveController {
             console.groupEnd();
         }
 
-        this.opts.onSubmit?.(isValid);
+        this.opts.onSubmit && this.opts.onSubmit(isValid)?.finally(() => {
+            this.isSubmitting = false;
+            this.host.requestUpdate();
+        })
     }
 
     hostDisconnected(): void {
