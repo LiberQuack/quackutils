@@ -51,7 +51,7 @@ export const initRouter = (pathTemplates: string[]) => {
 
     function queryObjToString(queryObj: RouteStateType["queryObj"]): string {
         const keys = Object.keys(queryObj);
-        return keys.length > 0 ? "?" + keys.map(key => `${encodeURIComponent(key)}=${encodeURIComponent(queryObj[key])}`) : "";
+        return keys.length > 0 ? "?" + keys.map(key => `${encodeURIComponent(key)}=${encodeURIComponent(queryObj[key]!)}`) : "";
     }
 
     function navigate(to: string): void {
@@ -125,7 +125,7 @@ function getParams(templatePath: string, inputPath: string): RouteStateType["par
 export function generateHref(route: string, params: { [x: string]: string }): string {
     const paramNames = Object.keys(params);
     for (let paramName of paramNames) {
-        route = route.replace(`:${paramName}`, params[paramName])
+        route = route.replace(`:${paramName}`, params[paramName]!)
     }
     return route;
 }

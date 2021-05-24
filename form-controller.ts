@@ -3,7 +3,7 @@ import * as s from "superstruct";
 import objectPath from "object-path"
 import {Dictionary} from "./types";
 
-export type FormControllerOpts<T> = Partial<{
+export type FormControllerOpts = Partial<{
     onSubmit: (isFormValid: boolean) => void
     debug: boolean;
 }>
@@ -28,19 +28,19 @@ function buildStatusProxy() {
     })
 }
 
-class FormController<T = Dictionary<any>> implements ReactiveController {
+export class FormController<T = Dictionary<any>> implements ReactiveController {
 
     data = {} as Partial<T>;
     errors = {} as ErrorDictionary;
-    submitted = false;
+    submitAttempted = false;
 
     status = buildStatusProxy();
 
     private host: ReactiveControllerHost;
-    private opts: FormControllerOpts<T>;
+    private opts: FormControllerOpts;
     private schema?: s.Struct<T>;
 
-    constructor(host: ReactiveControllerHost, schema?: s.Struct<T>, opts?: FormControllerOpts<T>) {
+    constructor(host: ReactiveControllerHost, schema?: s.Struct<T>, opts?: FormControllerOpts) {
         this.host = host;
         this.schema = schema;
         this.opts = opts || {};
@@ -95,7 +95,7 @@ class FormController<T = Dictionary<any>> implements ReactiveController {
 
     submitListener = (e: Event) => {
         e.preventDefault();
-        this.submitted = true;
+        this.submitAttempted = true;
         this.host.requestUpdate();
 
         const isValid = !this.hasErrors;
@@ -131,5 +131,3 @@ class FormController<T = Dictionary<any>> implements ReactiveController {
     }
 
 }
-
-export {FormController}
