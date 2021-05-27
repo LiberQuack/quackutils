@@ -1,9 +1,10 @@
 import produce from "immer";
 import {inlineErr} from "./inline-error";
+import {Dictionary} from "./types";
 
 type Subscription = () => void;
 
-export class State<T extends { [x: string]: any }> {
+export class State<T extends Dictionary<any>> {
 
     private state: T;
     private subscriptions: Subscription[] = [];
@@ -35,30 +36,33 @@ export class State<T extends { [x: string]: any }> {
 
         const [result, err] = await inlineErr(produceResult);
 
-        if (result) {
-            this.state = result;
-        }
-
-        this.error = err;
-        this.isUpdating = false;
-        this.runSubscribers();
-
         if (err) {
+            this.error = err;
+            this.isUpdating = false;
+            this.runSubscribers();
             throw err;
+        } else {
+            this.state = (result || {}) as T;
+            this.runSubscribers();
         }
+    }
+
+    clearError() {
+        this.error = undefined;
+        this.runSubscribers();
     }
 
     subscribe(subscription: Subscription): () => Boolean {
         this.subscriptions.push(subscription);
         subscription();
-        return () => this.unsub(subscription);
+        return () => this.unsubscribe(subscription);
     }
 
     runSubscribers() {
         this.subscriptions.forEach(it => it());
     }
 
-    unsub(subscription: Subscription): Boolean {
+    unsubscribe(subscription: Subscription): Boolean {
         const indexFound = this.subscriptions.indexOf(subscription);
         const deletedItem = this.subscriptions.splice(indexFound, 1);
         return Boolean(deletedItem);
