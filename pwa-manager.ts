@@ -16,9 +16,12 @@ export class PwaManager {
         navigator.getInstalledRelatedApps().then(results => {
             const currentHost = location.host
             const isInstalled = results.find(it => it.url.indexOf(currentHost) > -1);
+            const installedText = isInstalled ? "yes" : "no";
+
+            console.log("Pwa-Manager: App is installed?", installedText);
 
             this.state.update(s => {
-                s.isInstalled = isInstalled ? "yes" : "no";
+                s.isInstalled = installedText;
             })
         })
 
