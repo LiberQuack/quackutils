@@ -1,17 +1,62 @@
 import {BeforeInstallPromptEvent} from "./types";
 import {State} from "./state";
+import {inlineErr} from "./inline-error";
+
+type PwaManagerOpts = {
+    healthUrl: string,
+
+    /*** Value is expressed in seconds */
+    healthCheckInterval: number;
+}
 
 export class PwaManager {
 
     readonly state = new State({
         preventedNativePrompt: false,
         isInstalled: "unsure" as "unsure" | "yes" | "no",
+        isOnline: true
     })
+
+    constructor(
+        private opts?: Partial<PwaManagerOpts>
+    ) {
+    }
 
     private deferredEvent?: BeforeInstallPromptEvent
 
+    private async updateNetworkStatus() {
+        console.log("Pwa-Manager: Checking networking connectivity");
+
+        const preventServerTest = !this.opts?.healthUrl;
+        const isOnline = navigator.onLine && (preventServerTest || await this.testServerIsReachable());
+
+        this.state.update(s => {
+            s.isOnline = isOnline;
+        })
+    }
+
+    private async testServerIsReachable(): Promise<boolean> {
+        const healthUrl = this.opts?.healthUrl;
+
+        if (healthUrl) {
+            const [resp] = await inlineErr(fetch(healthUrl, {mode: 'no-cors'}));
+            return Boolean(resp)
+        } else {
+            console.warn("Pwa-Manager: No healthUrl was provided for testing server reachability");
+            return false
+        }
+    }
+
     start() {
         console.log("Pwa-Manager: Starting");
+
+        this.updateNetworkStatus();
+        window.addEventListener("online", () => this.updateNetworkStatus());
+        window.addEventListener("offline", () => this.updateNetworkStatus());
+
+        if (this.opts?.healthCheckInterval) {
+            setInterval(() => this.updateNetworkStatus, this.opts.healthCheckInterval * 1000)
+        }
 
         navigator.getInstalledRelatedApps().then(results => {
             const currentHost = location.host
@@ -23,7 +68,7 @@ export class PwaManager {
             this.state.update(s => {
                 s.isInstalled = installedText;
             })
-        })
+        });
 
         window.addEventListener("beforeinstallprompt", (e) => {
             console.log("Pwa-Manager: beforeinstallprompt event triggered")
@@ -64,5 +109,3 @@ export class PwaManager {
     }
 
 }
-
-export const pwaManagerInstance = new PwaManager();

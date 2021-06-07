@@ -35,10 +35,10 @@ export class State<T extends Dictionary<any>> {
         }
 
         const [result, err] = await inlineErr(produceResult);
+        this.isUpdating = false;
 
         if (err) {
             this.error = err;
-            this.isUpdating = false;
             this.runSubscribers();
             throw err;
         } else {
@@ -67,4 +67,16 @@ export class State<T extends Dictionary<any>> {
         const deletedItem = this.subscriptions.splice(indexFound, 1);
         return Boolean(deletedItem);
     }
+}
+
+export const loggerInjector = (name: string, state: State<any>) => {
+    console.log(loggerInjector.name, "Started");
+
+    state.subscribe(() => {
+        console.groupCollapsed(`State ${name} changed`);
+        console.log("data:", state.getState());
+        console.log("updating:", state.isUpdating);
+        console.log("error:", state.error);
+        console.groupEnd();
+    })
 }
