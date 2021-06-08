@@ -54,6 +54,7 @@ export class PwaManager {
         window.addEventListener("online", () => this.updateNetworkStatus());
         window.addEventListener("offline", () => this.updateNetworkStatus());
 
+
         if (this.opts?.healthCheckInterval) {
             setInterval(() => this.updateNetworkStatus(), this.opts.healthCheckInterval * 1000)
         }
