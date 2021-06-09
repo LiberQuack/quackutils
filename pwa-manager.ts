@@ -11,7 +11,7 @@ type PwaManagerOpts = {
 
 export class PwaManager {
 
-    readonly state = new State({
+    readonly state = new State("pwa", {
         preventedNativePrompt: false,
         isInstalled: "unsure" as "unsure" | "yes" | "no",
         isOnline: true

@@ -36,10 +36,9 @@ export const initRouter = (pathTemplates: string[]) => {
         return state;
     }
 
-    const routeState = new State<RouteStateType>({} as any);
+    const routeState = new State<RouteStateType>("router", {} as any);
 
     function _update(history: RouteStateType["navigationHistory"]) {
-        console.log("router", history);
         routeState.update(draftState => {
             _buildNextState(history || draftState.navigationHistory, location.pathname, location.search, location.hash, draftState);
         })

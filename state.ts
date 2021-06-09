@@ -13,7 +13,10 @@ export class State<T extends Dictionary<any>> {
     public isUpdating = false;
     public error: any;
 
-    constructor(state: T) {
+    constructor(
+        public readonly id: string,
+        state: T
+    ) {
         this.state = state;
         this.initialState = state;
     }
@@ -69,8 +72,8 @@ export class State<T extends Dictionary<any>> {
     }
 }
 
-export const loggerInjector = (name: string, state: State<any>) => {
-    console.log(loggerInjector.name, "Started");
+export const stateLoggerInjector = (name: string, state: State<any>) => {
+    console.log(stateLoggerInjector.name, "Started");
 
     state.subscribe(() => {
         console.groupCollapsed(`State ${name} changed`);
