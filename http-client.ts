@@ -1,5 +1,4 @@
 import axios, {AxiosError, AxiosRequestConfig} from "axios"
-import {inlineErr} from "./inline-error";
 
 function httpClientBuilder(config?:AxiosRequestConfig) {
     const httpClient = axios.create(config);
