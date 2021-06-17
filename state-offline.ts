@@ -2,6 +2,7 @@ import {State} from "./state";
 import {Pojo} from "./types";
 
 import {IDBPDatabase, IDBPTransaction, openDB, StoreNames} from 'idb';
+import {inlineErr} from "./inline-error";
 
 export class StatePersistor {
 
@@ -24,29 +25,39 @@ export class StatePersistor {
 
     async start() {
         const self = this;
-        const db = await openDB(this.dbName, this.dbVersion, {
+        const [db, err] = await inlineErr(openDB(this.dbName, this.dbVersion, {
             upgrade(database: IDBPDatabase<any>, oldVersion: number, newVersion: number | null, transaction: IDBPTransaction<any, StoreNames<any>[], "versionchange">) {
+                const storeNames = Array.from(transaction.objectStoreNames);
                 for (let stateObj of self.stateList) {
-                    database.createObjectStore(stateObj.name);
+                    if (storeNames.indexOf(stateObj.name) === -1) {
+                        database.createObjectStore(stateObj.name);
+                    }
                 }
-            }
-        });
-
-        await Promise.all(this.stateList.map(async (stateItem) => {
-            const initialData = await db.get(stateItem.name, "data");
-            if (initialData) {
-                await stateItem.state.update((s) => {
-                    Object.keys(initialData).forEach(key => {
-                        s[key] = initialData[key];
-                    })
-                });
             }
         }));
 
-        this.stateList.map((stateItem) => {
-            stateItem.state.subscribe(async () => {
-                await db.put(stateItem.name, stateItem.state.getState(), "data");
+        if (err) {
+            alert("Error happened while configuring IndexedDB");
+            throw err;
+        }
+
+        if (db) {
+            await Promise.all(this.stateList.map(async (stateItem) => {
+                const initialData = await db.get(stateItem.name, "data");
+                if (initialData) {
+                    await stateItem.state.update((s) => {
+                        Object.keys(initialData).forEach(key => {
+                            s[key] = initialData[key];
+                        })
+                    });
+                }
+            }));
+
+            this.stateList.map((stateItem) => {
+                stateItem.state.subscribe(async () => {
+                    await db.put(stateItem.name, stateItem.state.getState(), "data");
+                });
             });
-        });
+        }
     }
 }

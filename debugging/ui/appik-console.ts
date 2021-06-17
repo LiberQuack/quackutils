@@ -91,11 +91,10 @@ class AppikConsole extends LitElement {
         const stateDictionary = this._states.reduce((acc, s) => ({...acc, [s.id]: s}), {})
         const sandbox = this.buildSandBox({...stateDictionary, help, clear});
         const evalResult = sandbox(code);
-        debugger;
         const result = "_$litType$" in evalResult ? evalResult : html`<data-viewer .data="${evalResult}"/>`;
 
         this.evaluations = [result, ...this.evaluations];
-        this.requestUpdate() //HACKY FIX (it should render automatically... waiting for official lit 3 release)
+        // this.requestUpdate() //HACKY FIX (it should render automatically... waiting for official lit 3 release)
     }
 
     render() {

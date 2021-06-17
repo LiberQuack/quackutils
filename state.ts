@@ -1,4 +1,4 @@
-import produce from "immer";
+import produce, {Draft} from "immer";
 import {inlineErr} from "./inline-error";
 import {Dictionary} from "./types";
 
@@ -29,8 +29,8 @@ export class State<T extends Dictionary<any>> {
         return this.initialState;
     }
 
-    async update(updater: (draftState: T) => void | Promise<void>) {
-        const produceResult = produce(this.state, updater);
+    async update(updater: (() => T | Promise<T>) | ((draftState: T) => void | Promise<void>)) {
+        const produceResult = produce(this.state, updater as any);
 
         if (produceResult instanceof Promise) {
             this.isUpdating = true;
