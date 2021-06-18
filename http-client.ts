@@ -13,8 +13,9 @@ function httpClientBuilder(config?:AxiosRequestConfig) {
             console.error(`Response with status ${error.response?.status} (${error.response?.statusText}) and body\r\n${prettyResponse ?? responseBody}`);
         }
 
-        return error
+        throw error;
     }))
+
     return httpClient;
 }
 

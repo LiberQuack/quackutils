@@ -36,8 +36,16 @@ export class StatePersistor {
             }
         }));
 
+        const storeNames = Array.from(db?.objectStoreNames || []).sort();
+        const stateNames = this.stateList.map(it => it.name).sort();
+
+        if (!stateNames.every((stateName) => storeNames.indexOf(stateName) > -1)) {
+            alert("IndexedDB: store names are different")
+            throw "IndexedDB: storeNames not equal";
+        }
+
         if (err) {
-            alert("Error happened while configuring IndexedDB");
+            alert("IndexedDB: Error happened while configuring IndexedDB");
             throw err;
         }
 
