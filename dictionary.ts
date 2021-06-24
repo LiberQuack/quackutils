@@ -8,6 +8,18 @@ export function listToDictionary<T>(list: T[], key: keyof T): Dictionary<T> {
     }, {});
 }
 
+export function listToDictionaryAcc<T>(list: T[], key: keyof T): Dictionary<T[]> {
+    let acc = {} as any;
+
+    for (let item of list) {
+        let previousValue = acc[item[key] as any] as T[] | undefined
+        acc[item[key] as any] = previousValue ? [...previousValue, item] : [item]
+    }
+
+    return acc;
+}
+
+
 export function dictionaryToList<T>(dict: Dictionary<T>): T[] {
     return Object.keys(dict).map(key => dict[key]);
 }
