@@ -72,11 +72,11 @@ export class State<T extends Dictionary<any>> {
     }
 }
 
-export const stateLoggerInjector = (name: string, state: State<any>) => {
+export const stateLoggerInjector = (logName: string, state: State<any>) => {
     console.log(stateLoggerInjector.name, "Started");
 
     state.subscribe(() => {
-        console.groupCollapsed(`State ${name} changed`);
+        console.groupCollapsed(`State ${logName}`);
         console.log("data:", state.getState());
         console.log("updating:", state.isUpdating);
         console.log("error:", state.error);

@@ -103,7 +103,7 @@ export const initRouter = (pathTemplates: string[]) => {
 
 export function matchRoute(templatePath: string, inputPath: string) {
     const routeRegexStr = templatePath.replace(paramRegex, paramValueRegex.source);
-    const regex = new RegExp(routeRegexStr);
+    const regex = new RegExp(`^${routeRegexStr}$`);
     return regex.test(inputPath)
 }
 

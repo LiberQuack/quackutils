@@ -7,6 +7,7 @@ import {inlineErr} from "./inline-error";
 export class StatePersistor {
 
     private stateList: { name: string, state: State<any>; }[] = [];
+    private db?: IDBPDatabase<any>;
 
     constructor(
         private dbName: string,
@@ -36,6 +37,7 @@ export class StatePersistor {
             }
         }));
 
+        this.db = db
         const storeNames = Array.from(db?.objectStoreNames || []).sort();
         const stateNames = this.stateList.map(it => it.name).sort();
 
@@ -66,6 +68,14 @@ export class StatePersistor {
                     await db.put(stateItem.name, stateItem.state.getState(), "data");
                 });
             });
+        }
+    }
+
+    async clear() {
+        if (this.db) {
+            await Promise.all(this.stateList.map(it => this.db!.clear(it.name)));
+        } else {
+            throw "IndexedDB: Cannot clear it once it was not opened";
         }
     }
 }
