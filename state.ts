@@ -1,12 +1,13 @@
 import produce, {Draft} from "immer";
 import {inlineErr} from "./inline-error";
 import {Dictionary} from "./types";
+import {DeepReadonly} from "utility-types";
 
 type Subscription = () => void;
 
 export class State<T extends Dictionary<any>> {
 
-    private state: T;
+    private state: DeepReadonly<T>;
     private subscriptions: Subscription[] = [];
     private readonly initialState: T;
 
@@ -17,11 +18,11 @@ export class State<T extends Dictionary<any>> {
         public readonly id: string,
         state: T
     ) {
-        this.state = state;
+        this.state = state as DeepReadonly<T>;
         this.initialState = state;
     }
 
-    getState(): T {
+    getState(): DeepReadonly<T> {
         return this.state
     }
 
@@ -45,7 +46,7 @@ export class State<T extends Dictionary<any>> {
             this.runSubscribers();
             throw err;
         } else {
-            this.state = (result || {}) as T;
+            this.state = result!;
             this.runSubscribers();
         }
     }

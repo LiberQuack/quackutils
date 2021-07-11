@@ -1,12 +1,13 @@
 import {useEffect, useState} from "haunted";
 import {State} from "./state";
+import {DeepReadonly} from "utility-types";
 
 type GlueStatus = {
     error: any,
     isUpdating: boolean
 }
 
-type GlueResult<T> = [T, GlueStatus];
+type GlueResult<T> = [DeepReadonly<T>, DeepReadonly<GlueStatus>];
 
 type ExternalState<T> = State<T>
 
