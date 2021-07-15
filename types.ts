@@ -4,6 +4,8 @@ export type Dictionary<T> = {
 
 export type UnPartial<T> = T extends Partial<infer U> ? U : never
 
+
+
 export type UnArray<T> = T extends Array<infer U> ? U : never
 
 export type ConditionalType<Boolean, X, Y> = Boolean extends true ? X : Y;
