@@ -1,6 +1,7 @@
-export type Dictionary<T> = {
-    [x: string]: T;
-};
+import {Dictionary} from "./types";
+import {promises} from "dns";
+import {Unionize, UnionToIntersection} from "utility-types";
+import {AugmentedRequired} from "utility-types/dist/mapped-types";
 
 export function listToDictionary<T>(list: T[], key: keyof T): Dictionary<T> {
     return list.reduce((acc, item) => {
@@ -10,6 +11,16 @@ export function listToDictionary<T>(list: T[], key: keyof T): Dictionary<T> {
 
 export function dictionaryToList<T>(dict: Dictionary<T>): T[] {
     return Object.keys(dict).map(key => dict[key]!);
+}
+
+export function dictionaryTransformEntries<T extends object, ER, TT extends AugmentedRequired<T>>(dict: T, transformer: (item: TT[keyof TT]) => ER): {[P in keyof T]: ER} {
+    const keys = Object.keys(dict) as (keyof T)[];
+
+    return keys.reduce((acc, key: keyof T) => {
+        const entry = dict[key];
+        acc[key] = transformer(entry as any) as ER;
+        return acc;
+    }, {} as { [P in keyof T]: ER });
 }
 
 export function listToDictionaryAcc<T>(list: T[], key: keyof T): Dictionary<T[]> {
@@ -23,6 +34,46 @@ export function listToDictionaryAcc<T>(list: T[], key: keyof T): Dictionary<T[]>
     return acc;
 }
 
+/**
+ * Usage example:
+ * ```javascript
+ *     let list = [
+ *         {a: 5},
+ *         {a: 5},
+ *         {b: 10},
+ *     ]
+ *
+ *     listToDictionaryMergedKeys(list) // {a: [5,5], b:[10]}
+ * ```
+ * @param list
+ */
+export function listToDictionaryMergedKeys<T, U = UnionToIntersection<T>, Result = Partial<{[P in keyof U]: U[keyof U][]}>>(list: T[]): Result {
+    let acc = {} as Result
+
+    for (let obj of list) {
+        const properties = Object.keys(obj);
+
+        properties.forEach((property) => {
+            const keyAcc = (acc[property as keyof Result] || []) as U[keyof U][];
+            const value = obj[property as keyof T];
+            const nextAcc = [...keyAcc, value] as unknown as Result[keyof Result];
+            acc[property as keyof Result] = nextAcc;
+        });
+    }
+
+    return acc;
+}
+
+/**
+ * Usage example:
+ * ```javascript
+ *     let dict = {a: 10, b: 20}
+ *     dictionaryAcc(dict, 0, (acc, value: number) => acc + value) //30
+ * ```
+ * @param dict
+ * @param acc
+ * @param reducer
+ */
 export function dictionaryAcc<T,Y>(dict: Dictionary<T>, acc: Y, reducer: (acc:Y, item:T) => Y): Y {
     const result = Object.keys(dict).reduce((reducAcc, key) => {
         return reducer(reducAcc, dict[key]!);
