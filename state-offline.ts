@@ -8,6 +8,8 @@ export class StatePersistor {
 
     private stateList: { name: string, state: State<any>; }[] = [];
     private db?: IDBPDatabase<any>;
+    private connectionPromise?: Promise<any>;
+    private clearing = false;
 
     constructor(
         private dbName: string,
@@ -26,7 +28,8 @@ export class StatePersistor {
 
     async start() {
         const self = this;
-        const [db, err] = await inlineErr(openDB(this.dbName, this.dbVersion, {
+
+        this.connectionPromise = inlineErr(openDB(this.dbName, this.dbVersion, {
             upgrade(database: IDBPDatabase<any>, oldVersion: number, newVersion: number | null, transaction: IDBPTransaction<any, StoreNames<any>[], "versionchange">) {
                 const storeNames = Array.from(transaction.objectStoreNames);
                 for (let stateObj of self.stateList) {
@@ -36,6 +39,8 @@ export class StatePersistor {
                 }
             }
         }));
+
+        const [db, err] = await this.connectionPromise;
 
         this.db = db
         const storeNames = Array.from(db?.objectStoreNames || []).sort();
@@ -65,16 +70,28 @@ export class StatePersistor {
 
             this.stateList.map((stateItem) => {
                 stateItem.state.subscribe(async () => {
-                    await db.put(stateItem.name, stateItem.state.getState(), "data");
+                    if (!this.clearing) {
+                        await db.put(stateItem.name, stateItem.state.getState(), "data");
+                    }
                 });
             });
         }
     }
 
     async clear() {
+        let err: Error | undefined;
+        this.clearing = true;
+        await this.connectionPromise;
+
         if (this.db) {
-            await Promise.all(this.stateList.map(it => this.db!.clear(it.name)));
-        } else {
+            for (let it of this.stateList) {
+                err = err || (await inlineErr(this.db.clear(it.name)))[1];
+            }
+        }
+
+        this.clearing = false;
+
+        if (err) {
             throw "IndexedDB: Cannot clear it once it was not opened";
         }
     }
