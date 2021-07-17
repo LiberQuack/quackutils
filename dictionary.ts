@@ -13,6 +13,12 @@ export function dictionaryToList<T>(dict: Dictionary<T>): T[] {
     return Object.keys(dict).map(key => dict[key]!);
 }
 
+export function dictionaryForEach<T>(dict: Dictionary<T>, cb: (entry: T) => void) {
+    Object.keys(dict).forEach(key => {
+        cb(dict[key]);
+    })
+}
+
 export function dictionaryTransformEntries<T extends object, ER, TT extends AugmentedRequired<T>>(dict: T, transformer: (item: TT[keyof TT]) => ER): {[P in keyof T]: ER} {
     const keys = Object.keys(dict) as (keyof T)[];
 
@@ -23,6 +29,23 @@ export function dictionaryTransformEntries<T extends object, ER, TT extends Augm
     }, {} as { [P in keyof T]: ER });
 }
 
+/**
+ * @example
+ *     let list = [{gender: M, id: 1}, {gender: M, id: 2}, {gender: F, id: 3}]
+ *     listToDictionaryAcc(list, "gender")
+ *     // Result:
+ *     // {
+ *     //     M: [
+ *     //            {gender: M, id: 1},
+ *     //            {gender: M, id: 2}
+ *     //         ],
+ *     //     F: [
+ *     //            {gender: F, id: 3}
+ *     //        ]
+ *     // }
+ * @param list
+ * @param key
+ */
 export function listToDictionaryAcc<T>(list: T[], key: keyof T): Dictionary<T[]> {
     let acc = {} as any;
 
@@ -35,16 +58,15 @@ export function listToDictionaryAcc<T>(list: T[], key: keyof T): Dictionary<T[]>
 }
 
 /**
- * Usage example:
- * ```javascript
+ * @example
  *     let list = [
  *         {a: 5},
  *         {a: 5},
  *         {b: 10},
  *     ]
- *
+
  *     listToDictionaryMergedKeys(list) // {a: [5,5], b:[10]}
- * ```
+ *
  * @param list
  */
 export function listToDictionaryMergedKeys<T, U = UnionToIntersection<T>, Result = Partial<{[P in keyof U]: U[keyof U][]}>>(list: T[]): Result {
@@ -65,11 +87,11 @@ export function listToDictionaryMergedKeys<T, U = UnionToIntersection<T>, Result
 }
 
 /**
- * Usage example:
- * ```javascript
+ * @example
+ *
  *     let dict = {a: 10, b: 20}
  *     dictionaryAcc(dict, 0, (acc, value: number) => acc + value) //30
- * ```
+ *
  * @param dict
  * @param acc
  * @param reducer
