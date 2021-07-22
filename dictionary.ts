@@ -13,9 +13,15 @@ export function dictionaryToList<T>(dict: Dictionary<T>): T[] {
     return Object.keys(dict).map(key => dict[key]!);
 }
 
-export function dictionaryForEach<T>(dict: Dictionary<T>, cb: (entry: T) => void) {
+export function dictionaryForEach<T>(dict: Dictionary<T>, cb: (entry: T, key: string) => void) {
     Object.keys(dict).forEach(key => {
-        cb(dict[key]);
+        cb(dict[key], key);
+    })
+}
+
+export function dictionaryMap<T, R>(dict: Dictionary<T>, cb: (entry: T, key: string) => R) {
+    return Object.keys(dict).map(key => {
+        return cb(dict[key], key);
     })
 }
 
@@ -90,15 +96,15 @@ export function listToDictionaryMergedKeys<T, U = UnionToIntersection<T>, Result
  * @example
  *
  *     let dict = {a: 10, b: 20}
- *     dictionaryAcc(dict, 0, (acc, value: number) => acc + value) //30
+ *     dictionaryAcc(dict, 0, (acc, value: number, key: string) => acc + value) //30
  *
  * @param dict
  * @param acc
  * @param reducer
  */
-export function dictionaryAcc<T,Y>(dict: Dictionary<T>, acc: Y, reducer: (acc:Y, item:T) => Y): Y {
+export function dictionaryAcc<T,Y>(dict: Dictionary<T>, acc: Y, reducer: (acc:Y, item:T, key: string) => Y): Y {
     const result = Object.keys(dict).reduce((reducAcc, key) => {
-        return reducer(reducAcc, dict[key]!);
+        return reducer(reducAcc, dict[key]!, key);
     }, acc);
     return result;
 }
