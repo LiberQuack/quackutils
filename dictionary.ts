@@ -1,6 +1,5 @@
 import {Dictionary} from "./types";
-import {promises} from "dns";
-import {Unionize, UnionToIntersection} from "utility-types";
+import {UnionToIntersection} from "utility-types";
 import {AugmentedRequired} from "utility-types/dist/mapped-types";
 
 export function listToDictionary<T>(list: T[], key: keyof T): Dictionary<T> {
