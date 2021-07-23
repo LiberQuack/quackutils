@@ -1,7 +1,6 @@
-import axios, {AxiosError, AxiosRequestConfig} from "axios"
-import {inlineErr} from "./inline-error";
+import axios, {AxiosError, AxiosInstance, AxiosRequestConfig} from "axios"
 
-function httpClientBuilder(config?:AxiosRequestConfig) {
+function httpClientBuilder(config?:AxiosRequestConfig): AxiosInstance {
     const httpClient = axios.create(config);
 
     httpClient.interceptors.response.use(undefined, ((error: AxiosError) => {
@@ -16,6 +15,7 @@ function httpClientBuilder(config?:AxiosRequestConfig) {
 
         return error
     }))
+
     return httpClient;
 }
 
