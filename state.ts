@@ -1,4 +1,4 @@
-import produce, {Draft} from "immer";
+import produce from "immer";
 import {inlineErr} from "./inline-error";
 import {Dictionary} from "./types";
 import {DeepReadonly} from "utility-types";
@@ -10,6 +10,8 @@ export class State<T extends Dictionary<any>> {
     private state: DeepReadonly<T>;
     private subscriptions: Subscription[] = [];
     private readonly initialState: T;
+    private hold = false;
+    private queue: (() => void)[] = [];
 
     public isUpdating = false;
     public error: any;
@@ -30,7 +32,31 @@ export class State<T extends Dictionary<any>> {
         return this.initialState;
     }
 
-    async update(updater: (() => T | Promise<T>) | ((draftState: T) => void | Promise<void>)) {
+    holdUpdates(): void {
+        this.hold = true;
+    }
+
+    async releaseUpdates(updater: (Parameters<this["update"]>[0])): Promise<void> {
+        this.hold = false;
+        await this.update(updater);
+
+        const queue = this.queue;
+        this.queue = [];
+
+        for (let queueElement of queue) {
+            await this.update(queueElement);
+        }
+    }
+
+    async update(updater: (() => T | Promise<T>) | ((draftState: T) => void | Promise<void>)): Promise<void> {
+        if (this.hold) {
+            return new Promise<void>((resolve, reject) => {
+                this.queue.push(() => {
+                    this.update(updater).then(resolve).catch(reject);
+                });
+            })
+        }
+
         const produceResult = produce(this.state, updater as any);
 
         if (produceResult instanceof Promise) {
