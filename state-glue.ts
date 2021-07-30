@@ -7,7 +7,7 @@ type GlueStatus = {
     isUpdating: boolean
 }
 
-type GlueResult<T> = [DeepReadonly<T>, DeepReadonly<GlueStatus>];
+type GlueResult<T> = [T, DeepReadonly<GlueStatus>];
 
 type ExternalState<T> = State<T>
 

@@ -7,7 +7,7 @@ type Subscription = () => void;
 
 export class State<T extends Dictionary<any>> {
 
-    private state: DeepReadonly<T>;
+    private state: T;
     private subscriptions: Subscription[] = [];
     private readonly initialState: T;
     private hold = false;
@@ -24,7 +24,7 @@ export class State<T extends Dictionary<any>> {
         this.initialState = state;
     }
 
-    getState(): DeepReadonly<T> {
+    getState(): T {
         return this.state
     }
 
@@ -37,11 +37,11 @@ export class State<T extends Dictionary<any>> {
     }
 
     async releaseUpdates(updater: (Parameters<this["update"]>[0])): Promise<void> {
-        this.hold = false;
-        await this.update(updater);
-
         const queue = this.queue;
         this.queue = [];
+
+        this.hold = false;
+        await this.update(updater);
 
         for (let queueElement of queue) {
             await this.update(queueElement);
