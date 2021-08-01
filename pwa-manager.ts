@@ -1,28 +1,93 @@
 import {BeforeInstallPromptEvent} from "./types";
 import {State} from "./state";
 import {inlineErr} from "./inline-error";
-
-type PwaManagerOpts = {
-    healthUrl: string,
-
-    /*** Value is expressed in seconds */
-    healthCheckInterval: number;
-}
+import toUint8Array from 'urlb64touint8array';
+import {apiClient} from "../src/app/api-client";
 
 export class PwaManager {
 
     readonly state = new State("pwa", {
         preventedNativePrompt: false,
         isInstalled: "unsure" as "unsure" | "yes" | "no",
-        isOnline: true
+        isOnline: true as boolean,
+        swRegistered: false as boolean,
+        permissions: {
+            notification: "default" as PERMISSION
+        }
     })
+
+    private deferredEvent?: BeforeInstallPromptEvent
+    private swRegistration?: ServiceWorkerRegistration;
 
     constructor(
         private opts?: Partial<PwaManagerOpts>
     ) {
     }
 
-    private deferredEvent?: BeforeInstallPromptEvent
+    start() {
+        console.log("Pwa-Manager: Starting");
+
+        this.handleServiceWorker();
+        this.handleNetwork();
+        this.handleRelatedApps();
+        this.readPermissions();
+
+        window.addEventListener("beforeinstallprompt", (e:BeforeInstallPromptEvent) => {
+            console.log("Pwa-Manager: beforeinstallprompt event triggered")
+            e.preventDefault();
+            this.deferredEvent = e;
+            this.state.update(s => {s.preventedNativePrompt = true});
+        });
+    }
+
+    async requestNotificationPermission(onAccepted: (subscription: NotificationSubscription, rawSubscription: PushSubscription) => void): Promise<void> {
+        if ("Notification" in window) {
+            const [notificationResult] = await inlineErr(Notification.requestPermission());
+
+            if (notificationResult) {
+                await this.state.update(s => {s.permissions.notification = notificationResult});
+                console.log("Pwa-Manager: Notification permission is", notificationResult)
+
+                if (notificationResult === "granted" && this.swRegistration && this.opts?.serverPushKey) {
+                    const [subscriptionResult] = await inlineErr(this.swRegistration.pushManager.subscribe({
+                        userVisibleOnly: true,
+                        applicationServerKey: toUint8Array(this.opts.serverPushKey)
+                    }));
+
+                    if (!subscriptionResult) {
+                        console.warn("Pwa-Manager: Could not subscribe to push notification");
+                    } else {
+                        onAccepted(subscriptionResult);
+                    }
+                }
+            }
+        }
+    }
+
+    private async handleRelatedApps() {
+        const results = await navigator.getInstalledRelatedApps();
+        const currentHost = location.host
+        const isInstalled = results.find(it => it.url.indexOf(currentHost) > -1);
+        const installedText = isInstalled ? "yes" : "no";
+
+        console.log("Pwa-Manager: App is installed?", installedText);
+
+        await this.state.update(s => {
+            s.isInstalled = installedText;
+        });
+    }
+
+    private async handleServiceWorker() {
+        if (this.opts?.sw) {
+            const [registration] = await inlineErr(this.opts.sw());
+            if (registration) {
+                this.swRegistration = registration;
+                await this.state.update(s => {
+                    s.swRegistered = true;
+                })
+            }
+        }
+    }
 
     private async updateNetworkStatus() {
         console.log("Pwa-Manager: Checking networking connectivity");
@@ -47,41 +112,17 @@ export class PwaManager {
         }
     }
 
-    start() {
-        console.log("Pwa-Manager: Starting");
-
+    private async handleNetwork() {
         this.updateNetworkStatus();
         window.addEventListener("online", () => this.updateNetworkStatus());
         window.addEventListener("offline", () => this.updateNetworkStatus());
-
-
         if (this.opts?.healthCheckInterval) {
             setInterval(() => this.updateNetworkStatus(), this.opts.healthCheckInterval * 1000)
         }
+    }
 
-        navigator.getInstalledRelatedApps().then(results => {
-            const currentHost = location.host
-            const isInstalled = results.find(it => it.url.indexOf(currentHost) > -1);
-            const installedText = isInstalled ? "yes" : "no";
-
-            console.log("Pwa-Manager: App is installed?", installedText);
-
-            this.state.update(s => {
-                s.isInstalled = installedText;
-            })
-        });
-
-        window.addEventListener("beforeinstallprompt", (e) => {
-            console.log("Pwa-Manager: beforeinstallprompt event triggered")
-            e.preventDefault();
-            this.deferredEvent = e;
-            setTimeout(() => {
-                this.state.update(s => {
-                    s.preventedNativePrompt = true;
-                })
-            }, 500)
-;
-        });
+    private readPermissions() {
+        //TODO: Need to think about persistency... Safari do not allow permission reading
     }
 
     /**
@@ -89,7 +130,7 @@ export class PwaManager {
      *
      * @param fallback
      */
-    async prompt(fallback: () => void): Promise<"accepted" | "dismissed" | "unknown"> {
+    async promptInstall(fallback: () => void): Promise<"accepted" | "dismissed" | "unknown"> {
         if (this.deferredEvent) {
             await this.deferredEvent.prompt();
             const promptResult = await this.deferredEvent.userChoice;
@@ -108,5 +149,23 @@ export class PwaManager {
             return "unknown"
         }
     }
-
 }
+
+type PERMISSION = "default" | "denied" | "granted";
+
+type PwaManagerOpts = {
+    sw: () => Promise<ServiceWorkerRegistration>,
+    serverPushKey: string;
+    healthUrl: string,
+
+    /*** Value is expressed in seconds */
+    healthCheckInterval: number;
+}
+
+export type NotificationSubscription = {
+    endpoint: string;
+    keys: {
+        p256dh: string;
+        auth: string;
+    }
+};
