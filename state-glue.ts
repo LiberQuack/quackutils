@@ -7,7 +7,7 @@ type GlueStatus = {
     isUpdating: boolean
 }
 
-type GlueResult<T> = [DeepReadonly<T>, DeepReadonly<GlueStatus>];
+type GlueResult<T> = [T, DeepReadonly<GlueStatus>];
 
 type ExternalState<T> = State<T>
 
@@ -17,7 +17,7 @@ type ExternalState<T> = State<T>
  *     const [fooGlue, fooStatus] = useGlue(fooState)
  * ```
  */
-export function useGlue<Z>(externalState: ExternalState<Z>, logId?: string): GlueResult<Z> {
+export function useGlue<Z>(externalState: State<Z>, logId?: string): GlueResult<Z> {
 
     const initialState: GlueResult<Z> = [externalState.getState(), {error: undefined, isUpdating: false}];
 

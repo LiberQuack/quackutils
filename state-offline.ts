@@ -23,12 +23,12 @@ export class StatePersistor {
      * @param state
      */
     add(name: string, state: State<Pojo>) {
+        state.holdUpdates();
         this.stateList.push({name, state})
     }
 
     async start() {
         const self = this;
-
         this.connectionPromise = inlineErr(openDB(this.dbName, this.dbVersion, {
             upgrade(database: IDBPDatabase<any>, oldVersion: number, newVersion: number | null, transaction: IDBPTransaction<any, StoreNames<any>[], "versionchange">) {
                 const storeNames = Array.from(transaction.objectStoreNames);
@@ -47,8 +47,8 @@ export class StatePersistor {
         const stateNames = this.stateList.map(it => it.name).sort();
 
         if (!stateNames.every((stateName) => storeNames.indexOf(stateName) > -1)) {
-            alert("IndexedDB: store names are different")
-            throw "IndexedDB: storeNames not equal";
+            alert("IndexedDB: store names are different, Increment Db version")
+            throw "IndexedDB: store names are different, Increment Db version";
         }
 
         if (err) {
@@ -60,11 +60,12 @@ export class StatePersistor {
             await Promise.all(this.stateList.map(async (stateItem) => {
                 const initialData = await db.get(stateItem.name, "data");
                 if (initialData) {
-                    await stateItem.state.update((s) => {
-                        Object.keys(initialData).forEach(key => {
-                            s[key] = initialData[key];
-                        })
+                    console.log(`Initial data loaded for state`, stateItem.name);
+
+                    await stateItem.state.releaseUpdates((s) => {
+                        Object.assign(s, initialData);
                     });
+
                 }
             }));
 
