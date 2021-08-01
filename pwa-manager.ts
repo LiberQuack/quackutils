@@ -163,6 +163,7 @@ type PwaManagerOpts = {
 }
 
 export type NotificationSubscription = {
+    type: "web" | "android" | "ios"
     endpoint: string;
     keys: {
         p256dh: string;
