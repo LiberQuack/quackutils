@@ -40,7 +40,7 @@ export class PwaManager {
         });
     }
 
-    async requestNotificationPermission(onAccepted: (subscription: NotificationSubscription, rawSubscription: PushSubscription) => void): Promise<void> {
+    async requestNotificationPermission(onAccepted: (subscription: NotificationSubscription, rawSubscription: PushSubscriptionJSON) => void): Promise<PERMISSION | undefined> {
         if ("Notification" in window) {
             const [notificationResult] = await inlineErr(Notification.requestPermission());
 
@@ -54,11 +54,24 @@ export class PwaManager {
                         applicationServerKey: toUint8Array(this.opts.serverPushKey)
                     }));
 
-                    if (!subscriptionResult) {
+                    const pushSubscriptionJSON = subscriptionResult && subscriptionResult.toJSON();
+
+                    if (!pushSubscriptionJSON || !pushSubscriptionJSON.endpoint) {
                         console.warn("Pwa-Manager: Could not subscribe to push notification");
-                    } else {
-                        onAccepted(subscriptionResult);
+                        return;
                     }
+
+                    let subscriptionParsed: NotificationSubscription = {
+                        type: "web",
+                        endpoint: pushSubscriptionJSON.endpoint,
+                        keys: {
+                            p256dh: pushSubscriptionJSON.keys.p256dh,
+                            auth: pushSubscriptionJSON.keys.auth
+                        }
+                    };
+
+                    onAccepted(subscriptionParsed, pushSubscriptionJSON);
+                    return notificationResult
                 }
             }
         }
