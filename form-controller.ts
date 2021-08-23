@@ -4,7 +4,7 @@ import objectPath from "object-path"
 import {Dictionary} from "./types";
 
 export type FormControllerOpts = Partial<{
-    onSubmit: (isFormValid: boolean) => undefined | Promise<void>
+    onSubmit: (isFormValid: boolean, form: FormController) => undefined | Promise<void>
     debug: boolean;
 }>
 
@@ -108,7 +108,7 @@ export class FormController<T = Dictionary<any>> implements ReactiveController {
             console.groupEnd();
         }
 
-        this.opts.onSubmit && this.opts.onSubmit(isValid)?.finally(() => {
+        this.opts.onSubmit && this.opts.onSubmit(isValid, this)?.finally(() => {
             this.isSubmitting = false;
             this.host.requestUpdate();
         })
