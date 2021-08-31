@@ -28,6 +28,10 @@ export class State<T extends Dictionary<any>> {
         return this.state
     }
 
+    resetState() {
+        this.state = {...this.initialState};
+    }
+
     getInitialState(): T {
         return this.initialState;
     }
