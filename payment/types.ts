@@ -1,6 +1,14 @@
 import {SubscriptionManager} from "./subscription";
 
-export interface Plan {
+export interface UserPaymentProperties {
+    _id: string;
+
+    paymentData?: {
+        lastCCard?: string
+    }
+}
+
+export interface PaymentPlan {
     getId(): string;
 
     price: number;
@@ -9,14 +17,6 @@ export interface Plan {
         provider: "stripe";
         providerPlanId: string;
     }]
-}
-
-export interface UserPaymentProperties {
-    _id: string;
-
-    paymentData?: {
-        lastCCard?: string
-    }
 }
 
 export interface UserSubscriptionProperties extends UserPaymentProperties {
@@ -38,4 +38,4 @@ export type StripeConfig = {
     apiKey: string,
 }
 export type ProviderConfig = StripeConfig
-export type InitializedProviders<U extends UserSubscriptionProperties, P extends Plan, C extends ProviderConfig[]> = ReturnType<SubscriptionManager<U, P, C>["providerInitializer"]>;
+export type InitializedProviders<U extends UserSubscriptionProperties, P extends PaymentPlan, C extends ProviderConfig[]> = ReturnType<SubscriptionManager<U, P, C>["providerInitializer"]>;
