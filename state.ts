@@ -30,6 +30,7 @@ export class State<T extends Dictionary<any>> {
 
     resetState() {
         this.state = {...this.initialState};
+        this.runSubscribers();
     }
 
     getInitialState(): T {
