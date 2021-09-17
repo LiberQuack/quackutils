@@ -1,6 +1,6 @@
 import {SubscriptionManager} from "./subscription";
 
-export interface UserPaymentProperties {
+export type UserPaymentProperties = {
     _id: string;
 
     paymentData?: {
@@ -8,18 +8,16 @@ export interface UserPaymentProperties {
     }
 }
 
-export interface PaymentPlan {
-    getId(): string;
-
+export type PaymentPlan = {
+    _id: string;
     price: number;
-
-    providers: [{
+    providersData: Array<{
         provider: "stripe";
         providerPlanId: string;
-    }]
+    }>
 }
 
-export interface UserSubscriptionProperties extends UserPaymentProperties {
+export type UserSubscriptionProperties = UserPaymentProperties & {
     currentSubscription?: {
         planId: string;
         subscriptionId: string,
