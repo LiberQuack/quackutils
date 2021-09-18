@@ -9,7 +9,7 @@ export type UnArray<T> = T extends Array<infer U> ? U : never
 
 export type ConditionalType<Boolean, X, Y> = Boolean extends true ? X : Y;
 
-type NativeType = Date | number | string | boolean | undefined
+type NativeType = Date | number | string | boolean | undefined | null
 
 export type Pojo = {
     [x: string]: NativeType | NativeType[] | Pojo | Pojo[]

@@ -1,4 +1,4 @@
-import {CustomElement} from "../../../src/ui/ui-types";
+import {CustomElement} from "../ui-types";
 import {css} from "../../../src/ui/util/css";
 import {useEffect, useRef, useState} from "haunted/lib/core";
 import debounce from "debounce";
@@ -49,6 +49,7 @@ export const SmartOverflow: CustomElement<{ items: JSX.Element[] }, SmartOverflo
 
         for (let i = 0; i < children.length; i++) {
             let child = children[i];
+            if (!child) continue;
             let childWidth = Math.floor(child.getBoundingClientRect().width);
             widthAcc += childWidth;
             if (widthAcc > width) {

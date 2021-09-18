@@ -1,0 +1,16 @@
+import {Assign} from "utility-types";
+
+interface CustomElementProps {
+    id$?: string;
+    class$?: HTMLElement["className"];
+    style$?: string;
+}
+
+type Events = {[x:string]: (e: CustomEvent) => void}
+
+type This<P extends object = {}> = Assign<HTMLElement, P>;
+export type Props<P extends object = {}, E extends Events = {}> = Assign<Partial<HTMLElement & CustomElementProps>, P & E>;
+export type ControlProps<P extends object = {}> = Assign<{ name: string, label: any, value?: any, errMsg?: any }, P>;
+
+export type CustomElement<P extends object= {}, E extends Events = {}> = (this: This<P>, props: Props<P, E>) => JSX.Element
+export type CustomControlElement<P extends object= {}, E extends Events = {}> = (this: This<ControlProps<P>>, props: Props<ControlProps<P>, E>) => JSX.Element
