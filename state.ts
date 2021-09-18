@@ -16,12 +16,18 @@ export class State<T extends Dictionary<any>> {
     public isUpdating = false;
     public error: any;
 
-    constructor(
-        public readonly id: string,
-        state: T
-    ) {
-        this.state = state as DeepReadonly<T>;
+    private static instances: State<any>[] = []
+
+    constructor(public readonly id: string, state: T, opts?: {preventInstanceTracking: boolean}) {
+        this.state = state;
         this.initialState = state;
+        if (!opts?.preventInstanceTracking) {
+            State.instances.push(this);
+        }
+    }
+
+    static getInstances() {
+        return State.instances;
     }
 
     getState(): T {
