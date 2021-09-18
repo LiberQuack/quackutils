@@ -4,7 +4,7 @@ export type UserPaymentProperties = {
     _id: string;
 
     paymentData?: {
-        lastCCard?: string
+        defaultCCard?: string
     }
 }
 
