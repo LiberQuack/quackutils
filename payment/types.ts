@@ -1,12 +1,19 @@
-import {SubscriptionManager} from "./subscription";
+import Stripe from "stripe";
 
-export type UserPaymentProperties = {
+export type ProviderMinimalProperties = { provider: string };
+export type EnforcePaymentProviderBase<T extends ProviderMinimalProperties> = T
+
+export type UserPaymentAccount = {
     _id: string;
+    email: string;
 
-    paymentData?: {
-        defaultCCard?: string
-    }
+    payment?: Partial<UserPaymentAccountProperties>
 }
+
+export type UserPaymentAccountProperties = {
+    providerInUse: string,
+    accounts: EnforcePaymentProviderBase<ProviderMinimalProperties>[]
+};
 
 export type PaymentPlan = {
     _id: string;
@@ -17,7 +24,7 @@ export type PaymentPlan = {
     }>
 }
 
-export type UserSubscriptionProperties = UserPaymentProperties & {
+export type UserSubscriptionProperties = UserPaymentAccount & {
     currentSubscription?: {
         planId: string;
         subscriptionId: string,
@@ -26,14 +33,7 @@ export type UserSubscriptionProperties = UserPaymentProperties & {
         downgradeFromPlan: string;
         downgradePeriodEnd: Date | null;
 
-        provider: "stripe";
+        provider: string;
         providerCustomerId: string;
     }
 }
-
-export type StripeConfig = {
-    provider: "stripe",
-    apiKey: string,
-}
-export type ProviderConfig = StripeConfig
-export type InitializedProviders<U extends UserSubscriptionProperties, P extends PaymentPlan, C extends ProviderConfig[]> = ReturnType<SubscriptionManager<U, P, C>["providerInitializer"]>;

@@ -1,36 +1,14 @@
-import {InitializedProviders, PaymentPlan, ProviderConfig, UserSubscriptionProperties} from "./types";
-import Stripe from "stripe";
-import {RequiredKeys, ValuesType} from "utility-types";
-import {AugmentedRequired} from "utility-types/dist/mapped-types";
+import {PaymentPlan, ProviderMinimalProperties, UserSubscriptionProperties} from "./types";
+import {PaymentManager} from "./payment-manager";
 
 /**
  * For now stripe is the only supported provider, but this code is half prepared for next providers
  */
 const PROVIDER = "stripe";
 
-export class SubscriptionManager<U extends UserSubscriptionProperties, P extends PaymentPlan, C extends ProviderConfig[]> {
+export class SubscriptionManager<U extends UserSubscriptionProperties, P extends PaymentPlan, C extends ProviderMinimalProperties[]> extends PaymentManager<U, P, C> {
 
-    private providers: InitializedProviders<U, P, C>;
-
-    constructor(providerConfigs: C) {
-        this.providers = this.providerInitializer(providerConfigs);
-    }
-
-    private providerInitializer(providerConfigs: C) {
-        let initializedProviders = [];
-
-        for (let providerConfig of providerConfigs) {
-            if (providerConfig.provider === "stripe") {
-                initializedProviders.push({...providerConfig, client: new Stripe(providerConfig.apiKey, {apiVersion: "2020-08-27"})})
-            }
-
-            console.warn(`SubscriptionManager: Could not initialize provider ${providerConfig.provider}`);
-        }
-
-        return initializedProviders;
-    }
-
-    subscribe(provider: ValuesType<(InitializedProviders<U, P, C>)>["provider"], nextPlan: P, currentPlan: P | undefined, user: U, opts: { forceCCard?: boolean, save: (partialUser: U) => Promise<void> }) {
+    subscribe(provider: "provider", nextPlan: P, currentPlan: P | undefined, user: U, opts: { forceCCard?: boolean, save: (partialUser: U) => Promise<void> }) {
         // console.log(`Starting subscription for user ${user.getId()} with plan ${nextPlan.getId()}`);
         //
         // const currentSubscription = user.currentSubscription;
@@ -92,16 +70,12 @@ export class SubscriptionManager<U extends UserSubscriptionProperties, P extends
 
     }
 
-    //TODO: Analyze if it's needed
-    createCard() {
-
-    }
-
     verifyBillings() {
 
     }
 
 }
+
 export async function saveBillingInfo(user: UserSubscriptionProperties, nextPlan: PaymentPlan, periodEnd: Date | null) {
     // if (!user || !nextPlan) {
     //     throw "Unexpected error, could not find one or more of these items {user, plan, periodEnd}"
