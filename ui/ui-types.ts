@@ -14,3 +14,5 @@ export type ControlProps<P extends object = {}> = Assign<{ name: string, label: 
 
 export type CustomElement<P extends object= {}, E extends Events = {}> = (this: This<P>, props: Props<P, E>) => JSX.Element
 export type CustomControlElement<P extends object= {}, E extends Events = {}> = (this: This<ControlProps<P>>, props: Props<ControlProps<P>, E>) => JSX.Element
+
+export type CustomEventType<T extends Events, K extends keyof T> = (Parameters<T[K]>[0])
