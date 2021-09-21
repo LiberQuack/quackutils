@@ -7,7 +7,7 @@ export class PaypalPaymentProvider implements PaymentAccountProvider<{ createCar
     provider:"paypal" = "paypal";
 
     async createCard(user: UserPaymentAccount, data: { createCard: "xisto" }): Promise<{ cardResult: "onion", provider: "paypal" }> {
-        return user.payment
+        return { cardResult: "onion", provider: "paypal" }
     }
 
 }
