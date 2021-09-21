@@ -18,6 +18,11 @@ export function dictionaryForEach<T>(dict: Dictionary<T>, cb: (entry: T, key: st
     })
 }
 
+/**
+ * Returns a list for each entry
+ * @param dict
+ * @param cb
+ */
 export function dictionaryMap<T, R>(dict: Dictionary<T>, cb: (entry: T, key: string) => R) {
     return Object.keys(dict).map(key => {
         return cb(dict[key], key);

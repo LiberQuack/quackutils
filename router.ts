@@ -48,7 +48,7 @@ export const initRouter = (pathTemplates: string[]) => {
 
     function queryObjToString(queryObj: RouteStateType["queryObj"]): string {
         const keys = Object.keys(queryObj);
-        return keys.length > 0 ? "?" + keys.map(key => `${encodeURIComponent(key)}=${encodeURIComponent(queryObj[key]!)}`) : "";
+        return keys.length > 0 ? "?" + keys.map(key => `${encodeURIComponent(key)}=${encodeURIComponent(queryObj[key]!)}`).join("&") : "";
     }
 
     function navigate(to: string): void {
@@ -62,12 +62,13 @@ export const initRouter = (pathTemplates: string[]) => {
     }
 
     function replace(to: string): void {
-        const navigationHistory = [...routeState.getState().navigationHistory];
+        const currentRouteState = routeState.getState();
+        const navigationHistory = [...currentRouteState.navigationHistory];
 
         if (to === navigationHistory[navigationHistory.length - 2]) {
             history.back();
         } else {
-            history.replaceState(null, "", to);
+            history.replaceState(null, "", to === "" ? currentRouteState.path : to);
             const nextNavHistory = [...navigationHistory.slice(0, navigationHistory.length - 1), to]
             _update(nextNavHistory);
         }

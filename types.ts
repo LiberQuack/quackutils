@@ -8,6 +8,7 @@ export type Dictionary<T> = {
 export type UnPartial<T> = T extends Partial<infer U> ? U : never
 
 export type Nullable<T> = T | null;
+export type Undefinable<T> = T | undefined;
 
 export type UnArray<T> = T extends Array<infer U> ? U : never
 
