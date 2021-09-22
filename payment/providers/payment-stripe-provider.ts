@@ -1,5 +1,5 @@
 import {PaymentAccountProvider, SubscriptionProvider} from "./types";
-import {EnforcePaymentProviderBase, UserPaymentAccount} from "../types";
+import {EnforcePaymentProviderBase, ProviderMinimalProperties, UserPaymentAccount} from "../types";
 import {Stripe} from "stripe";
 
 export type PaymentStripeAccount = EnforcePaymentProviderBase<{
@@ -17,13 +17,30 @@ export class PaymentStripeProvider implements PaymentAccountProvider, Subscripti
         this.stripe = new Stripe(apiKey, {apiVersion: "2020-08-27"})
     }
 
+    async updateDefaultCard(user: UserPaymentAccount, cardIdentifier: string): Promise<PaymentStripeAccount> {
+        const stripeAccount = this._getStripeAccount(user);
+        if (!stripeAccount) {
+            throw `User ${user._id} doesn't have a stripe account`;
+        }
+
+        const response = await this.stripe.customers.update(stripeAccount.customer.id, {default_source: cardIdentifier});
+        const {lastResponse, ...customer} = response;
+
+        return {
+            ...stripeAccount,
+            customer
+        }
+    }
+
     async createCard(user: UserPaymentAccount, data: Stripe.Token): Promise<PaymentStripeAccount> {
-        const stripeAccount = await this._extractOrCreateStripeAccount(user);
+        const stripeAccount = this._getStripeAccount(user) || await this._createStripeAccount(user);
 
         const sourceListResponse = await this.stripe.customers.listSources(stripeAccount.customer.id, {object: 'card'});
         const currentCardSources = sourceListResponse.data as Stripe.Card[];
         const createdSource = await this.stripe.customers.createSource(stripeAccount.customer.id, {source: data.id}) as Stripe.Card;
+        const {lastResponse, ...customer} = await this.stripe.customers.retrieve(stripeAccount.customer.id);
 
+        stripeAccount.customer = customer as Stripe.Customer;
         stripeAccount.paymentSources = [
             createdSource,
             ...currentCardSources
@@ -32,15 +49,10 @@ export class PaymentStripeProvider implements PaymentAccountProvider, Subscripti
         return stripeAccount;
     }
 
-    private async _extractOrCreateStripeAccount(user: UserPaymentAccount): Promise<PaymentStripeAccount> {
+    private _getStripeAccount(user: UserPaymentAccount) {
         const paymentAccounts = user.payment?.accounts
-        const stripeExistingAccount = paymentAccounts && paymentAccounts.find(it => it.provider === this.provider) as PaymentStripeAccount | undefined
-
-        if (stripeExistingAccount) {
-            return stripeExistingAccount
-        } else {
-            return this._createStripeAccount(user);
-        }
+        const stripeExistingAccount = (paymentAccounts && paymentAccounts.find(it => it.provider === this.provider)) as PaymentStripeAccount | undefined
+        return stripeExistingAccount;
     }
 
     private async _createStripeAccount(user: UserPaymentAccount): Promise<PaymentStripeAccount> {

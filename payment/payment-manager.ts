@@ -27,4 +27,21 @@ export class PaymentManager<U extends UserSubscriptionProperties, P extends Paym
         return {account: userPaymentAccount};
     }
 
+    async updateDefaultCard<PN extends ValuesType<PP>["provider"]>(
+        user: UserPaymentAccount,
+        providerName: PN,
+        card: Parameters<Extract<ValuesType<PP>, PaymentAccountProvider & { provider: PN }>["updateDefaultCard"]>[1]
+    ): Promise<{ account: ValuesType<UserPaymentAccountProperties["accounts"]> }> {
+
+        const accountProviders = this.providers.filter(it => "updateDefaultCard" in it) as PaymentAccountProvider[];
+        const provider = accountProviders.find(it => it.provider === providerName);
+
+        if (!provider) {
+            throw `Cannot create card for provider ${providerName}... Expected one of [${accountProviders.map(it => it.provider)}]`
+        }
+
+        const userPaymentAccount = await provider.updateDefaultCard(user, card);
+        return {account: userPaymentAccount};
+    }
+
 }

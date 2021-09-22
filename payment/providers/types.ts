@@ -9,10 +9,11 @@ export interface PaymentAccountProvider<CCD = unknown> extends BasePaymentProvid
 
     createCard(user: UserPaymentAccount, data: CCD): Promise<ValuesType<UserPaymentAccountProperties["accounts"]>>;
 
+    updateDefaultCard(user: UserPaymentAccount, cardIdentifier: string): Promise<ValuesType<UserPaymentAccountProperties["accounts"]>>;
+
 }
 
 export interface PaymentProvider extends BasePaymentProvider{
-
 
 
 }
