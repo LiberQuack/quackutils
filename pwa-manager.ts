@@ -2,7 +2,6 @@ import {BeforeInstallPromptEvent} from "./types";
 import {State} from "./state";
 import {inlineErr} from "./inline-error";
 import toUint8Array from 'urlb64touint8array';
-import {apiClient} from "../src/app/api-client";
 
 export class PwaManager {
 
