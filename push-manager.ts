@@ -1,5 +1,5 @@
 import PushNotifications, {Data, Settings} from 'node-pushnotifications';
-import { log } from '../src/utils/log';
+import {log} from '../src/utils/log';
 import {NotificationSubscription} from "./pwa-manager";
 
 
