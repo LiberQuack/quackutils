@@ -61,12 +61,11 @@ export class StatePersistor {
                 const initialData = await db.get(stateItem.name, "data");
                 if (initialData) {
                     console.log(`Initial data loaded for state`, stateItem.name);
-
-                    await stateItem.state.releaseUpdates((s) => {
-                        Object.assign(s, initialData);
-                    });
-
                 }
+
+                await stateItem.state.releaseUpdates((s) => {
+                    Object.assign(s, initialData);
+                });
             }));
 
             this.stateList.map((stateItem) => {
