@@ -1,5 +1,5 @@
 import {PaymentAccountProvider, SubscriptionProvider} from "./types";
-import {PaymentEnforceProviderBase, PaymentProviderMinimalProperties, PaymentUser, PaymentProduct, PaymentUserAccountsProperties} from "../types";
+import {PaymentEnforceProviderBase, PaymentProduct, PaymentUser, PaymentUserAccountsProperties} from "../types";
 import {Stripe} from "stripe";
 
 export type PaymentStripeAccount = PaymentEnforceProviderBase<{

@@ -2,7 +2,7 @@ import {PaymentCheckout, PaymentProduct, PaymentUser, PaymentUserAccountsPropert
 import {ValuesType} from "utility-types";
 import {PaymentAccountProvider, PaymentProvider, SubscriptionProvider} from "./manager-providers/types";
 
-export abstract class PaymentManager<U extends PaymentUserSubscriptionProperties, P extends PaymentProduct, PP extends (PaymentAccountProvider | PaymentProvider | SubscriptionProvider)[] = any> {
+export abstract class PaymentManager<U extends PaymentUserSubscriptionProperties, P extends PaymentProduct, PP extends (PaymentAccountProvider | PaymentProvider | SubscriptionProvider)[]> {
 
     providers: PP;
 

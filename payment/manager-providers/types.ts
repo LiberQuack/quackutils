@@ -5,9 +5,9 @@ export interface PaymentBaseProvider {
     provider: string;
 }
 
-export interface PaymentAccountProvider<CCD = unknown> extends PaymentBaseProvider {
+export interface PaymentAccountProvider extends PaymentBaseProvider {
 
-    createCard(user: PaymentUser, data: CCD): Promise<ValuesType<PaymentUserAccountsProperties["accounts"]>>;
+    createCard(user: PaymentUser, data: any): Promise<ValuesType<PaymentUserAccountsProperties["accounts"]>>;
 
     updateDefaultCard(user: PaymentUser, cardIdentifier: string): Promise<ValuesType<PaymentUserAccountsProperties["accounts"]>>;
 

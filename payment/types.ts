@@ -111,5 +111,5 @@ export type PaymentCheckout = {
 
 //Utility
 export type ProviderName<PM extends PaymentManager<any, any, any>> = ValuesType<PM["providers"]>["provider"]
-export type CreateCardData<PM extends PaymentManager<any, any, any>> = Parameters<Extract<ValuesType<PM["providers"]>, PaymentAccountProvider<any>>["createCard"]>[1]
-export type CreateCardResults<PM extends PaymentManager<any, any, any>> = PromiseType<ReturnType<Extract<ValuesType<PM["providers"]>, PaymentAccountProvider<any>>["createCard"]>>
+export type CreateCardData<PM extends PaymentManager<any, any, any>> = Parameters<Extract<ValuesType<PM["providers"]>, PaymentAccountProvider>["createCard"]>[1]
+export type CreateCardResults<PM extends PaymentManager<any, any, any>> = PromiseType<ReturnType<Extract<ValuesType<PM["providers"]>, PaymentAccountProvider>["createCard"]>>
