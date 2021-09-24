@@ -17,6 +17,16 @@ export type PaymentUserAccountsProperties = {
     accounts: PaymentEnforceProviderBase<PaymentProviderMinimalProperties>[]
 };
 
+export type PaymentProduct = {
+    _id: string;
+    price: number;
+    type: "product" | "plan"
+    providersData: Array<{
+        provider: "stripe";
+        providerPlanId: string;
+    }>
+}
+
 export type PaymentUserSubscriptionProperties = PaymentUser & {
     currentSubscription?: {
         planId: string;

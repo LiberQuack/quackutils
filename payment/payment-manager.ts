@@ -1,4 +1,4 @@
-import {PaymentCheckout, PaymentProduct, PaymentUser, PaymentUserAccountsProperties, PaymentUserSubscriptionProperties} from "./types";
+import {PaymentProduct, PaymentUser, PaymentUserAccountsProperties, PaymentUserSubscriptionProperties, PaymentCheckout} from "./types";
 import {ValuesType} from "utility-types";
 import {PaymentAccountProvider, PaymentProvider, SubscriptionProvider} from "./manager-providers/types";
 
