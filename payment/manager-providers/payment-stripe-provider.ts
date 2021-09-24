@@ -1,8 +1,8 @@
 import {PaymentAccountProvider, SubscriptionProvider} from "./types";
-import {EnforcePaymentProviderBase, ProviderMinimalProperties, UserPaymentAccount} from "../types";
+import {PaymentEnforceProviderBase, PaymentProviderMinimalProperties, PaymentUser, PaymentProduct, PaymentUserAccountsProperties} from "../types";
 import {Stripe} from "stripe";
 
-export type PaymentStripeAccount = EnforcePaymentProviderBase<{
+export type PaymentStripeAccount = PaymentEnforceProviderBase<{
     provider: "stripe",
     customer: Stripe.Customer
     paymentSources: Array<Stripe.Card>
@@ -17,7 +17,7 @@ export class PaymentStripeProvider implements PaymentAccountProvider, Subscripti
         this.stripe = new Stripe(apiKey, {apiVersion: "2020-08-27"})
     }
 
-    async updateDefaultCard(user: UserPaymentAccount, cardIdentifier: string): Promise<PaymentStripeAccount> {
+    async updateDefaultCard(user: PaymentUser, cardIdentifier: string): Promise<PaymentStripeAccount> {
         const stripeAccount = this._getStripeAccount(user);
         if (!stripeAccount) {
             throw `User ${user._id} doesn't have a stripe account`;
@@ -32,7 +32,7 @@ export class PaymentStripeProvider implements PaymentAccountProvider, Subscripti
         }
     }
 
-    async createCard(user: UserPaymentAccount, data: Stripe.Token): Promise<PaymentStripeAccount> {
+    async createCard(user: PaymentUser, data: Stripe.Token): Promise<PaymentStripeAccount> {
         const stripeAccount = this._getStripeAccount(user) || await this._createStripeAccount(user);
 
         const sourceListResponse = await this.stripe.customers.listSources(stripeAccount.customer.id, {object: 'card'});
@@ -49,13 +49,17 @@ export class PaymentStripeProvider implements PaymentAccountProvider, Subscripti
         return stripeAccount;
     }
 
-    private _getStripeAccount(user: UserPaymentAccount) {
+    async subscribeToPlan(user: PaymentUser, plan: PaymentProduct): Promise<Partial<PaymentUserAccountsProperties>> {
+        return {};
+    }
+
+    private _getStripeAccount(user: PaymentUser) {
         const paymentAccounts = user.payment?.accounts
         const stripeExistingAccount = (paymentAccounts && paymentAccounts.find(it => it.provider === this.provider)) as PaymentStripeAccount | undefined
         return stripeExistingAccount;
     }
 
-    private async _createStripeAccount(user: UserPaymentAccount): Promise<PaymentStripeAccount> {
+    private async _createStripeAccount(user: PaymentUser): Promise<PaymentStripeAccount> {
         const customerResponse = await this.stripe.customers.create({email: user.email});
         const {lastResponse, ...customer} = customerResponse
         const stripeAccount: PaymentStripeAccount = {provider: this.provider, customer: customer, paymentSources: []};
