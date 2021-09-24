@@ -1,8 +1,8 @@
 import {PaymentAccountProvider, SubscriptionProvider} from "./types";
-import {EnforcePaymentProviderBase, UserPaymentAccount} from "../types";
+import {PaymentEnforceProviderBase, PaymentUser} from "../types";
 import {Stripe} from "stripe";
 
-export type PaymentStripeAccount = EnforcePaymentProviderBase<{
+export type PaymentStripeAccount = PaymentEnforceProviderBase<{
     provider: "stripe",
     customer: Stripe.Customer
     paymentSources: Array<Stripe.Card>
@@ -17,7 +17,7 @@ export class PaymentStripeProvider implements PaymentAccountProvider, Subscripti
         this.stripe = new Stripe(apiKey, {apiVersion: "2020-08-27"})
     }
 
-    async createCard(user: UserPaymentAccount, data: Stripe.Token): Promise<PaymentStripeAccount> {
+    async createCard(user: PaymentUser, data: Stripe.Token): Promise<PaymentStripeAccount> {
         const stripeAccount = await this._extractOrCreateStripeAccount(user);
 
         const sourceListResponse = await this.stripe.customers.listSources(stripeAccount.customer.id, {object: 'card'});
@@ -32,7 +32,7 @@ export class PaymentStripeProvider implements PaymentAccountProvider, Subscripti
         return stripeAccount;
     }
 
-    private async _extractOrCreateStripeAccount(user: UserPaymentAccount): Promise<PaymentStripeAccount> {
+    private async _extractOrCreateStripeAccount(user: PaymentUser): Promise<PaymentStripeAccount> {
         const paymentAccounts = user.payment?.accounts
         const stripeExistingAccount = paymentAccounts && paymentAccounts.find(it => it.provider === this.provider) as PaymentStripeAccount | undefined
 
@@ -43,7 +43,7 @@ export class PaymentStripeProvider implements PaymentAccountProvider, Subscripti
         }
     }
 
-    private async _createStripeAccount(user: UserPaymentAccount): Promise<PaymentStripeAccount> {
+    private async _createStripeAccount(user: PaymentUser): Promise<PaymentStripeAccount> {
         const customerResponse = await this.stripe.customers.create({email: user.email});
         const {lastResponse, ...customer} = customerResponse
         const stripeAccount: PaymentStripeAccount = {provider: this.provider, customer: customer, paymentSources: []};

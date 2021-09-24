@@ -1,4 +1,4 @@
-import {UserPaymentAccount, UserPaymentAccountProperties} from "../types";
+import {PaymentUser, PaymentUserAccountsProperties} from "../types";
 import {ValuesType} from "utility-types";
 
 export interface BasePaymentProvider {
@@ -7,7 +7,7 @@ export interface BasePaymentProvider {
 
 export interface PaymentAccountProvider<CCD = unknown> extends BasePaymentProvider{
 
-    createCard(user: UserPaymentAccount, data: CCD): Promise<ValuesType<UserPaymentAccountProperties["accounts"]>>;
+    createCard(user: PaymentUser, data: CCD): Promise<ValuesType<PaymentUserAccountsProperties["accounts"]>>;
 
 }
 

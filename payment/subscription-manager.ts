@@ -1,4 +1,4 @@
-import {PaymentPlan, ProviderMinimalProperties, UserSubscriptionProperties} from "./types";
+import {PaymentProduct, PaymentProviderMinimalProperties, PaymentUserSubscriptionProperties} from "./types";
 import {PaymentManager} from "./payment-manager";
 
 /**
@@ -6,7 +6,7 @@ import {PaymentManager} from "./payment-manager";
  */
 const PROVIDER = "stripe";
 
-export class SubscriptionManager<U extends UserSubscriptionProperties, P extends PaymentPlan, C extends ProviderMinimalProperties[]> extends PaymentManager<U, P, C> {
+export class SubscriptionManager<U extends PaymentUserSubscriptionProperties, P extends PaymentProduct, C extends PaymentProviderMinimalProperties[]> extends PaymentManager<U, P, C> {
 
     subscribe(provider: "provider", nextPlan: P, currentPlan: P | undefined, user: U, opts: { forceCCard?: boolean, save: (partialUser: U) => Promise<void> }) {
         // console.log(`Starting subscription for user ${user.getId()} with plan ${nextPlan.getId()}`);
@@ -76,7 +76,7 @@ export class SubscriptionManager<U extends UserSubscriptionProperties, P extends
 
 }
 
-export async function saveBillingInfo(user: UserSubscriptionProperties, nextPlan: PaymentPlan, periodEnd: Date | null) {
+export async function saveBillingInfo(user: PaymentUserSubscriptionProperties, nextPlan: PaymentProduct, periodEnd: Date | null) {
     // if (!user || !nextPlan) {
     //     throw "Unexpected error, could not find one or more of these items {user, plan, periodEnd}"
     // }

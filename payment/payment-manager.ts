@@ -1,8 +1,8 @@
-import {PaymentPlan, UserPaymentAccount, UserPaymentAccountProperties, UserSubscriptionProperties} from "./types";
+import {PaymentProduct, PaymentUser, PaymentUserAccountsProperties, PaymentUserSubscriptionProperties} from "./types";
 import {ValuesType} from "utility-types";
 import {PaymentAccountProvider, PaymentProvider, SubscriptionProvider} from "./providers/types";
 
-export class PaymentManager<U extends UserSubscriptionProperties, P extends PaymentPlan, PP extends (PaymentAccountProvider | PaymentProvider | SubscriptionProvider)[]> {
+export class PaymentManager<U extends PaymentUserSubscriptionProperties, P extends PaymentProduct, PP extends (PaymentAccountProvider | PaymentProvider | SubscriptionProvider)[]> {
 
     providers: PP;
 
@@ -11,10 +11,10 @@ export class PaymentManager<U extends UserSubscriptionProperties, P extends Paym
     }
 
     async createCard<PN extends ValuesType<PP>["provider"]>(
-        user: UserPaymentAccount,
+        user: PaymentUser,
         providerName: PN,
         card: Parameters<Extract<ValuesType<PP>, PaymentAccountProvider & { provider: PN }>["createCard"]>[1]
-    ): Promise<{ account: ValuesType<UserPaymentAccountProperties["accounts"]> }> {
+    ): Promise<{ account: ValuesType<PaymentUserAccountsProperties["accounts"]> }> {
 
         const accountProviders = this.providers.filter(it => "createCard" in it) as PaymentAccountProvider[];
         const provider = accountProviders.find(it => it.provider === providerName);

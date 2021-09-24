@@ -2,31 +2,32 @@ import {PaymentManager} from "./payment-manager";
 import {PromiseType, ValuesType} from "utility-types";
 import {PaymentAccountProvider} from "./providers/types";
 
-export type ProviderMinimalProperties = { provider: string };
-export type EnforcePaymentProviderBase<T extends ProviderMinimalProperties> = T
+export type PaymentProviderMinimalProperties = { provider: string };
+export type PaymentEnforceProviderBase<T extends PaymentProviderMinimalProperties> = T
 
-export type UserPaymentAccount = {
+export type PaymentUser = {
     _id: string;
     email: string;
 
-    payment?: Partial<UserPaymentAccountProperties>
+    payment?: Partial<PaymentUserAccountsProperties>
 }
 
-export type UserPaymentAccountProperties = {
+export type PaymentUserAccountsProperties = {
     providerInUse: string,
-    accounts: EnforcePaymentProviderBase<ProviderMinimalProperties>[]
+    accounts: PaymentEnforceProviderBase<PaymentProviderMinimalProperties>[]
 };
 
-export type PaymentPlan = {
+export type PaymentProduct = {
     _id: string;
     price: number;
+    type: "product" | "plan"
     providersData: Array<{
         provider: "stripe";
         providerPlanId: string;
     }>
 }
 
-export type UserSubscriptionProperties = UserPaymentAccount & {
+export type PaymentUserSubscriptionProperties = PaymentUser & {
     currentSubscription?: {
         planId: string;
         subscriptionId: string,
