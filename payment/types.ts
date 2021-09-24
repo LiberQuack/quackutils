@@ -101,6 +101,7 @@ export type PaymentCheckout = {
 
     items: Array<{
         productId: PaymentProduct["_id"];
+        product?: PaymentProduct
         type: PaymentProduct["type"];
         pctOff?: number;
         valueOff?: number;

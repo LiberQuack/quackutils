@@ -4,7 +4,7 @@ import {PaymentProduct, PaymentUser, PaymentUserAccountsProperties} from "../typ
 type PaymentPayPalAccount = { cardResult: "onion", provider: "paypal" };
 
 //TODO: Implement real class
-export class PaypalPaymentProvider implements PaymentAccountProvider<{ createCard: "xisto" }>, SubscriptionProvider {
+export class PaypalPaymentProvider implements PaymentAccountProvider, SubscriptionProvider {
 
     provider:"paypal" = "paypal";
 
