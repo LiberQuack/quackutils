@@ -22,7 +22,7 @@ export class StatePersistor {
      * @param name
      * @param state
      */
-    add(name: string, state: State<Pojo>) {
+    add<T extends {ready: boolean}>(name: string, state: State<Pojo & T>) {
         state.holdUpdates();
         this.stateList.push({name, state})
     }
@@ -64,14 +64,15 @@ export class StatePersistor {
                 }
 
                 await stateItem.state.releaseUpdates((s) => {
-                    Object.assign(s, initialData);
+                    Object.assign(s, initialData, {ready: true});
                 });
             }));
 
             this.stateList.map((stateItem) => {
                 stateItem.state.subscribe(async () => {
                     if (!this.clearing) {
-                        await db.put(stateItem.name, stateItem.state.getState(), "data");
+                        const {ready, ...state} = stateItem.state.getState();
+                        await db.put(stateItem.name, state, "data");
                     }
                 });
             });
