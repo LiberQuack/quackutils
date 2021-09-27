@@ -1,8 +1,8 @@
 import {PaymentCheckout} from "../types";
-import {PaymentBaseProvider} from "../manager-providers/types";
+import {PaymentProviderBaseProperties} from "../manager-providers/types";
 
-export interface PaymentClientProvider extends PaymentBaseProvider {
+export interface PaymentClientProvider extends PaymentProviderBaseProperties {
 
-    preCheckout(checkout: PaymentCheckout): Promise<any | void>;
+    checkout(checkout: PaymentCheckout): Promise<PaymentCheckout>;
 
 }
