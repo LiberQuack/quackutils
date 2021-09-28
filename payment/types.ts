@@ -1,13 +1,13 @@
 import {PaymentManager} from "./payment-manager";
 import {ValuesType} from "utility-types";
-import {PaymentAccountProvider} from "./manager-providers/types";
+import {PaymentAccountProvider, PaymentProviderCheckout} from "./manager-providers/types";
 
 export type PaymentProviderMinimalProperties = { provider: string };
 export type PaymentEnforceProviderBase<T extends PaymentProviderMinimalProperties> = T
 export type PaymentUserAccount = PaymentProviderMinimalProperties
 
 export type PaymentUserData = {
-    lastCheckout?: PaymentCheckout;
+    lastCheckout?: PaymentProviderCheckout;
     accounts?: PaymentUserAccount[];
     subscription?: PaymentUserSubscriptionProperties;
 };
