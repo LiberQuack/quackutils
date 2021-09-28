@@ -17,6 +17,7 @@ type RouteStateType = {
 const paramValueRegex = /(.+?)(?=\/|$|#|\?)/g;
 const paramRegex = new RegExp(`:${paramValueRegex.source}`, "g");
 
+//TODO: Improve and make it more simple
 export const initRouter = (pathTemplates: string[]) => {
 
     function getQueryObj(search: string) {

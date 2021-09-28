@@ -3,8 +3,8 @@ import * as s from "superstruct";
 import objectPath from "object-path"
 import {Dictionary} from "./types";
 
-export type FormControllerOpts = Partial<{
-    onSubmit: (isFormValid: boolean, form: FormController) => undefined | Promise<void>
+export type FormControllerOpts<T = any> = Partial<{
+    onSubmit: (isFormValid: boolean, form: FormController<T>) => undefined | Promise<void>
     debug: boolean;
 }>
 
