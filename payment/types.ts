@@ -7,7 +7,7 @@ export type PaymentEnforceProviderBase<T extends PaymentProviderMinimalPropertie
 export type PaymentUserAccount = PaymentProviderMinimalProperties
 
 export type PaymentUserData = {
-    lastCheckout?: PaymentCheckout | PaymentProviderCheckout;
+    lastCheckout?: PaymentProviderCheckout;
     accounts?: PaymentUserAccount[];
     subscription?: PaymentUserSubscriptionProperties;
 };

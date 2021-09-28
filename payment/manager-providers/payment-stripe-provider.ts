@@ -41,6 +41,7 @@ export class PaymentStripeProvider implements PaymentAccountProvider<PaymentStri
         const {lastResponse, ...customer} = await this.stripe.customers.retrieve(stripeAccount.customer.id);
 
         stripeAccount.customer = customer as Stripe.Customer;
+
         stripeAccount.paymentSources = [
             createdSource,
             ...currentCardSources
@@ -83,9 +84,12 @@ export class PaymentStripeProvider implements PaymentAccountProvider<PaymentStri
             expand: ["latest_invoice", "latest_invoice.payment_intent"]
         });
 
-
         return {
-            checkout: {...checkoutObj, providerData: subscription},
+            checkout: {
+                ...checkoutObj,
+                providerData: subscription,
+                success: subscription.status === "active",
+            },
             products: ensuredProducts.generatedData,
             subscription: {
                 provider: this.provider,

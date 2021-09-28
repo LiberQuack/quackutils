@@ -16,7 +16,7 @@ export abstract class PaymentManager<U extends PaymentUser, P extends PaymentPro
         card: PaymentAccountProviderData<ValuesType<PP>>
     ): Promise<{ accounts: Array<Extract<PaymentAccountProviderType<ValuesType<PP>>, { provider: PN }> | PaymentUserAccount > }> {
 
-        const accountProviders = this.providers.filter(it => "createCard" in it) as PaymentAccountProvider[];
+        const accountProviders = this.providers.filter(it => "createCard" in it /*TODO: Improve PaymentAccountProvider detection*/) as PaymentAccountProvider[];
         const provider = accountProviders.find(it => it.provider === providerName);
 
         if (!provider) {
@@ -42,7 +42,6 @@ export abstract class PaymentManager<U extends PaymentUser, P extends PaymentPro
         providerName: PN,
         card: Parameters<Extract<ValuesType<PP>, PaymentAccountProvider & { provider: PN }>["updateDefaultCard"]>[1]
     ): Promise<{ accounts: PaymentUserAccount[] }> {
-
         const accountProviders = this.providers.filter(it => "updateDefaultCard" in it) as PaymentAccountProvider[];
         const provider = accountProviders.find(it => it.provider === providerName);
 
@@ -63,17 +62,19 @@ export abstract class PaymentManager<U extends PaymentUser, P extends PaymentPro
     }
 
     async checkout(user: U, checkout: PaymentPartialCheckout): Promise<PaymentUserData> {
-
         const providerData = await this.providerCheckout(user, checkout);
 
-        const paymentData = {
+        const paymentData: PaymentUserData = {
             ...user.payment,
             subscription: providerData.subscription,
             lastCheckout: providerData.checkout
         };
 
+        if (providerData.checkout.success) {
+            await this.updateUserPaymentProperties(user, paymentData);
+        }
+
         await this.saveProductsProviderData(providerData.products);
-        await this.updateUserPaymentProperties(user, paymentData);
 
         return paymentData
     }

@@ -9,7 +9,10 @@ export type PaymentProviderCheckoutProductsResult = {
     providerData: PaymentProductProviderData
 };
 
-export type PaymentProviderCheckout = PaymentCheckout & { providerData: any }
+export type PaymentProviderCheckout = PaymentCheckout & {
+    success: boolean;
+    providerData: any;
+}
 
 export type PaymentProviderCheckoutResult = {
     checkout: PaymentProviderCheckout,
