@@ -89,8 +89,14 @@ export const initRouter = (pathTemplates: string[]) => {
         do {
             //@ts-ignore
             if (elm.localName.toLowerCase() === "a" && (elm.protocol === location.protocol && elm.origin === location.origin && !elm.target)) {
-                //@ts-ignore
-                navigate(elm.pathname + elm.search + elm.hash)
+
+                if (elm.hasAttribute("replace")) {
+                    //@ts-ignore
+                    replace(elm.pathname + elm.search + elm.hash);
+                } else {
+                    //@ts-ignore
+                    navigate(elm.pathname + elm.search + elm.hash);
+                }
                 e.preventDefault();
             }
             if (elm.localName.toLowerCase() === "a") {
