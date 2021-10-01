@@ -13,6 +13,7 @@ export type PaymentProviderCheckout = PaymentCheckout & {
     success: boolean;
     providerData: any;
     cancelDate?: Date;
+    cancelReason?: string;
 }
 
 export type PaymentProviderCheckoutResult = {

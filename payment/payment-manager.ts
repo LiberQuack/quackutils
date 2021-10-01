@@ -2,6 +2,7 @@ import {PaymentCheckout, PaymentPartialCheckout, PaymentProduct, PaymentProductP
 import {ValuesType} from "utility-types";
 import {PaymentAccountProvider, PaymentAccountProviderData, PaymentAccountProviderType, PaymentProvider, PaymentProviderCheckout, PaymentProviderCheckoutProductsResult, PaymentProviderCheckoutResult} from "./manager-providers/types";
 import {AugmentedRequired} from "utility-types/dist/mapped-types";
+import {UserModelType} from "../../src/models/user-model";
 
 export abstract class PaymentManager<U extends PaymentUser, P extends PaymentProduct, PP extends (PaymentAccountProvider | PaymentProvider)[]> {
 
@@ -82,7 +83,7 @@ export abstract class PaymentManager<U extends PaymentUser, P extends PaymentPro
         return paymentData
     }
 
-    async cancelCheckout(user: U, checkoutId: string): Promise<PaymentUserData> {
+    async cancelCheckout(user: U, checkoutId: string, reason: string): Promise<PaymentUserData> {
         const checkout = await this.retrieveCheckout(user, checkoutId);
 
         if (!("providerData" in checkout && checkout.providerData)) {
@@ -94,7 +95,7 @@ export abstract class PaymentManager<U extends PaymentUser, P extends PaymentPro
         if (!providerInstance) throw `Provider ${checkout.provider} is unavailable, expected providers are ${this.providers.map(it => it.provider)}`;
 
         const checkoutResult: PaymentProviderCheckoutResult = await providerInstance.cancelCheckout(user, checkout);
-        const savedCheckout = await this.saveCheckout(user, {...checkoutResult.checkout, cancelDate: new Date()})
+        const savedCheckout = await this.saveCheckout(user, {...checkoutResult.checkout, cancelDate: new Date(), cancelReason: reason})
 
         const paymentData: PaymentUserData = {
             ...user.payment,
