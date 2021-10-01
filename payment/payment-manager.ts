@@ -1,6 +1,7 @@
 import {PaymentCheckout, PaymentPartialCheckout, PaymentProduct, PaymentProductProviderData, PaymentProviderMinimalProperties, PaymentUser, PaymentUserAccount, PaymentUserData} from "./types";
 import {ValuesType} from "utility-types";
-import {PaymentAccountProvider, PaymentAccountProviderData, PaymentAccountProviderType, PaymentProvider, PaymentProviderCheckoutProductsResult, PaymentProviderCheckoutResult} from "./manager-providers/types";
+import {PaymentAccountProvider, PaymentAccountProviderData, PaymentAccountProviderType, PaymentProvider, PaymentProviderCheckout, PaymentProviderCheckoutProductsResult, PaymentProviderCheckoutResult} from "./manager-providers/types";
+import {AugmentedRequired} from "utility-types/dist/mapped-types";
 
 export abstract class PaymentManager<U extends PaymentUser, P extends PaymentProduct, PP extends (PaymentAccountProvider | PaymentProvider)[]> {
 
@@ -63,18 +64,45 @@ export abstract class PaymentManager<U extends PaymentUser, P extends PaymentPro
 
     async checkout(user: U, checkout: PaymentPartialCheckout): Promise<PaymentUserData> {
         const providerData = await this.providerCheckout(user, checkout);
+        await this.saveProductsProviderData(providerData.products);
+
+        const {success} = providerData.checkout;
+        const successfulCheckout = success ? await this.saveCheckout(user, providerData.checkout) : undefined;
 
         const paymentData: PaymentUserData = {
             ...user.payment,
             subscription: providerData.subscription,
-            lastCheckout: providerData.checkout
+            lastCheckout: successfulCheckout
         };
 
-        if (providerData.checkout.success) {
+        if (success) {
             await this.updateUserPaymentProperties(user, paymentData);
         }
 
-        await this.saveProductsProviderData(providerData.products);
+        return paymentData
+    }
+
+    async cancelCheckout(user: U, checkoutId: string): Promise<PaymentUserData> {
+        const checkout = await this.retrieveCheckout(user, checkoutId);
+
+        if (!("providerData" in checkout && checkout.providerData)) {
+            throw "Expected property providerData. It indicates checkout was not successful, " +
+            "therefore it's not possible cancel it, please, review checkout id " + checkoutId + " before proceeding";
+        }
+
+        const providerInstance = this.providers.find(it => it.provider === checkout.provider);
+        if (!providerInstance) throw `Provider ${checkout.provider} is unavailable, expected providers are ${this.providers.map(it => it.provider)}`;
+
+        const checkoutResult: PaymentProviderCheckoutResult = await providerInstance.cancelCheckout(user, checkout);
+        const savedCheckout = await this.saveCheckout(user, {...checkoutResult.checkout, cancelDate: new Date()})
+
+        const paymentData: PaymentUserData = {
+            ...user.payment,
+            subscription: checkoutResult.subscription,
+            lastCheckout: savedCheckout
+        };
+
+        await this.updateUserPaymentProperties(user, paymentData)
 
         return paymentData
     }
@@ -98,15 +126,9 @@ export abstract class PaymentManager<U extends PaymentUser, P extends PaymentPro
         }
     }
 
-    /**
-     * Builds next providerData array
-     * if provider data already exists, replace it...
-     * otherwise add it to the array
-     *
-     * @private
-     * @param originalData
-     * @param data
-     */
+    //Builds next providerData array
+    // if provider data already exists, replace it...
+    // otherwise add it to the array
     private mergeProviderData<PD extends PaymentProviderMinimalProperties>(originalData: PD[], data: PD): PD[] {
         const idx = originalData.findIndex(it => it.provider === data.provider)
 
@@ -119,6 +141,25 @@ export abstract class PaymentManager<U extends PaymentUser, P extends PaymentPro
 
         return nextData;
     }
+
+    /**
+     * Implement this method for retrieving checkouts from your data source
+     */
+    abstract retrieveCheckout(user: U, checkoutId: Required<(PaymentProviderCheckout | PaymentCheckout)>["_id"]): Promise<PaymentProviderCheckout | PaymentCheckout>
+
+    /**
+     * Implement this method for:
+     * - persisting successful checkouts
+     * - updating succeeded checkouts
+     *
+     * @example
+     * if (!checkout._id) {
+     *     insertDB(checkout)
+     * } else {
+     *     updateDb(checkout._id, checkout)
+     * }
+     */
+    protected abstract saveCheckout(user: U, checkout: PaymentProviderCheckout): Promise<AugmentedRequired<PaymentProviderCheckout, "_id">>
 
     /**
      * Implement this method per project, should fill as many field as possible

@@ -12,6 +12,7 @@ export type PaymentProviderCheckoutProductsResult = {
 export type PaymentProviderCheckout = PaymentCheckout & {
     success: boolean;
     providerData: any;
+    cancelDate?: Date;
 }
 
 export type PaymentProviderCheckoutResult = {
@@ -26,10 +27,15 @@ export interface PaymentProvider extends PaymentProviderBaseProperties {
      * Keep in mind if you handle plans and products, you need to support both in checkout method
      *
      * @param user
-     * @param checkoutObj
+     * @param checkoutObj Some providers have payment flow starting generating secrets on client, if it happens checkoutObj will be PaymentProviderCheckout
      */
-    checkout(user: PaymentUser, checkoutObj: PaymentCheckout): Promise<PaymentProviderCheckoutResult>;
+    checkout(user: PaymentUser, checkoutObj: PaymentCheckout | PaymentProviderCheckout): Promise<PaymentProviderCheckoutResult>;
 
+
+    /**
+     * Implement checkout cancel
+     */
+    cancelCheckout(user: PaymentUser, checkoutObj: PaymentProviderCheckout): Promise<PaymentProviderCheckoutResult>;
 }
 
 export interface PaymentAccountProvider<PA = PaymentUserAccount, PD = unknown> extends PaymentProvider {

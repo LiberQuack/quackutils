@@ -1,6 +1,7 @@
-import {PaymentAccountProvider, PaymentProvider, PaymentProviderCheckoutProductsResult, PaymentProviderCheckoutResult} from "./types";
+import {PaymentAccountProvider, PaymentProvider, PaymentProviderCheckout, PaymentProviderCheckoutProductsResult, PaymentProviderCheckoutResult} from "./types";
 import {PaymentCheckout, PaymentEnforceProviderBase, PaymentProduct, PaymentUser, PaymentUserSubscriptionProperties} from "../types";
 import {Stripe} from "stripe";
+import {PaymentIntentResult} from "@stripe/stripe-js";
 
 export type PaymentStripeAccount = PaymentEnforceProviderBase<{
     provider: "stripe",
@@ -50,13 +51,41 @@ export class PaymentStripeProvider implements PaymentAccountProvider<PaymentStri
         return stripeAccount;
     }
 
-    async checkout(user: PaymentUser, checkoutObj: PaymentCheckout): Promise<PaymentProviderCheckoutResult> {
+    async checkout(user: PaymentUser, checkoutObj: PaymentCheckout | PaymentProviderCheckout): Promise<PaymentProviderCheckoutResult> {
         const hasOnlyPlans = checkoutObj.items.every(it => it.type === "plan");
         if (!hasOnlyPlans) throw `This payment provider (${this.provider}) does not support "product" checkout`
 
         const stripeAccount = this._getStripeAccount(user);
         if (!stripeAccount) throw "Error, probably user has no credit card attached"
 
+        if ("providerData" in checkoutObj) {
+            const providerData: PaymentIntentResult = checkoutObj.providerData;
+
+            if (providerData?.paymentIntent?.status === "succeeded") {
+                const paymentIntentId = providerData.paymentIntent.id;
+                const paymentIntentExpanded = await this.stripe.paymentIntents.retrieve(paymentIntentId, {expand: ["invoice", "invoice.subscription"]});
+                const subscription = (paymentIntentExpanded?.invoice as any)?.subscription as Stripe.Subscription;
+                return this.buildCheckoutResult(checkoutObj, subscription, [], checkoutObj.items.map(it => it.product))
+            }
+
+            throw "Unexpected stripe status"
+        }
+
+        return await this.createSubscription(checkoutObj, stripeAccount);
+    }
+
+    async cancelCheckout(user: PaymentUser, checkoutObj: PaymentProviderCheckout): Promise<PaymentProviderCheckoutResult> {
+        const subscription: Stripe.Subscription = checkoutObj.providerData;
+
+        const subscriptionCanceled = await this.stripe.subscriptions.del(subscription.id, {
+            invoice_now: false,
+            prorate: false
+        });
+
+        return this.buildCheckoutResult(checkoutObj, subscriptionCanceled, [], checkoutObj.items.map(it => it.product));
+    }
+
+    private async createSubscription(checkoutObj: PaymentCheckout | PaymentProviderCheckout, stripeAccount: PaymentStripeAccount) {
         const ensuredProducts = await this.ensureStripeProducts(checkoutObj.items.map(it => it.product));
         const products = ensuredProducts.products;
 
@@ -84,19 +113,26 @@ export class PaymentStripeProvider implements PaymentAccountProvider<PaymentStri
             expand: ["latest_invoice", "latest_invoice.payment_intent"]
         });
 
+        return this.buildCheckoutResult(checkoutObj, subscription, ensuredProducts.generatedData, products)
+    }
+
+    protected buildCheckoutResult(checkoutObj: PaymentCheckout | PaymentProviderCheckout, subscription: Stripe.Subscription, providerProducts: PaymentProviderCheckoutProductsResult[], products: PaymentProduct[]): PaymentProviderCheckoutResult {
+        const cancelAt = subscription.cancel_at !== null ? new Date(subscription.cancel_at * 1000) : undefined;
+
         return {
             checkout: {
                 ...checkoutObj,
                 providerData: subscription,
                 success: subscription.status === "active",
             },
-            products: ensuredProducts.generatedData,
+            products: providerProducts,
             subscription: {
                 provider: this.provider,
                 productIds: products.map(it => it._id),
                 nextBill: new Date(subscription.current_period_end * 1000),
+                cancelDate: cancelAt,
             }
-        }
+        };
     }
 
     private async ensureStripeProducts(products: PaymentProduct[]): Promise<{ products: PaymentProduct[], generatedData: PaymentProviderCheckoutProductsResult[] }> {
