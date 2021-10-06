@@ -5,6 +5,8 @@ import {DeepReadonly} from "utility-types";
 
 type Subscription = () => void;
 
+type Updater<T extends Dictionary<any>> = (() => T | Promise<T>) | ((draftState: T) => void | Promise<void>);
+
 export class State<T extends Dictionary<any>> {
 
     private state: T;
@@ -47,7 +49,7 @@ export class State<T extends Dictionary<any>> {
         this.hold = true;
     }
 
-    async releaseUpdates(updater: (Parameters<this["update"]>[0])): Promise<void> {
+    async releaseUpdates(updater: Updater<T>): Promise<void> {
         const queue = this.queue;
         this.queue = [];
 
@@ -59,7 +61,7 @@ export class State<T extends Dictionary<any>> {
         }
     }
 
-    async update(updater: (() => T | Promise<T>) | ((draftState: T) => void | Promise<void>)): Promise<void> {
+    async update(updater: Updater<T>): Promise<void> {
         if (this.hold) {
             return new Promise<void>((resolve, reject) => {
                 this.queue.push(() => {

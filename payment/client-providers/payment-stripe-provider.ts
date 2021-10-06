@@ -17,7 +17,6 @@ export class PaymentStripeProvider extends PaymentClientProvider {
     }
 
     async checkout(checkout: PaymentCheckout | PaymentProviderCheckout): Promise<PaymentCheckout | PaymentProviderCheckout> {
-        debugger;
         const stripe = await this.stripePromise;
         if (!stripe) throw "Could not load stripe";
 

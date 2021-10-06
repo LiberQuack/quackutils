@@ -1,4 +1,4 @@
-import {PaymentCheckout, PaymentUserData} from "./types";
+import {PaymentCheckout, PaymentPartialCheckout, PaymentUserData} from "./types";
 import {PaymentProviderCheckout} from "./manager-providers/types";
 import {PaymentClientProvider} from "./client-providers/payment-client-provider";
 
@@ -12,7 +12,6 @@ export abstract class PaymentClient {
     constructor(providers: PaymentClientProvider[]) {
         this.providers = providers;
     }
-
 
     /**
      * Here you should send the checkout to the server
@@ -44,5 +43,13 @@ export abstract class PaymentClient {
         }
 
         throw "maxRoundTrip reached";
+    }
+
+    protected abstract sendCancelCheckout(checkout: PaymentProviderCheckout, reason: string): Promise<PaymentUserData>;
+
+    async cancelCheckout(checkout: PaymentProviderCheckout, reason: string): Promise<PaymentUserData> {
+        if (!checkout._id) throw "Expected checkout id"
+
+        return this.sendCancelCheckout(checkout, reason)
     }
 }

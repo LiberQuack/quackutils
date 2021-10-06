@@ -28,6 +28,9 @@ function buildStatusProxy() {
     })
 }
 
+//TODO: It would be interesting if we had an api like useAwait
+// const callback = useAwait(() => throw "Error message")
+// <span>{callback.err}</span>
 export class FormController<T = Dictionary<any>> implements ReactiveController {
 
     data = {} as Partial<T>;
@@ -72,6 +75,7 @@ export class FormController<T = Dictionary<any>> implements ReactiveController {
         this.host.requestUpdate();
     }
 
+    //TODO: Maybe listen could have param name:string
     listen = (e: Event) => {
         const elm = e.target as HTMLInputElement | null;
 

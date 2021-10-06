@@ -17,6 +17,7 @@ export const SliderIndicator: CustomElement<{ index: number, length: number }> =
     css`
         slider-indicator {
             text-align: center;
+            display: block;
         }
         
         slider-indicator .slider-indicator-item.isActive {

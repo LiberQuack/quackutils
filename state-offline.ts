@@ -58,9 +58,13 @@ export class StatePersistor {
 
         if (db) {
             await Promise.all(this.stateList.map(async (stateItem) => {
+                console.log("Reading initial data for state", stateItem.name);
                 const initialData = await db.get(stateItem.name, "data");
+
                 if (initialData) {
                     console.log(`Initial data loaded for state`, stateItem.name);
+                } else {
+                    console.warn("No initial data for state", stateItem.name);
                 }
 
                 await stateItem.state.releaseUpdates((s) => {
