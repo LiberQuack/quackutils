@@ -77,10 +77,7 @@ export class PaymentStripeProvider implements PaymentAccountProvider<PaymentStri
     async cancelCheckout(user: PaymentUser, checkoutObj: PaymentProviderCheckout): Promise<PaymentProviderCheckoutResult> {
         const subscription: Stripe.Subscription = checkoutObj.providerData;
 
-        const subscriptionCanceled = await this.stripe.subscriptions.del(subscription.id, {
-            invoice_now: false,
-            prorate: false
-        });
+        const subscriptionCanceled = await this.stripe.subscriptions.update(subscription.id, {cancel_at_period_end: true});
 
         return this.buildCheckoutResult(checkoutObj, subscriptionCanceled, [], checkoutObj.items.map(it => it.product));
     }
@@ -130,7 +127,7 @@ export class PaymentStripeProvider implements PaymentAccountProvider<PaymentStri
                 provider: this.provider,
                 productIds: products.map(it => it._id),
                 nextBill: new Date(subscription.current_period_end * 1000),
-                cancelDate: cancelAt,
+                planningCancelDate: cancelAt,
             }
         };
     }

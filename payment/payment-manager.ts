@@ -95,7 +95,7 @@ export abstract class PaymentManager<U extends PaymentUser, P extends PaymentPro
         if (!providerInstance) throw `Provider ${checkout.provider} is unavailable, expected providers are ${this.providers.map(it => it.provider)}`;
 
         const checkoutResult: PaymentProviderCheckoutResult = await providerInstance.cancelCheckout(user, checkout);
-        const savedCheckout = await this.saveCheckout(user, {...checkoutResult.checkout, cancelDate: new Date(), cancelReason: reason})
+        const savedCheckout = await this.saveCheckout(user, {...checkoutResult.checkout, cancelRequestDate: new Date(), cancelReason: reason})
 
         const paymentData: PaymentUserData = {
             ...user.payment,

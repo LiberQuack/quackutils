@@ -23,9 +23,9 @@ export type PaymentUserSubscriptionProperties = {
     provider: string;
     productIds: PaymentProduct["_id"][];
     nextBill: Date;
-    cancelDate?: Date;
-    downgradeFromPlan?: string;
-    downgradePeriodEnd?: Date;
+    planningCancelDate?: Date;
+    planningDowngradeToPlan?: string;
+    planningDowngradeDate?: Date;
 };
 
 /**

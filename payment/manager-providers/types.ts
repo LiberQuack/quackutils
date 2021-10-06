@@ -12,8 +12,10 @@ export type PaymentProviderCheckoutProductsResult = {
 export type PaymentProviderCheckout = PaymentCheckout & {
     success: boolean;
     providerData: any;
-    cancelDate?: Date;
+
+    //Use when checkout is cancelled | means payment was refunded
     cancelReason?: string;
+    cancelRequestDate?: Date;
 }
 
 export type PaymentProviderCheckoutResult = {
