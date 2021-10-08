@@ -21,6 +21,7 @@ export type PaymentUser = {
 
 export type PaymentUserSubscriptionProperties = {
     provider: string;
+    providerId: string;
     productIds: PaymentProduct["_id"][];
     nextBill: Date;
     planningCancelDate?: Date;

@@ -2,7 +2,8 @@ import {PaymentCheckout, PaymentPartialCheckout, PaymentProduct, PaymentProductP
 import {ValuesType} from "utility-types";
 import {PaymentAccountProvider, PaymentAccountProviderData, PaymentAccountProviderType, PaymentProvider, PaymentProviderCheckout, PaymentProviderCheckoutProductsResult, PaymentProviderCheckoutResult} from "./manager-providers/types";
 import {AugmentedRequired} from "utility-types/dist/mapped-types";
-import {UserModelType} from "../../src/models/user-model";
+import {error, log} from "../../src/utils/log";
+import {instances} from "../../src/instances";
 
 export abstract class PaymentManager<U extends PaymentUser, P extends PaymentProduct, PP extends (PaymentAccountProvider | PaymentProvider)[]> {
 
@@ -62,6 +63,34 @@ export abstract class PaymentManager<U extends PaymentUser, P extends PaymentPro
 
         return {accounts: nextAccounts};
     }
+
+    async handleWebhook(providerName: string, webhookData: any) {
+        const provider = this.providers.find(it => it.provider === providerName)
+        if (!provider) throw "No payment provider found for handling webhook";
+
+        const isSupported:boolean = await provider.supportsWebhook(webhookData);
+        if (!isSupported) {
+            log(this.handleWebhook, `Ignoring webhook from payment provider ${providerName}`);
+            return
+        }
+
+        const customerData = await provider.readWebhookCustomer(webhookData);
+        error(this.handleWebhook, {providerName, data: webhookData});
+        if (!customerData) throw `Could not read customer id from ${providerName} webhook`
+
+        const user = await this.retrieveUser(customerData);
+        if (!user) throw `Could not find user from customer id ${customerData}`;
+
+        const checkoutData = await provider.readWebhookCheckout(user, webhookData);
+        const checkout = checkoutData && await this.retrieveCheckoutByProviderId(user, checkoutData.providerCheckoutId)
+        if (!checkout) throw `Could not find checkout of webhook from ${user.email} provider ${providerName}`
+
+        const providerCheckoutResult = await provider.handleWebhook(user, checkout, webhookData);
+        providerCheckoutResult && await this.updateUserPaymentProperties(user, providerCheckoutResult)
+        return;
+    }
+
+    abstract retrieveUser(customerData: { id: string } | { email: string }): Promise<U>
 
     async checkout(user: U, checkout: PaymentPartialCheckout): Promise<PaymentUserData> {
         const providerData = await this.providerCheckout(user, checkout);
@@ -147,6 +176,11 @@ export abstract class PaymentManager<U extends PaymentUser, P extends PaymentPro
      * Implement this method for retrieving checkouts from your data source
      */
     abstract retrieveCheckout(user: U, checkoutId: Required<(PaymentProviderCheckout | PaymentCheckout)>["_id"]): Promise<PaymentProviderCheckout | PaymentCheckout>
+
+    /**
+     * Implement this method for retrieving checkouts from your data source
+     */
+    abstract retrieveCheckoutByProviderId(user: U, providerCheckoutId: string): Promise<PaymentProviderCheckout>
 
     /**
      * Implement this method for:
