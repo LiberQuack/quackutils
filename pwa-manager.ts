@@ -1,3 +1,5 @@
+/// <reference lib="dom" />
+
 import {BeforeInstallPromptEvent} from "./types";
 import {State} from "./state";
 import {inlineErr} from "./inline-error";
@@ -39,7 +41,7 @@ export class PwaManager {
         });
     }
 
-    async requestNotificationPermission(onAccepted: (subscription: NotificationSubscription, rawSubscription: PushSubscriptionJSON) => void): Promise<PERMISSION | undefined> {
+    async requestNotificationPermission(onAccepted: (subscription: NotificationSubscription, rawSubscription: PushSubscriptionJSON) => void): Promise<PERMISSION | void> {
         if ("Notification" in window) {
             const [notificationResult] = await inlineErr(Notification.requestPermission());
 
@@ -60,12 +62,14 @@ export class PwaManager {
                         return;
                     }
 
+                    let keys = pushSubscriptionJSON.keys!;
+
                     let subscriptionParsed: NotificationSubscription = {
                         type: "web",
                         endpoint: pushSubscriptionJSON.endpoint,
                         keys: {
-                            p256dh: pushSubscriptionJSON.keys.p256dh,
-                            auth: pushSubscriptionJSON.keys.auth
+                            p256dh: keys.p256dh!,
+                            auth: keys.auth!
                         }
                     };
 

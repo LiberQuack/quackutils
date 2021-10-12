@@ -1,6 +1,6 @@
 import PushNotifications, {Data, Settings} from 'node-pushnotifications';
 import {log} from '../src/utils/log';
-import {NotificationSubscription} from "./pwa-manager";
+import type {NotificationSubscription} from "./pwa-manager";
 
 
 export class PushManager {

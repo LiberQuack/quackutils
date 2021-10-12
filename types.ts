@@ -1,4 +1,4 @@
-import {Struct} from "superstruct";
+import type {Struct} from "superstruct";
 
 export type Dictionary<T> = {
     [x: string]: T;
