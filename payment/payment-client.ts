@@ -1,4 +1,4 @@
-import {PaymentCheckout, PaymentPartialCheckout, PaymentUserData} from "./types";
+import {PaymentCheckout, PaymentUserData} from "./types";
 import {PaymentProviderCheckout} from "./manager-providers/types";
 import {PaymentClientProvider} from "./client-providers/payment-client-provider";
 
@@ -7,10 +7,18 @@ import {PaymentClientProvider} from "./client-providers/payment-client-provider"
  */
 export abstract class PaymentClient {
 
-    private providers: PaymentClientProvider[];
+    private providers: PaymentClientProvider[] = [];
+    private providersInitializers: (() => PaymentClientProvider)[];
+    private inited = false
 
-    constructor(providers: PaymentClientProvider[]) {
-        this.providers = providers;
+    constructor(providers: (() => PaymentClientProvider)[]) {
+        this.providersInitializers = providers;
+    }
+
+    public init(): void {
+        if (this.inited) return
+        this.providers = this.providersInitializers.map(it => it());
+        this.inited = true
     }
 
     /**
