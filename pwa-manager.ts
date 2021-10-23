@@ -1,4 +1,6 @@
-import {BeforeInstallPromptEvent, Undefinable} from "./types";
+/// <reference lib="dom" />
+
+import {BeforeInstallPromptEvent} from "./types";
 import {State} from "./state";
 import {inlineErr} from "./inline-error";
 import toUint8Array from 'urlb64touint8array';
@@ -85,12 +87,14 @@ export class PwaManager {
                         return;
                     }
 
+                    let keys = pushSubscriptionJSON.keys!;
+
                     let subscriptionParsed: NotificationSubscription = {
                         type: "web",
                         endpoint: pushSubscriptionJSON.endpoint,
                         keys: {
-                            p256dh: pushSubscriptionJSON.keys.p256dh,
-                            auth: pushSubscriptionJSON.keys.auth
+                            p256dh: keys.p256dh!,
+                            auth: keys.auth!
                         }
                     };
 
