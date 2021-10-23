@@ -16,18 +16,12 @@ export class StatePersistor {
         private dbVersion: number,
     ) {}
 
-    /**
-     * Persisting instances of classes may cause problems during startup
-     *
-     * @param name
-     * @param state
-     */
-    add<T extends {ready: boolean}>(name: string, state: State<Pojo & T>) {
+    add(name: string, state: State<Pojo & {ready: boolean}>) {
         state.holdUpdates();
         this.stateList.push({name, state})
     }
 
-    async start() {
+    async init() {
         const self = this;
         this.connectionPromise = inlineErr(openDB(this.dbName, this.dbVersion, {
             upgrade(database: IDBPDatabase<any>, oldVersion: number, newVersion: number | null, transaction: IDBPTransaction<any, StoreNames<any>[], "versionchange">) {

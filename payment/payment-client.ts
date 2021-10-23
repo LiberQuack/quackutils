@@ -15,7 +15,7 @@ export abstract class PaymentClient {
         this.providersInitializers = providers;
     }
 
-    public init(): void {
+    init(): void {
         if (this.inited) return
         this.providers = this.providersInitializers.map(it => it());
         this.inited = true

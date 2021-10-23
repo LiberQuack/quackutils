@@ -1,6 +1,6 @@
 import {State} from "./state";
 
-type RouteStateType = {
+export type RouteStateType = {
     path: string;
     fullPath: string;
     pathTemplate: string;
@@ -35,7 +35,8 @@ export const initRouter = (pathTemplates: string[]) => {
         return state;
     }
 
-    const routeState = new State<RouteStateType>("router", {} as any);
+    const {pathname, search, hash} = location
+    const routeState = new State<RouteStateType>("router", _buildNextState([pathname + search + hash], pathname, search, hash));
 
     function _update(history: RouteStateType["navigationHistory"]) {
         routeState.update(draftState => {
@@ -66,6 +67,13 @@ export const initRouter = (pathTemplates: string[]) => {
         return to;
     }
 
+    function historyGoBack(stepsBack: number) {
+        if (stepsBack < 0) {
+            //History.go will trigger popstate listener, and then, _update will be called there
+            history.go(stepsBack);
+        }
+    }
+
     function navigate(to: string): void {
         const nextUrl = normalizePath(to);
         const {navigationHistory} = routeState.getState();
@@ -74,8 +82,7 @@ export const initRouter = (pathTemplates: string[]) => {
             let historyEntryIndex = navigationHistory.indexOf(nextUrl);
             if (historyEntryIndex > -1) {
                 const stepsBack = (navigationHistory.length - 1 - historyEntryIndex) * -1;
-                //History.go will trigger popstate listener, and then, _update will be called there
-                history.go(stepsBack);
+                historyGoBack(stepsBack);
             } else {
                 history.pushState(null, "", nextUrl);
                 _update([...navigationHistory, nextUrl]);
@@ -93,17 +100,13 @@ export const initRouter = (pathTemplates: string[]) => {
 
         if (historyEntryIndex > -1) {
             const stepsBack = (navigationHistory.length - 1 - historyEntryIndex) * -1;
-            //History.go will trigger popstate listener, and then, _update will be called there
-            history.go(stepsBack);
+            historyGoBack(stepsBack)
         } else {
             history.replaceState(null, "", nextUrl);
             const nextNavHistory = [...navigationHistory.slice(0, navigationHistory.length - 1), nextUrl]
             _update(nextNavHistory);
         }
     }
-
-    const {pathname, search, hash} = location
-    _update([pathname + search + hash]);
 
     //According to mdn, is triggered on history.back, history.go(-N), history.go(N), or user clicking on back or forward button
     window.addEventListener("popstate", e => {

@@ -1,18 +1,24 @@
-import {BeforeInstallPromptEvent} from "./types";
+import {BeforeInstallPromptEvent, Undefinable} from "./types";
 import {State} from "./state";
 import {inlineErr} from "./inline-error";
 import toUint8Array from 'urlb64touint8array';
+import {debounce} from "debounce";
+
+type PwaPromptResult = "accepted" | "dismissed" | "unknown";
 
 export class PwaManager {
 
     readonly state = new State("pwa", {
         preventedNativePrompt: false,
         isInstalled: "unsure" as "unsure" | "yes" | "no",
+        prompting: false as boolean,
+        lastPromptResult: undefined as Undefinable<PwaPromptResult>,
         isOnline: true as boolean,
         swRegistered: false as boolean,
         permissions: {
             notification: "default" as PERMISSION
-        }
+        },
+        displayMode: undefined as Undefinable<"standalone" | "fullscreen" | "browser">
     })
 
     private deferredEvent?: BeforeInstallPromptEvent
@@ -20,16 +26,16 @@ export class PwaManager {
 
     constructor(
         private opts?: Partial<PwaManagerOpts>
-    ) {
-    }
+    ) { }
 
-    start() {
+    init() {
         console.log("Pwa-Manager: Starting");
 
-        this.handleServiceWorker();
-        this.handleNetwork();
-        this.handleRelatedApps();
-        this.readPermissions();
+        inlineErr(this.handleServiceWorker());
+        inlineErr(this.handleNetwork());
+        inlineErr(this.handleRelatedApps());
+        inlineErr(this.readPermissions());
+        inlineErr(this.startDisplayModeDetector());
 
         window.addEventListener("beforeinstallprompt", (e:BeforeInstallPromptEvent) => {
             console.log("Pwa-Manager: beforeinstallprompt event triggered")
@@ -37,6 +43,25 @@ export class PwaManager {
             this.deferredEvent = e;
             this.state.update(s => {s.preventedNativePrompt = true});
         });
+    }
+
+    startDisplayModeDetector() {
+        const standaloneMatcher = window.matchMedia('(display-mode: standalone)');
+        const fullScreenMatcher = window.matchMedia('(display-mode: fullscreen)');
+
+        const writeState = () => {
+            const displayModeType =
+                standaloneMatcher.matches ? "standalone" :
+                    fullScreenMatcher.matches ? "fullscreen" : "browser"
+
+            this.state.update(s => {
+                s.displayMode = displayModeType
+            });
+        };
+
+        writeState();
+        standaloneMatcher.addEventListener("change", writeState);
+        fullScreenMatcher.addEventListener("change", writeState);
     }
 
     async requestNotificationPermission(onAccepted: (subscription: NotificationSubscription, rawSubscription: PushSubscriptionJSON) => void): Promise<PERMISSION | undefined> {
@@ -142,24 +167,34 @@ export class PwaManager {
      *
      * @param fallback
      */
-    async promptInstall(fallback: () => void): Promise<"accepted" | "dismissed" | "unknown"> {
-        if (this.deferredEvent) {
-            await this.deferredEvent.prompt();
-            const promptResult = await this.deferredEvent.userChoice;
-            this.deferredEvent = undefined;
+    async promptInstall(fallback: () => void): Promise<PwaPromptResult> {
+        this.state.update((s) => {s.prompting = true});
 
-            if (promptResult.outcome === "accepted") {
+        const [res, err] = await inlineErr((async (): Promise<PwaPromptResult> => {
+            if (this.deferredEvent) {
+                await this.deferredEvent.prompt();
+                const promptResult = await this.deferredEvent.userChoice;
+                this.deferredEvent = undefined;
+
                 this.state.update(s => {
-                    s.isInstalled = "yes";
-                });
-            }
+                    s.lastPromptResult = promptResult.outcome
 
-            console.log("Pwa-Manager: Prompt result", promptResult.outcome);
-            return promptResult.outcome;
-        } else {
-            fallback();
-            return "unknown"
-        }
+                    if (promptResult.outcome === "accepted") {
+                        s.isInstalled = "yes";
+                    }
+                });
+
+                console.log("Pwa-Manager: Prompt result", promptResult.outcome);
+                this.writeDisplayModeState();
+                return promptResult.outcome;
+            } else {
+                fallback();
+                return "unknown"
+            }
+        })());
+
+        this.state.update((s) => {s.prompting = false});
+        return res || "unknown"
     }
 }
 

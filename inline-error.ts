@@ -5,6 +5,6 @@ export async function inlineErr<T = any>(arg: Promise<T> | T, preventLog?: boole
         if (!preventLog) {
             console.error(err);
         }
-        return [undefined, err];
+        return [undefined, err as Error];
     }
 }

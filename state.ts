@@ -1,16 +1,23 @@
 import produce from "immer";
 import {inlineErr} from "./inline-error";
-import {Dictionary} from "./types";
-import {DeepReadonly} from "utility-types";
+import {Dictionary, Undefinable} from "./types";
 
-type Subscription = () => void;
+type Subscription<T = any> = (prev:Undefinable<StateData<T>>, current:StateData<T>) => void;
 
 type Updater<T extends Dictionary<any>> = (() => T | Promise<T>) | ((draftState: T) => void | Promise<void>);
+
+type StateData<T> = {
+    state: T,
+    isUpdating: boolean,
+    error: any
+}
 
 export class State<T extends Dictionary<any>> {
 
     private state: T;
-    private subscriptions: Subscription[] = [];
+    private prevState: Undefinable<StateData<T>>;
+
+    private subscriptions: Subscription<T>[] = [];
     private readonly initialState: T;
     private hold = false;
     private queue: (() => void)[] = [];
@@ -36,7 +43,16 @@ export class State<T extends Dictionary<any>> {
         return this.state
     }
 
+    getStateData(): StateData<T> {
+        return {
+            state: this.state,
+            error: this.error,
+            isUpdating: this.isUpdating
+        }
+    }
+
     resetState() {
+        this.prevState = this.getStateData();
         this.state = {...this.initialState};
         this.runSubscribers();
     }
@@ -45,10 +61,35 @@ export class State<T extends Dictionary<any>> {
         return this.initialState;
     }
 
+    /**
+     * This method defers updates for the next `releaseUpdates()` call.
+     *
+     * Very useful for apps startup, where you may want to start with external data, but since it's an async task,
+     * you do not want your subscribers reacting until you fetch it
+     *
+     * @example using hold
+     *     //counter-state.js
+     *     const state = new State({count: 0}));
+     *     state.hold();
+     *
+     *     //counter-ui.js
+     *     state.update(s => {s.count = s.count + 1});
+     *
+     *     //counter-fetcher.js
+     *     const userCount = await loadUserCount(); //10
+     *     state.releaseUpdates(s = > {s.count = userCount});
+     *
+     *     //result.js (after all is run)
+     *     state.getState().count //RESULT IS: 11
+     */
     holdUpdates(): void {
         this.hold = true;
     }
 
+    /**
+     * This method release all updates that were on hold, check `holdUpdate()` to learn more
+     * @param updater Queued tasks will be run against the result of this param
+     */
     async releaseUpdates(updater: Updater<T>): Promise<void> {
         const queue = this.queue;
         this.queue = [];
@@ -73,13 +114,15 @@ export class State<T extends Dictionary<any>> {
         const produceResult = produce(this.state, updater as any);
 
         if (produceResult instanceof Promise) {
+            this.prevState = this.getStateData();
             this.isUpdating = true;
             this.runSubscribers();
         }
 
         const [result, err] = await inlineErr(produceResult);
-        this.isUpdating = false;
+        this.prevState = this.getStateData();
 
+        this.isUpdating = false;
         if (err) {
             this.error = err;
             this.runSubscribers();
@@ -91,18 +134,19 @@ export class State<T extends Dictionary<any>> {
     }
 
     clearError() {
+        this.prevState = this.getStateData();
         this.error = undefined;
         this.runSubscribers();
     }
 
-    subscribe(subscription: Subscription): () => Boolean {
+    subscribe(subscription: Subscription<T>): () => Boolean {
         this.subscriptions.push(subscription);
-        subscription();
+        subscription(this.prevState, this.getStateData());
         return () => this.unsubscribe(subscription);
     }
 
     runSubscribers() {
-        this.subscriptions.forEach(it => it());
+        this.subscriptions.forEach(it => it(this.prevState, this.getStateData()));
     }
 
     unsubscribe(subscription: Subscription): Boolean {
