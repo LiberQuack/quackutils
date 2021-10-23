@@ -20,16 +20,50 @@ export function dictionaryForEach<T>(dict: Dictionary<T>, cb: (entry: T, key: st
 
 /**
  * Returns a list for each entry
+ *
+ * @example
+ *     dictionaryMap({a: 1, b: 2}, (value, key) => value + key)
+ *     // ["a1", "b2"]
+ *
  * @param dict
  * @param cb
  */
-export function dictionaryMap<T, R>(dict: Dictionary<T>, cb: (entry: T, key: string) => R) {
-    return Object.keys(dict).map(key => {
-        return cb(dict[key]!, key);
+//TODO: Should be dictionaryMapList
+export function dictionaryMap<T, R>(dict: Dictionary<T>, cb: (value: T, key: string, index: number) => R) {
+    return Object.keys(dict).map((key, index) => {
+        return cb(dict[key]!, key, index);
     })
 }
 
-export function dictionaryTransformEntries<T extends object, ER, TT extends AugmentedRequired<T>>(dict: T, transformer: (item: TT[keyof TT]) => ER): {[P in keyof T]: ER} {
+/**
+ * Generates a new dictionary from the original
+ *
+ * @example
+ *     dictionaryMap({a: 1, b: 2}, (key, value) => [value, key])
+ *     // {1: "a", 2: "b"}
+ *
+ * @param dict
+ * @param cb
+ */
+
+//TODO: Should be dictionaryMap
+export function dictionaryMapObj<T, R = any>(dict: Dictionary<T>, cb: (key: string, value: T, index: number) => [string, R]): Dictionary<R> {
+    const entries = dictionaryMap(dict, (value, key, i) => cb(key, value, i))
+    return Object.fromEntries(entries)
+}
+
+/**
+ * Create a new object from dictionary, where values as transformed like
+ *
+ * @example
+ *     dictionaryTransformEntries({a: 1, b: 2}, v => v * 2)
+ *     // {a: 2, b: 4}
+ *
+ * @param dict
+ * @param transformer
+ */
+//TODO: Should be dictionaryTransformValues
+export function dictionaryTransformEntries<T extends object, ER, TT extends AugmentedRequired<T>>(dict: T, transformer: (value: TT[keyof TT]) => ER): {[P in keyof T]: ER} {
     const keys = Object.keys(dict) as (keyof T)[];
 
     return keys.reduce((acc, key: keyof T) => {
@@ -40,6 +74,8 @@ export function dictionaryTransformEntries<T extends object, ER, TT extends Augm
 }
 
 /**
+ * Reduce values of the dictionary
+ *
  * @example
  *     let list = [{gender: M, id: 1}, {gender: M, id: 2}, {gender: F, id: 3}]
  *     listToDictionaryAcc(list, "gender")
@@ -68,6 +104,7 @@ export function listToDictionaryAcc<T>(list: T[], key: keyof T): Dictionary<T[]>
 }
 
 /**
+ * Accumulate dictionary list, resulting a new dictionary of lists
  * @example
  *     let list = [
  *         {a: 5},
@@ -75,7 +112,8 @@ export function listToDictionaryAcc<T>(list: T[], key: keyof T): Dictionary<T[]>
  *         {b: 10},
  *     ]
 
- *     listToDictionaryMergedKeys(list) // {a: [5,5], b:[10]}
+ *     listToDictionaryMergedKeys(list)
+ *     // {a: [5,5], b:[10]}
  *
  * @param list
  */
@@ -97,10 +135,11 @@ export function listToDictionaryMergedKeys<T, U = UnionToIntersection<T>, Result
 }
 
 /**
+ * Reduce dictionary values
  * @example
- *
  *     let dict = {a: 10, b: 20}
- *     dictionaryAcc(dict, 0, (acc, value: number, key: string) => acc + value) //30
+ *     dictionaryAcc(dict, 0, (acc, value: number, key: string) => acc + value)
+ *     //30
  *
  * @param dict
  * @param acc

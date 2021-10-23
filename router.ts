@@ -1,6 +1,6 @@
 import {State} from "./state";
 
-type RouteStateType = {
+export type RouteStateType = {
     path: string;
     fullPath: string;
     pathTemplate: string;
@@ -35,7 +35,8 @@ export const initRouter = (pathTemplates: string[]) => {
         return state;
     }
 
-    const routeState = new State<RouteStateType>("router", {} as any);
+    const {pathname, search, hash} = location
+    const routeState = new State<RouteStateType>("router", _buildNextState([pathname + search + hash], pathname, search, hash));
 
     function _update(history: RouteStateType["navigationHistory"]) {
         routeState.update(draftState => {
@@ -52,35 +53,78 @@ export const initRouter = (pathTemplates: string[]) => {
         return keys.length > 0 ? "?" + keys.map(key => `${encodeURIComponent(key)}=${encodeURIComponent(queryObj[key]!)}`).join("&") : "";
     }
 
+    function normalizePath(to: string) {
+        const currentPath = location.pathname;
+
+        if (to[0] === "?") {
+            to = `${currentPath}${to}`;
+        }
+
+        if (to[0] !== "/") {
+            to = `${currentPath.replace(/(.*)(?:\/.+?$)/, `$1/${to}`)}`
+        }
+
+        return to;
+    }
+
+    function historyGoBack(stepsBack: number) {
+        if (stepsBack < 0) {
+            //History.go will trigger popstate listener, and then, _update will be called there
+            history.go(stepsBack);
+        }
+    }
+
     function navigate(to: string): void {
+        const nextUrl = normalizePath(to);
         const {navigationHistory} = routeState.getState();
-        if (to !== navigationHistory[navigationHistory.length - 1]) {
-            history.pushState(null, "", to);
-            _update([...navigationHistory, to]);
+
+        if (nextUrl !== navigationHistory[navigationHistory.length - 1]) {
+            let historyEntryIndex = navigationHistory.indexOf(nextUrl);
+            if (historyEntryIndex > -1) {
+                const stepsBack = (navigationHistory.length - 1 - historyEntryIndex) * -1;
+                historyGoBack(stepsBack);
+            } else {
+                history.pushState(null, "", nextUrl);
+                _update([...navigationHistory, nextUrl]);
+            }
         } else {
             _update([...navigationHistory]);
         }
     }
 
     function replace(to: string): void {
+        const nextUrl = normalizePath(to)
         const currentRouteState = routeState.getState();
         const navigationHistory = [...currentRouteState.navigationHistory];
+        const historyEntryIndex = navigationHistory.indexOf(nextUrl);
 
-        if (to === navigationHistory[navigationHistory.length - 2]) {
-            history.back();
+        if (historyEntryIndex > -1) {
+            const stepsBack = (navigationHistory.length - 1 - historyEntryIndex) * -1;
+            historyGoBack(stepsBack)
         } else {
-            history.replaceState(null, "", to === "" ? currentRouteState.path : to);
-            const nextNavHistory = [...navigationHistory.slice(0, navigationHistory.length - 1), to]
+            history.replaceState(null, "", nextUrl);
+            const nextNavHistory = [...navigationHistory.slice(0, navigationHistory.length - 1), nextUrl]
             _update(nextNavHistory);
         }
     }
 
-    const {pathname, search, hash} = location
-    _update([pathname + search + hash]);
-
+    //According to mdn, is triggered on history.back, history.go(-N), history.go(N), or user clicking on back or forward button
     window.addEventListener("popstate", e => {
+        const fullPath = location.pathname + location.search + location.hash;
         const navHistory = routeState.getState().navigationHistory;
-        _update(navHistory.slice(0, navHistory.length - 1))
+        const historyEntryIndex = navHistory.indexOf(fullPath);
+
+        let nextNavHistory: string[];
+        if (historyEntryIndex > -1) {
+            nextNavHistory = navHistory.slice(0, historyEntryIndex + 1);
+        } else {
+            //Navigation history get messy when history.go(2 or more) is called
+            //Or if user long press forward button and causes forward (2 or more)
+            //For now it works fine for most cases (user simply clicking on forward)
+            nextNavHistory = [...navHistory, fullPath]
+        }
+
+        _update(nextNavHistory);
     });
 
     window.addEventListener("click", function (e: Event) {
@@ -89,8 +133,14 @@ export const initRouter = (pathTemplates: string[]) => {
         do {
             //@ts-ignore
             if (elm.localName.toLowerCase() === "a" && (elm.protocol === location.protocol && elm.origin === location.origin && !elm.target)) {
-                //@ts-ignore
-                navigate(elm.pathname + elm.search + elm.hash)
+
+                if (elm.hasAttribute("replace")) {
+                    //@ts-ignore
+                    replace(elm.pathname + elm.search + elm.hash);
+                } else {
+                    //@ts-ignore
+                    navigate(elm.pathname + elm.search + elm.hash);
+                }
                 e.preventDefault();
             }
             if (elm.localName.toLowerCase() === "a") {

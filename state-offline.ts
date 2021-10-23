@@ -16,18 +16,12 @@ export class StatePersistor {
         private dbVersion: number,
     ) {}
 
-    /**
-     * Persisting instances of classes may cause problems during startup
-     *
-     * @param name
-     * @param state
-     */
-    add<T extends {ready: boolean}>(name: string, state: State<Pojo & T>) {
+    add(name: string, state: State<Pojo & {ready: boolean}>) {
         state.holdUpdates();
         this.stateList.push({name, state})
     }
 
-    async start() {
+    async init() {
         const self = this;
         this.connectionPromise = inlineErr(openDB(this.dbName, this.dbVersion, {
             upgrade(database: IDBPDatabase<any>, oldVersion: number, newVersion: number | null, transaction: IDBPTransaction<any, StoreNames<any>[], "versionchange">) {
@@ -58,9 +52,13 @@ export class StatePersistor {
 
         if (db) {
             await Promise.all(this.stateList.map(async (stateItem) => {
+                console.log("Reading initial data for state", stateItem.name);
                 const initialData = await db.get(stateItem.name, "data");
+
                 if (initialData) {
                     console.log(`Initial data loaded for state`, stateItem.name);
+                } else {
+                    console.warn("No initial data for state", stateItem.name);
                 }
 
                 await stateItem.state.releaseUpdates((s) => {

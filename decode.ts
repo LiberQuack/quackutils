@@ -19,7 +19,7 @@ export function decode<T = any>(value: T): T {
     const copy = {} as Record<any, any>;
 
     for (const k in value) {
-        copy[k] = decode(value[k]);
+        copy[k === "objectId" ? "_id" : k] = decode(value[k]);
     }
 
     return copy;
