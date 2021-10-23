@@ -1,10 +1,9 @@
-/// <reference lib="dom" />
+/// <reference lib="dom"/>
 
-import {BeforeInstallPromptEvent} from "./types";
+import {BeforeInstallPromptEvent, Undefinable} from "./types";
 import {State} from "./state";
 import {inlineErr} from "./inline-error";
 import toUint8Array from 'urlb64touint8array';
-import {debounce} from "debounce";
 
 type PwaPromptResult = "accepted" | "dismissed" | "unknown";
 
@@ -189,7 +188,6 @@ export class PwaManager {
                 });
 
                 console.log("Pwa-Manager: Prompt result", promptResult.outcome);
-                this.writeDisplayModeState();
                 return promptResult.outcome;
             } else {
                 fallback();

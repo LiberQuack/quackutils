@@ -1,3 +1,5 @@
+/// <reference lib="ES2020"/>
+
 import {Dictionary} from "./types";
 import {UnionToIntersection} from "utility-types";
 import {AugmentedRequired} from "utility-types/dist/mapped-types";
@@ -28,10 +30,9 @@ export function dictionaryForEach<T>(dict: Dictionary<T>, cb: (entry: T, key: st
  * @param dict
  * @param cb
  */
-//TODO: Should be dictionaryMapList
-export function dictionaryMap<T, R>(dict: Dictionary<T>, cb: (value: T, key: string, index: number) => R) {
+export function dictionaryMapList<T, R>(dict: Dictionary<T>, cb: (key: string, value: T, index: number) => R) {
     return Object.keys(dict).map((key, index) => {
-        return cb(dict[key]!, key, index);
+        return cb(key, dict[key]!, index);
     })
 }
 
@@ -45,10 +46,8 @@ export function dictionaryMap<T, R>(dict: Dictionary<T>, cb: (value: T, key: str
  * @param dict
  * @param cb
  */
-
-//TODO: Should be dictionaryMap
-export function dictionaryMapObj<T, R = any>(dict: Dictionary<T>, cb: (key: string, value: T, index: number) => [string, R]): Dictionary<R> {
-    const entries = dictionaryMap(dict, (value, key, i) => cb(key, value, i))
+export function dictionaryMap<T, R = any>(dict: Dictionary<T>, cb: (key: string, value: T, index: number) => [string, R]): Dictionary<R> {
+    const entries = dictionaryMapList(dict, cb)
     return Object.fromEntries(entries)
 }
 

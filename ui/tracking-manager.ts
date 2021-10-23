@@ -3,7 +3,7 @@
 import {State} from "../state";
 import {RouteStateType} from "../router";
 import {Dictionary, Undefinable} from "../types";
-import {dictionaryMapObj} from "../dictionary";
+import {dictionaryMap} from "../dictionary";
 
 export interface TrackingManagerProvider {
     trackPage(pathTemplate: string, fullPath: string): void;
@@ -52,8 +52,8 @@ export class GoogleAnalyticsProvider implements TrackingManagerProvider {
         gtag('js', new Date());
 
         let fixedDimensions = this.opts.fixedDimensions && {
-            custom_map: dictionaryMapObj(this.opts.fixedDimensions, (k, v, i) => [`dimension${i + 1}`, k]),
-            ...dictionaryMapObj(this.opts.fixedDimensions, (k, v, i) => [k, v]),
+            custom_map: dictionaryMap(this.opts.fixedDimensions, (k, v, i) => [`dimension${i + 1}`, k]),
+            ...dictionaryMap(this.opts.fixedDimensions, (k, v, i) => [k, v]),
         };
 
         gtag('config', opts.clientId, {
