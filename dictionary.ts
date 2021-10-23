@@ -14,7 +14,7 @@ export function dictionaryToList<T>(dict: Dictionary<T>): T[] {
 
 export function dictionaryForEach<T>(dict: Dictionary<T>, cb: (entry: T, key: string) => void) {
     Object.keys(dict).forEach(key => {
-        cb(dict[key], key);
+        cb(dict[key]!, key);
     })
 }
 
@@ -25,7 +25,7 @@ export function dictionaryForEach<T>(dict: Dictionary<T>, cb: (entry: T, key: st
  */
 export function dictionaryMap<T, R>(dict: Dictionary<T>, cb: (entry: T, key: string) => R) {
     return Object.keys(dict).map(key => {
-        return cb(dict[key], key);
+        return cb(dict[key]!, key);
     })
 }
 
