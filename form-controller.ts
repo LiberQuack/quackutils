@@ -2,6 +2,7 @@ import {ReactiveController, ReactiveControllerHost} from "lit";
 import * as s from "superstruct";
 import objectPath from "object-path"
 import {Dictionary} from "./types";
+import {debug} from "../bullapp-api/src/utils/log";
 
 export type FormControllerOpts<T = any> = Partial<{
     onSubmit: (isFormValid: boolean, form: FormController<T>) => undefined | Promise<void>
@@ -80,7 +81,7 @@ export class FormController<T = Dictionary<any>> implements ReactiveController {
         const elm = e.target as HTMLInputElement | null;
 
         if (elm) {
-            const nextValue = elm.value;
+            const nextValue = elm.type === "checkbox" ? elm.checked : elm.value;
             const nextData = {...this.data};
             objectPath.set(nextData as any, elm.name, nextValue);
             this.status[elm.name] = {pristine: false, dirty: [undefined, null, false, ""].indexOf(elm.value) > -1};

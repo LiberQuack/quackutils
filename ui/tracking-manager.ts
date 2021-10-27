@@ -91,7 +91,7 @@ export class GoogleAnalyticsProvider implements TrackingManagerProvider {
     }
 
     trackEvent(subject: string, action: string, value?: string | number | boolean | Dictionary<any>): void {
-        let trackingProperties: UniversalAnalytics.FieldsObject = {
+        let trackingProperties: { eventCategory: string; eventAction: string, eventValue?: number, eventLabel?: string } = {
             eventCategory: subject,
             eventAction: action,
         };
