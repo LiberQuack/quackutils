@@ -1,6 +1,7 @@
 import produce from "immer";
 import {inlineErr} from "./inline-error";
 import {Dictionary, Undefinable} from "./types";
+import {DeepReadonly} from "utility-types";
 
 type Subscription<T = any> = (prev:Undefinable<StateData<T>>, current:StateData<T>) => void;
 
@@ -43,7 +44,7 @@ export class State<T extends Dictionary<any>> {
         return this.state
     }
 
-    getStateData(): StateData<T> {
+    private getStateData(): StateData<T> {
         return {
             state: this.state,
             error: this.error,
@@ -57,8 +58,8 @@ export class State<T extends Dictionary<any>> {
         this.runSubscribers();
     }
 
-    getInitialState(): T {
-        return this.initialState;
+    getInitialState(): DeepReadonly<T> {
+        return this.initialState as DeepReadonly<T>;
     }
 
     /**
