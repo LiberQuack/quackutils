@@ -120,7 +120,7 @@ export class GoogleAnalyticsProvider implements TrackingManagerProvider {
     }
 }
 
-export class TrackingManager implements Omit<TrackingManagerProvider, "getName" | "trackPage"> {
+export class TrackingManager implements Omit<TrackingManagerProvider, "getName"> {
 
     private inited?: boolean;
     private providers: (() => TrackingManagerProvider)[];
@@ -133,6 +133,20 @@ export class TrackingManager implements Omit<TrackingManagerProvider, "getName" 
     constructor(providers: (() => TrackingManagerProvider)[], opts?: { log: boolean }) {
         this.providers = providers;
         this._log = Boolean(opts?.log);
+    }
+
+    /**
+     * This method allows you to <b>manually</b> send a page view event.
+     *
+     * If you want to listen and track every route change, lookfor the <b>trackRouting()</b> method
+     *
+     * @param pathTemplate
+     * @param fullPath
+     */
+    trackPage(pathTemplate: string, fullPath: string): void {
+        this.providersInited.forEach((it) => {
+            it.trackPage(pathTemplate, fullPath);
+        })
     }
 
     init() {
@@ -176,6 +190,15 @@ export class TrackingManager implements Omit<TrackingManagerProvider, "getName" 
         }
     }
 
+    /**
+     * Listen and send page view for all routes.
+     *
+     * @example usage
+     * trackingManager.trackRouting(myRouterState);
+     * trackingManager.init()
+     *
+     * @param router
+     */
     trackRouting(router: State<RouteStateType>): void {
         this.router = router;
     }
