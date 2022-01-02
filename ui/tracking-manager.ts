@@ -1,7 +1,7 @@
 ///<reference types="gtag.js"/>
 
 import {State} from "../state";
-import {RouteStateType} from "../router";
+import {addLinkClickListener, RouteStateType} from "../router";
 import {Dictionary, Undefinable} from "../types";
 import {dictionaryMap} from "../dictionary";
 
@@ -79,14 +79,9 @@ export class GoogleAnalyticsProvider implements TrackingManagerProvider {
 
     trackPage(pathTemplate: string, fullPath: string): void {
         gtag('event', 'page_view', {
-            page_title: pathTemplate,
-            page_location: pathTemplate,
+            page_title: document.title,
+            page_location: fullPath,
             page_path: pathTemplate,
-        })
-
-        gtag("event", "url-change", {
-            pathTemplate,
-            fullPath,
         });
     }
 
@@ -116,6 +111,7 @@ export class GoogleAnalyticsProvider implements TrackingManagerProvider {
                 trackingProperties.eventValue = 1;
         }
 
+        //TODO: Incompatible with ecommerce purchase stuff
         gtag("event", `${subject}-${action}`, trackingProperties);
     }
 }
@@ -135,20 +131,6 @@ export class TrackingManager implements Omit<TrackingManagerProvider, "getName">
         this._log = Boolean(opts?.log);
     }
 
-    /**
-     * This method allows you to <b>manually</b> send a page view event.
-     *
-     * If you want to listen and track every route change, lookfor the <b>trackRouting()</b> method
-     *
-     * @param pathTemplate
-     * @param fullPath
-     */
-    trackPage(pathTemplate: string, fullPath: string): void {
-        this.providersInited.forEach((it) => {
-            it.trackPage(pathTemplate, fullPath);
-        })
-    }
-
     init() {
         if (this.inited) return;
         this.inited = true;
@@ -160,19 +142,12 @@ export class TrackingManager implements Omit<TrackingManagerProvider, "getName">
 
         this.trackEvent("tracking", "init");
         this.trackPerformance();
+        this.trackExternalLinks()
 
         if (this.router) {
             this.router.subscribe((prev, current) => {
                 const {pathTemplate, fullPath} = current.state
-
-                const providers = this.providersInited.map(provider => {
-                    provider.trackPage(pathTemplate, fullPath);
-                    return provider.getName();
-                });
-
-                if (this._log) {
-                    this.log("tracking page", providers, {pathTemplate, fullPath});
-                }
+                this.trackPage(pathTemplate, fullPath);
             })
         }
     }
@@ -187,6 +162,25 @@ export class TrackingManager implements Omit<TrackingManagerProvider, "getName">
                     now: Math.round(performance.now())
                 });
             }
+        }
+    }
+
+    /**
+     * This method allows you to <b>manually</b> send a page view event.
+     *
+     * If you want to listen and track every route change, lookfor the <b>trackRouting()</b> method
+     *
+     * @param pathTemplate
+     * @param fullPath
+     */
+    trackPage(pathTemplate: string, fullPath: string): void {
+        const providers = this.providersInited.map(provider => {
+            provider.trackPage(pathTemplate, fullPath);
+            return provider.getName();
+        });
+
+        if (this._log) {
+            this.log("tracking page", providers, {pathTemplate, fullPath});
         }
     }
 
@@ -249,6 +243,14 @@ export class TrackingManager implements Omit<TrackingManagerProvider, "getName">
         if (this._log) {
             this.log("un-identifying user", providers);
         }
+    }
+
+    private trackExternalLinks(): void {
+        addLinkClickListener((event, elm, {isOutbound}) => {
+            if (isOutbound) {
+                this.trackEvent("link", "visit-external-page", elm.href)
+            }
+        })
     }
 
     private log(...args: any[]) {

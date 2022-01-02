@@ -17,10 +17,33 @@ export type RouteStateType = {
 const paramValueRegex = /(.+?)(?=\/|$|#|\?)/g;
 const paramRegex = new RegExp(`:${paramValueRegex.source}`, "g");
 
+export const addLinkClickListener = (cb: (event: Event, elm: HTMLAnchorElement, info: { isOutbound: boolean, locationReplace: boolean, opensNewTab: boolean }) => void) => {
+    window.addEventListener("click", function (e: Event) {
+        let elm = e.target as HTMLAnchorElement | HTMLElement;
+
+        do {
+            let isAnchorTag = elm.localName.toLowerCase() === "a";
+
+            if (isAnchorTag) {
+                const anchorTag = elm as HTMLAnchorElement;
+                if (!anchorTag.href) continue;
+
+                const isInbound = anchorTag.protocol === location.protocol && anchorTag.origin === location.origin
+                const locationReplace = anchorTag.hasAttribute("replace");
+                const opensNewTab = anchorTag.target === "_blank";
+                cb(e, anchorTag, {isOutbound: !isInbound, locationReplace, opensNewTab})
+                break;
+            }
+            elm = elm.parentElement!;
+        } while (elm && elm.parentElement)
+    })
+}
+
 //TODO: Improve and make it more simple
 export const initRouter = (pathTemplates: string[]) => {
 
     function getQueryObj(search: string) {
+        //TODO: Resolve ts warning
         return Object.fromEntries(new URLSearchParams(search));
     }
 
@@ -127,28 +150,16 @@ export const initRouter = (pathTemplates: string[]) => {
         _update(nextNavHistory);
     });
 
-    window.addEventListener("click", function (e: Event) {
-        let elm = e.target as HTMLAnchorElement | HTMLElement;
-
-        do {
-            //@ts-ignore
-            if (elm.localName.toLowerCase() === "a" && (elm.protocol === location.protocol && elm.origin === location.origin && !elm.target)) {
-
-                if (elm.hasAttribute("replace")) {
-                    //@ts-ignore
-                    replace(elm.pathname + elm.search + elm.hash);
-                } else {
-                    //@ts-ignore
-                    navigate(elm.pathname + elm.search + elm.hash);
-                }
-                e.preventDefault();
+    addLinkClickListener((event, elm, {isOutbound, locationReplace, opensNewTab}) => {
+        if (!isOutbound && !opensNewTab) {
+            if (locationReplace) {
+                replace(elm.pathname + elm.search + elm.hash);
+            } else {
+                navigate(elm.pathname + elm.search + elm.hash);
             }
-            if (elm.localName.toLowerCase() === "a") {
-                break;
-            }
-            elm = elm.parentElement!;
-        } while (elm && elm.parentElement)
-    });
+            event.preventDefault();
+        }
+    })
 
     return {routeState, navigate, replace, queryObjToString}
 };

@@ -12,8 +12,9 @@ export class PwaManager {
     readonly state = new State("pwa", {
         preventedNativePrompt: false,
         isInstalled: "unsure" as "unsure" | "yes" | "no",
-        prompting: false as boolean,
-        lastPromptResult: undefined as Undefinable<PwaPromptResult>,
+        promptingInstall: false as boolean,
+        promptingNotification: false as boolean,
+        promptingInstallResult: undefined as Undefinable<PwaPromptResult>,
         isOnline: true as boolean,
         swRegistered: false as boolean,
         permissions: {
@@ -67,40 +68,47 @@ export class PwaManager {
 
     async requestNotificationPermission(onAccepted: (subscription: NotificationSubscription, rawSubscription: PushSubscriptionJSON) => void): Promise<PERMISSION | undefined> {
         if ("Notification" in window) {
-            const [notificationResult] = await inlineErr(Notification.requestPermission());
+            this.state.update((s) => {s.promptingNotification = true});
 
-            if (notificationResult) {
-                await this.state.update(s => {s.permissions.notification = notificationResult});
-                console.log("Pwa-Manager: Notification permission is", notificationResult)
+            const [res] = await inlineErr((async (): Promise<PERMISSION | undefined> => {
+                const notificationResult = await Notification.requestPermission()
 
-                if (notificationResult === "granted" && this.swRegistration && this.opts?.serverPushKey) {
-                    const [subscriptionResult] = await inlineErr(this.swRegistration.pushManager.subscribe({
-                        userVisibleOnly: true,
-                        applicationServerKey: toUint8Array(this.opts.serverPushKey)
-                    }));
+                if (notificationResult) {
+                    await this.state.update(s => {s.permissions.notification = notificationResult});
+                    console.log("Pwa-Manager: Notification permission is", notificationResult)
 
-                    const pushSubscriptionJSON = subscriptionResult && subscriptionResult.toJSON();
+                    if (notificationResult === "granted" && this.swRegistration && this.opts?.serverPushKey) {
+                        const [subscriptionResult] = await inlineErr(this.swRegistration.pushManager.subscribe({
+                            userVisibleOnly: true,
+                            applicationServerKey: toUint8Array(this.opts.serverPushKey)
+                        }));
 
-                    if (!pushSubscriptionJSON || !pushSubscriptionJSON.endpoint) {
-                        console.warn("Pwa-Manager: Could not subscribe to push notification");
-                        return;
-                    }
+                        const pushSubscriptionJSON = subscriptionResult && subscriptionResult.toJSON();
 
-                    let keys = pushSubscriptionJSON.keys!;
-
-                    let subscriptionParsed: NotificationSubscription = {
-                        type: "web",
-                        endpoint: pushSubscriptionJSON.endpoint,
-                        keys: {
-                            p256dh: keys.p256dh!,
-                            auth: keys.auth!
+                        if (!pushSubscriptionJSON || !pushSubscriptionJSON.endpoint) {
+                            console.warn("Pwa-Manager: Could not subscribe to push notification");
+                            return;
                         }
-                    };
 
-                    onAccepted(subscriptionParsed, pushSubscriptionJSON);
-                    return notificationResult
+                        let keys = pushSubscriptionJSON.keys!;
+
+                        let subscriptionParsed: NotificationSubscription = {
+                            type: "web",
+                            endpoint: pushSubscriptionJSON.endpoint,
+                            keys: {
+                                p256dh: keys.p256dh!,
+                                auth: keys.auth!
+                            }
+                        };
+
+                        onAccepted(subscriptionParsed, pushSubscriptionJSON);
+                        return notificationResult
+                    }
                 }
-            }
+            })());
+
+            this.state.update((s) => {s.promptingNotification = false});
+            return res
         }
     }
 
@@ -171,7 +179,7 @@ export class PwaManager {
      * @param fallback
      */
     async promptInstall(fallback: () => void): Promise<PwaPromptResult> {
-        this.state.update((s) => {s.prompting = true});
+        this.state.update((s) => {s.promptingInstall = true});
 
         const [res, err] = await inlineErr((async (): Promise<PwaPromptResult> => {
             if (this.deferredEvent) {
@@ -180,7 +188,7 @@ export class PwaManager {
                 this.deferredEvent = undefined;
 
                 this.state.update(s => {
-                    s.lastPromptResult = promptResult.outcome
+                    s.promptingInstallResult = promptResult.outcome
 
                     if (promptResult.outcome === "accepted") {
                         s.isInstalled = "yes";
@@ -195,7 +203,7 @@ export class PwaManager {
             }
         })());
 
-        this.state.update((s) => {s.prompting = false});
+        this.state.update((s) => {s.promptingInstall = false});
         return res || "unknown"
     }
 }
