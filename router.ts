@@ -1,3 +1,5 @@
+/// <reference lib="dom.iterable"/>
+
 import {State} from "./state";
 
 export type RouteStateType = {
@@ -43,7 +45,6 @@ export const addLinkClickListener = (cb: (event: Event, elm: HTMLAnchorElement, 
 export const initRouter = (pathTemplates: string[]) => {
 
     function getQueryObj(search: string) {
-        //TODO: Resolve ts warning
         return Object.fromEntries(new URLSearchParams(search));
     }
 
