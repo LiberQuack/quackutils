@@ -60,7 +60,7 @@ export interface TrackingManagerType {
      * @param pathTemplate
      * @param fullPath
      */
-    trackPageView(pathTemplate: string, fullPath: string): void;
+    trackPageView(pathTemplate: string, fullPath: string, pageTitle: string): void;
 
 
     /**

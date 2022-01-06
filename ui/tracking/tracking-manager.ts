@@ -7,19 +7,21 @@ import {PaymentCheckout, PaymentProduct} from "../../payment/types";
 import {TRACKING_PURCHASE_CHECKOUT, TRACKING_PURCHASE_JOURNEY, TrackingManagerProvider, TrackingManagerType} from "./tracking-types";
 import {PaymentProviderCheckout} from "../../payment/manager-providers/types";
 
+type TrackingManagerOpts = {
+    log?: boolean,
+    customPageTracking?: (args: Parameters<TrackingManagerType["trackPageView"]>) => Parameters<TrackingManagerType["trackPageView"]>
+};
+
 export class TrackingManager implements TrackingManagerType {
 
     private inited?: boolean;
     private providers: (() => TrackingManagerProvider)[];
     private providersInited: TrackingManagerProvider[] = [];
     private router?: State<RouteStateType>;
-
-    private _log: boolean;
     private queue = [] as (() => void)[];
 
-    constructor(providers: (() => TrackingManagerProvider)[], opts?: { log: boolean }) {
+    constructor(providers: (() => TrackingManagerProvider)[], private opts?: TrackingManagerOpts) {
         this.providers = providers;
-        this._log = Boolean(opts?.log);
     }
 
     init() {
@@ -38,7 +40,7 @@ export class TrackingManager implements TrackingManagerType {
         if (this.router) {
             this.router.subscribe((prev, current) => {
                 const {pathTemplate, fullPath} = current.state
-                this.trackPageView(pathTemplate, fullPath);
+                this.trackPageView(pathTemplate, fullPath, document.title);
             })
         }
     }
@@ -64,8 +66,9 @@ export class TrackingManager implements TrackingManagerType {
      * @param pathTemplate
      * @param fullPath
      */
-    trackPageView(pathTemplate: string, fullPath: string): void {
-        this.cycleProviders("trackPageView", [pathTemplate, fullPath])
+    trackPageView(pathTemplate: string, fullPath: string, title: string): void {
+        const args = arguments as unknown as Parameters<TrackingManagerType["trackPageView"]>;
+        this.cycleProviders("trackPageView", this.opts?.customPageTracking ? this.opts.customPageTracking(args) : args)
     }
 
     trackEvent(eventName: string, value?: string | number | boolean | Dictionary<any>): void {
@@ -101,7 +104,9 @@ export class TrackingManager implements TrackingManagerType {
         return wrappedError;
     }
 
-    private cycleProviders<M extends keyof TrackingManagerType>(method: M, args: Parameters<TrackingManagerType[M]>) {
+    private cycleProviders<M extends keyof TrackingManagerType>(method: M, parameters: Parameters<TrackingManagerType[M]>) {
+        const args = Array.from(parameters);
+
         if (!this.inited) {
             this.queue.push(() => (this[method] as any)(...args));
             return;
@@ -112,7 +117,7 @@ export class TrackingManager implements TrackingManagerType {
             return it.getName();
         });
 
-        if (this._log) {
+        if (this.opts?.log) {
             this.log(method, providers, args && args.filter(it => it !== undefined));
         }
     }
