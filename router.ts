@@ -1,6 +1,7 @@
 /// <reference lib="dom.iterable"/>
 
 import {State} from "./state";
+import {dictionaryMap} from "./dictionary";
 
 export type RouteStateType = {
     path: string;
@@ -45,7 +46,9 @@ export const addLinkClickListener = (cb: (event: Event, elm: HTMLAnchorElement, 
 export const initRouter = (pathTemplates: string[]) => {
 
     function getQueryObj(search: string) {
-        return Object.fromEntries(new URLSearchParams(search));
+        const obj = Object.fromEntries(new URLSearchParams(search));
+        const decodedObj = dictionaryMap(obj, (key, value, index) => [decodeURIComponent(key), decodeURIComponent(value)])
+        return decodedObj
     }
 
     function _buildNextState(history: RouteStateType["navigationHistory"], path: string, search: string, hash: string, state = {} as RouteStateType): RouteStateType {
@@ -174,7 +177,7 @@ export function matchRoute(templatePath: string, inputPath: string) {
 function getParams(templatePath: string, inputPath: string): RouteStateType["params"] {
     const paramValuesRegexStr = templatePath.replace(paramRegex, paramValueRegex.source);
     const paramValuesRegex = new RegExp(paramValuesRegexStr);
-    const [ , ...values] = inputPath.match(paramValuesRegex) || [];
+    const [ , ...values] = (inputPath.match(paramValuesRegex) || []).map(decodeURIComponent);
 
     const paramsRegexStr = templatePath.replace(paramRegex, paramRegex.source);
     const paramsRegex = new RegExp(paramsRegexStr)

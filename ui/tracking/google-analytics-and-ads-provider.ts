@@ -1,6 +1,6 @@
 import {Dictionary} from "../../types";
 import {dictionaryMap} from "../../dictionary";
-import {GtagProduct, TRACKING_PURCHASE_CHECKOUT, TRACKING_PURCHASE_JOURNEY, TrackingManagerProvider} from "./tracking-types";
+import {GtagProduct, PURCHASE_COMPLETED, TRACKING_PURCHASE, TRACKING_PURCHASE_CHECKOUT, TRACKING_PURCHASE_JOURNEY, TrackingManagerProvider} from "./tracking-types";
 import {PaymentProviderCheckout} from "../../payment/manager-providers/types";
 import {PaymentCheckout, PaymentProduct} from "../../payment/types";
 
@@ -26,10 +26,27 @@ const eventNamesTranslation: Record<TRACKING_PURCHASE_JOURNEY | TRACKING_PURCHAS
 // on demand, when the user is adding the product we probably already know the currency. Maybe it's a design problem stuff
 // the trackPurchaseJourney relays on PaymentProduct, it could be a mistake meaning on frontend, since the user first insteracts
 // with a product, we should use a PaymentCheckout type, instead of creating it only during checkout page
-export class GoogleAnalyticsProvider implements TrackingManagerProvider {
+//
+//TODO: Consider separating google ads code into it's on class
+export class GoogleAnalyticsAndAdsProvider implements TrackingManagerProvider {
 
     private opts: {
-        clientId: string;
+        gaClientId: string;
+        adsClientId?: string;
+
+        /**
+         * sendTo expects where to send the ads event,
+         * usually they look like 'AW-979989861/5Ad8CPH_rZADEOXqpdMD'
+         *
+         * @example
+         * {
+         *     ads: {"purchase-completed": {
+         *         sendTo: 'AW-979989861/5Ad8CPH_rZADEOXqpdMD'
+         *     }}
+         * }
+         *
+         */
+        ads?: Record<PURCHASE_COMPLETED, {sendTo: string}>
 
         /**
          * 3 digits currency code
@@ -42,7 +59,7 @@ export class GoogleAnalyticsProvider implements TrackingManagerProvider {
         productTrackerEnhancer?: <P extends PaymentProduct>(product: P) => GtagProduct
     };
 
-    constructor(opts: GoogleAnalyticsProvider["opts"]) {
+    constructor(opts: GoogleAnalyticsAndAdsProvider["opts"]) {
         this.opts = opts
         const isLocal = /localhost|127.0.0.1/.test(location.origin);
         const debugOptionPassed = "debug" in opts;
@@ -58,7 +75,7 @@ export class GoogleAnalyticsProvider implements TrackingManagerProvider {
         const win = window as any;
         win.gtag = win.gtag || (() => {
             const scriptElm = document.createElement("script");
-            scriptElm.src = `https://www.googletagmanager.com/gtag/js?id=${opts.clientId}`;
+            scriptElm.src = `https://www.googletagmanager.com/gtag/js?id=${opts.gaClientId}`;
             document.body.appendChild(scriptElm)
             win.dataLayer = win.dataLayer || [];
             return function () {
@@ -73,11 +90,15 @@ export class GoogleAnalyticsProvider implements TrackingManagerProvider {
             ...dictionaryMap(this.opts.fixedDimensions, (k, v, i) => [k, v]),
         };
 
-        gtag('config', opts.clientId, {
+        gtag('config', opts.gaClientId, {
             send_page_view: false,
             debug_mode: /localhost|127.0.0.1/.test(location.origin),
             ...fixedDimensions
         });
+
+        if (opts.adsClientId) {
+            gtag('config', opts.adsClientId);
+        }
 
         gtag("set", {debug_mode: debug});
     }
@@ -128,6 +149,10 @@ export class GoogleAnalyticsProvider implements TrackingManagerProvider {
         gtag("event", eventName, trackingProperties);
     }
 
+    private trackAdsEvent() {
+
+    }
+
     //TODO: In the future trackPurchaseJourney and trackPurchaseCheckout
     // should merge in one method relying on PaymentCheckout type,
     // then the application also should use PaymentCheckout as fast as possible,
@@ -152,7 +177,7 @@ export class GoogleAnalyticsProvider implements TrackingManagerProvider {
             //coupon: tracked only in trackPurchaseCheckout
         }
 
-        this.trackEvent(eventNamesTranslation[eventName], trackingData)
+        this.trackEvent(this.translateEvent(eventName), trackingData)
     }
 
     //https://developers.google.com/analytics/devguides/collection/ga4/ecommerce
@@ -178,7 +203,26 @@ export class GoogleAnalyticsProvider implements TrackingManagerProvider {
             err: err,
         }
 
-        this.trackEvent(eventNamesTranslation[eventName], trackingData)
+        this.trackEvent(this.translateEvent(eventName), trackingData);
+
+        //TODO: Move to it's own method
+        let {adsClientId, ads} = this.opts;
+        if (
+            adsClientId &&
+            ads &&
+            eventName === "purchase-completed" /*TS stuff... should not be needed ->*/ &&
+            ads[eventName]
+        ) {
+            const adsConverionTarget = ads[eventName].sendTo;
+            gtag('event', 'conversion', {
+                'send_to': adsConverionTarget,
+                'value': checkout.total,
+                'currency': this.opts.fallbackCurrency,
+                'transaction_id': checkout._id,
+            });
+
+            console.log("GoogleAnalyticsAndAdsProvider: ", `Sent conversion event "${eventName}" to ${adsConverionTarget}`);
+        }
     }
 
     private translateProductData(product: PaymentProduct, opts?: {
@@ -198,6 +242,16 @@ export class GoogleAnalyticsProvider implements TrackingManagerProvider {
         const gtagProductEnhancement = productTrackerEnhancer && productTrackerEnhancer(product);
 
         return {...gtagProduct, ...gtagProductEnhancement}
+    }
+
+    private translateEvent(rawTrackingManagerEventName: TRACKING_PURCHASE) {
+        let translation = eventNamesTranslation[rawTrackingManagerEventName];
+
+        if (!translation) {
+            console.warn(`Tracking manager event ${rawTrackingManagerEventName} is not mapped to Google Analytics `)
+        }
+
+        return translation ?? rawTrackingManagerEventName;
     }
 
 }

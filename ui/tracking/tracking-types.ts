@@ -2,6 +2,8 @@ import {PaymentCheckout, PaymentProduct} from "../../payment/types";
 import {PaymentProviderCheckout} from "../../payment/manager-providers/types";
 import {Dictionary} from "../../types";
 
+export type TRACKING_PURCHASE = TRACKING_PURCHASE_JOURNEY | TRACKING_PURCHASE_CHECKOUT
+
 export type TRACKING_PURCHASE_JOURNEY =
     CART_ADD_ITEM |
     CART_REMOVE_ITEM |
@@ -16,18 +18,18 @@ export type TRACKING_PURCHASE_CHECKOUT =
 /**
  * Use this event when user reaches the checkout page
  */
-type PURCHASE_STARTED = "purchase-started"
+export type PURCHASE_STARTED = "purchase-started"
 
 /**
  * Use this event when user completes the checkout with success
  */
-type PURCHASE_COMPLETED = "purchase-completed"
+export type PURCHASE_COMPLETED = "purchase-completed"
 
 /**
  * Use this event when user submits a valid checkout form, but it fails for unexpected reasons like
  * server error or credit card problems
  */
-type PURCHASE_FAILED = "purchase-failed"
+export type PURCHASE_FAILED = "purchase-failed"
 
 /**
  * Use this event when user registers a new payment info...
@@ -35,22 +37,22 @@ type PURCHASE_FAILED = "purchase-failed"
  * If during the checkout the user has a pre-selected or default payment method,
  * we DO NOT recommend sending this event
  */
-type PAYMENT_METHOD_REGISTERED = "payment-method-registered"
+export type PAYMENT_METHOD_REGISTERED = "payment-method-registered"
 
 /**
  * Use this event when user changes the default payment info
  */
-type PAYMENT_METHOD_CHANGED = "payment-method-changed"
+export type PAYMENT_METHOD_CHANGED = "payment-method-changed"
 
 /**
  * Use this event when user adds a product/plan to cart
  */
-type CART_ADD_ITEM = "cart-add-item"
+export type CART_ADD_ITEM = "cart-add-item"
 
 /**
  * Use this event when user removes a product/plan from the cart
  */
-type CART_REMOVE_ITEM = "cart-remove-item"
+export type CART_REMOVE_ITEM = "cart-remove-item"
 
 export interface TrackingManagerType {
 
