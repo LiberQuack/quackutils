@@ -33,8 +33,17 @@ function buildStatusProxy() {
 }
 
 //TODO: It would be interesting if we had an api like useAwait
-// const callback = useAwait(() => throw "Error message")
-// <span>{callback.err}</span>
+//  const callback = useAwait(() => throw "Error message")
+//  <div><allFields></div>
+//  <span>{callback.err}</span>
+//  <button>submit</submit>
+//  ...
+//  Current workaround for showing form submission errors consists in embedding useAwait in onSubmit
+//  const onSubmitCB = useAwait(() => {...})
+//  const form = useForm(..., ..., {onSubmit: onSubmitCB.run})
+//  ...
+//  From here we can embedded that feature in form controller OR
+//  we can remove it, and simply expect the useAwait
 export class FormController<T extends Dictionary<any>> implements ReactiveController {
 
     data?: T
