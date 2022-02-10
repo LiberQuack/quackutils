@@ -25,18 +25,14 @@ export const addLinkClickListener = (cb: (event: Event, elm: HTMLAnchorElement, 
         let elm = e.target as HTMLAnchorElement | HTMLElement;
 
         do {
-            let isAnchorTag = elm.localName.toLowerCase() === "a";
-
-            if (isAnchorTag) {
-                const anchorTag = elm as HTMLAnchorElement;
-                if (!anchorTag.href) continue;
-
-                const isInbound = anchorTag.protocol === location.protocol && anchorTag.origin === location.origin
-                const locationReplace = anchorTag.hasAttribute("replace");
-                const opensNewTab = anchorTag.target === "_blank";
-                cb(e, anchorTag, {isOutbound: !isInbound, locationReplace, opensNewTab})
+            if ("href" in elm && elm.href) {
+                const isInbound = elm.protocol === location.protocol && elm.origin === location.origin
+                const locationReplace = elm.hasAttribute("replace");
+                const opensNewTab = elm.target === "_blank";
+                cb(e, elm, {isOutbound: !isInbound, locationReplace, opensNewTab})
                 break;
             }
+
             elm = elm.parentElement!;
         } while (elm && elm.parentElement)
     })
