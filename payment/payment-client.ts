@@ -29,6 +29,8 @@ export abstract class PaymentClient {
     protected abstract sendCheckout(checkout: PaymentCheckout | PaymentProviderCheckout): Promise<PaymentUserData>
 
     async checkout(checkout: PaymentCheckout): Promise<PaymentUserData> {
+        if (!this.inited) throw "Payment client instance has still not been initiated"
+
         const providerInstance = this.providers.find(it => it.provider === checkout.provider);
 
         if (!providerInstance) {

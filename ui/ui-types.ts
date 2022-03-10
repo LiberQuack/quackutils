@@ -1,5 +1,14 @@
 import {Assign} from "utility-types";
 
+declare global {
+    type CustomEventListener = (e: CustomEvent) => void;
+
+    interface Window {
+        addEventListener(type: string, listener: CustomEventListener, options?: boolean | AddEventListenerOptions): void;
+    }
+}
+
+
 interface CustomElementProps {
     id$?: string;
     class$?: HTMLElement["className"];

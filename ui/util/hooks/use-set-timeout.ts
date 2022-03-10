@@ -15,7 +15,6 @@ export const useSetTimeout = (...args: { value: any, timeout: number }[]) => {
         }
 
         setTimeout(() => {
-            setValue(undefined);
             setIsRunning(false);
         }, timeoutAcc)
     };

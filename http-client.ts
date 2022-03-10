@@ -10,7 +10,11 @@ function httpClientBuilder(config?:AxiosRequestConfig): AxiosInstance {
         try {
             prettyResponse = JSON.stringify(responseBody, null, 2)
         } finally {
-            console.error(`Error response with status ${error.response?.status} (${error.response?.statusText}) and body\r\n${prettyResponse ?? responseBody}`);
+            let enhancedErrorMessage = `Response status ${error.response?.status} body\r\n${prettyResponse ?? responseBody}`;
+            console.error(enhancedErrorMessage);
+
+            (error as any).originalMessage = error.message
+            error.message = enhancedErrorMessage
         }
 
         throw error;

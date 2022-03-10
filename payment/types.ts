@@ -100,7 +100,6 @@ export type PaymentPartialCheckout = PaymentProviderMinimalProperties & {
     }>
 }
 
-
 export type PaymentCheckout = PaymentProviderMinimalProperties & {
     _id?: ObjectID;
 

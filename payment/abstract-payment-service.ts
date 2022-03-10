@@ -2,8 +2,6 @@ import {PaymentCheckout, PaymentPartialCheckout, PaymentProduct, PaymentProductP
 import {ValuesType} from "utility-types";
 import {PaymentAccountProvider, PaymentAccountProviderData, PaymentAccountProviderType, PaymentProvider, PaymentProviderCheckout, PaymentProviderCheckoutProductsResult, PaymentProviderCheckoutResult} from "./manager-providers/types";
 import {AugmentedRequired} from "utility-types/dist/mapped-types";
-import {error, log} from "../../src/utils/log";
-import {instances} from "../../src/instances";
 
 export abstract class AbstractPaymentService<U extends PaymentUser, P extends PaymentProduct, PP extends (PaymentAccountProvider | PaymentProvider)[]> {
 
@@ -70,12 +68,12 @@ export abstract class AbstractPaymentService<U extends PaymentUser, P extends Pa
 
         const isSupported:boolean = await provider.supportsWebhook(webhookData);
         if (!isSupported) {
-            log(this.handleWebhook, `Ignoring webhook from payment provider ${providerName}`);
+            console.log(this.handleWebhook, `Ignoring webhook from payment provider ${providerName}`);
             return
         }
 
         const customerData = await provider.readWebhookCustomer(webhookData);
-        error(this.handleWebhook, {providerName, data: webhookData});
+        console.error(this.handleWebhook, {providerName, data: webhookData});
         if (!customerData) throw `Could not read customer id from ${providerName} webhook`
 
         const user = await this.retrieveUser(customerData);
