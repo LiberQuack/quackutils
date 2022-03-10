@@ -13,8 +13,9 @@ export type PaymentProviderCheckout = PaymentCheckout & {
     success: boolean;
 
     //Id of provider checkout
-    providerId: string;
     providerData: any;
+    externalId: string;
+    period?: Date
 
     //Use when checkout is cancelled | means payment was refunded
     cancelReason?: string;

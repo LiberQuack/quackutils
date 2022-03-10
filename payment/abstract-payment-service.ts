@@ -3,7 +3,7 @@ import {ValuesType} from "utility-types";
 import {PaymentAccountProvider, PaymentAccountProviderData, PaymentAccountProviderType, PaymentProvider, PaymentProviderCheckout, PaymentProviderCheckoutProductsResult, PaymentProviderCheckoutResult} from "./manager-providers/types";
 import {AugmentedRequired} from "utility-types/dist/mapped-types";
 
-export abstract class PaymentManager<U extends PaymentUser, P extends PaymentProduct, PP extends (PaymentAccountProvider | PaymentProvider)[]> {
+export abstract class AbstractPaymentService<U extends PaymentUser, P extends PaymentProduct, PP extends (PaymentAccountProvider | PaymentProvider)[]> {
 
     providers: PP;
 
@@ -84,7 +84,22 @@ export abstract class PaymentManager<U extends PaymentUser, P extends PaymentPro
         if (!checkout) throw `Could not find checkout of webhook from ${user.email} provider ${providerName}`
 
         const providerCheckoutResult = await provider.handleWebhook(user, checkout, webhookData);
-        providerCheckoutResult && await this.updateUserPaymentProperties(user, providerCheckoutResult)
+
+        if (providerCheckoutResult) {
+            const {success} = providerCheckoutResult.checkout;
+            const successfulCheckout = success ? await this.saveCheckout(user, providerCheckoutResult.checkout) : undefined;
+
+            const paymentData: PaymentUserData = {
+                ...user.payment,
+                subscription: providerCheckoutResult.subscription,
+                lastCheckout: successfulCheckout,
+            };
+
+            if (success) {
+                await this.updateUserPaymentProperties(user, paymentData);
+            }
+        }
+
         return;
     }
 
@@ -173,7 +188,7 @@ export abstract class PaymentManager<U extends PaymentUser, P extends PaymentPro
     /**
      * Implement this method for retrieving checkouts from your data source
      */
-    abstract retrieveCheckout(user: U, checkoutId: Required<(PaymentProviderCheckout | PaymentCheckout)>["_id"]): Promise<PaymentProviderCheckout | PaymentCheckout>
+    abstract retrieveCheckout(user: U, checkoutId: string): Promise<PaymentProviderCheckout | PaymentCheckout>
 
     /**
      * Implement this method for retrieving checkouts from your data source
@@ -192,7 +207,7 @@ export abstract class PaymentManager<U extends PaymentUser, P extends PaymentPro
      *     updateDb(checkout._id, checkout)
      * }
      */
-    protected abstract saveCheckout(user: U, checkout: PaymentProviderCheckout): Promise<AugmentedRequired<PaymentProviderCheckout, "_id">>
+    protected abstract saveCheckout(user: U, checkout: PaymentProviderCheckout): Promise<PaymentProviderCheckout>
 
     /**
      * Implement this method per project, should fill as many field as possible
