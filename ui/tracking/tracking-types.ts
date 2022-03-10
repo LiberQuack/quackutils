@@ -54,7 +54,7 @@ export type CART_ADD_ITEM = "cart-add-item"
  */
 export type CART_REMOVE_ITEM = "cart-remove-item"
 
-export interface TrackingManagerType {
+export interface TrackingManagerType<CE = string> {
 
     /**
      * Track page views
@@ -88,14 +88,14 @@ export interface TrackingManagerType {
      * @param eventName
      * @param value
      */
-    trackEvent(eventName: string, value?: string | number | boolean | Dictionary<any>): void
+    trackEvent(eventName: CE, value?: string | number | boolean | Dictionary<any>): void
 
-    identifyUser(userId: string): void;
+    trackUser(userId: string): void;
 
-    unIdentifyUser(): void;
+    trackUserOff(): void;
 };
 
-export interface TrackingManagerProvider extends TrackingManagerType {
+export interface TrackingManagerProvider<CustomEvents = string> extends TrackingManagerType<CustomEvents> {
     /**
      * Get provider name
      */
@@ -123,4 +123,11 @@ export type GtagProduct = {
     affiliation?: string;
     item_list_name?: string;
     item_variant?: string
+};
+
+export type TrackingManagerDefaultEvents = "tracking-init" | "link-outbound-clicked" | "link-outbound-clicked" | "performance-measured";
+
+export type TrackingManagerOpts = {
+    log?: boolean,
+    customPageTracking?: (args: Parameters<TrackingManagerType["trackPageView"]>) => Parameters<TrackingManagerType["trackPageView"]>
 };

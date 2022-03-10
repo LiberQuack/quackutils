@@ -105,7 +105,7 @@ export const StripeCardform: CustomElement<{ forceLoading?: boolean, btnContent?
     );
 
     return <>
-        <CardElement style$="position: relative; padding: 1em">
+        <div style$="position: relative;">
             <ControlText name="cardNumber" label="Número do Cartão" inputElm={stripeRef.current?.html?.cardNumber}/>
 
             <div style$="display: grid; grid-template-columns: 1fr 1fr; grid-gap: 1.5em">
@@ -128,6 +128,6 @@ export const StripeCardform: CustomElement<{ forceLoading?: boolean, btnContent?
                 </div>
             )}/>
 
-        </CardElement>
+        </div>
     </>;
 }

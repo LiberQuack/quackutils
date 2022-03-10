@@ -1,18 +1,12 @@
 ///<reference types="gtag.js"/>
-
 import {State} from "../../state";
 import {addLinkClickListener, RouteStateType} from "../../router";
 import {Dictionary, Undefinable} from "../../types";
 import {PaymentCheckout, PaymentProduct} from "../../payment/types";
-import {TRACKING_PURCHASE_CHECKOUT, TRACKING_PURCHASE_JOURNEY, TrackingManagerProvider, TrackingManagerType} from "./tracking-types";
+import {TRACKING_PURCHASE_CHECKOUT, TRACKING_PURCHASE_JOURNEY, TrackingManagerDefaultEvents, TrackingManagerOpts, TrackingManagerProvider, TrackingManagerType} from "./tracking-types";
 import {PaymentProviderCheckout} from "../../payment/manager-providers/types";
 
-type TrackingManagerOpts = {
-    log?: boolean,
-    customPageTracking?: (args: Parameters<TrackingManagerType["trackPageView"]>) => Parameters<TrackingManagerType["trackPageView"]>
-};
-
-export class TrackingManager implements TrackingManagerType {
+export class TrackingManager<CE extends string> implements TrackingManagerType<TrackingManagerDefaultEvents | CE> {
 
     private inited?: boolean;
     private providers: (() => TrackingManagerProvider)[];
@@ -71,7 +65,7 @@ export class TrackingManager implements TrackingManagerType {
         this.cycleProviders("trackPageView", this.opts?.customPageTracking ? this.opts.customPageTracking(args) : args)
     }
 
-    trackEvent(eventName: string, value?: string | number | boolean | Dictionary<any>): void {
+    trackEvent(eventName: TrackingManagerDefaultEvents | CE, value?: string | number | boolean | Dictionary<any>): void {
         this.cycleProviders("trackEvent", [eventName, value]);
     }
 
@@ -84,12 +78,35 @@ export class TrackingManager implements TrackingManagerType {
         this.cycleProviders("trackPurchaseCheckout", [eventName, checkout, enhancedOpts]);
     }
 
-    identifyUser(userId: string): void {
-        this.cycleProviders("identifyUser", [userId]);
+    private trackOutboundLinks(): void {
+        addLinkClickListener((event, elm, {isOutbound}) => {
+            if (isOutbound) {
+                this.trackEvent("link-outbound-clicked", elm.href)
+            }
+        })
     }
 
-    unIdentifyUser(): void {
-        this.cycleProviders("unIdentifyUser", []);
+    //Maybe public in the future
+    private trackPerformance() {
+        if ("getEntriesByType" in performance) {
+            const timing = performance.getEntriesByType("navigation")[0] as Undefinable<PerformanceNavigationTiming>;
+            if (timing) {
+                this.trackEvent("performance-measured", {
+                    domInteractive: Math.round(timing.domInteractive),
+                    now: Math.round(performance.now())
+                });
+            }
+        }
+    }
+
+    //TODO: Rename it to trackUser
+    trackUser(userId: string): void {
+        this.cycleProviders("trackUser", [userId]);
+    }
+
+    //TODO: Rename it to trackUserRelease
+    trackUserOff(): void {
+        this.cycleProviders("trackUserOff", []);
     }
 
     private wrapError(err: Error): Error {
@@ -119,27 +136,6 @@ export class TrackingManager implements TrackingManagerType {
 
         if (this.opts?.log) {
             this.log(method, providers, args && args.filter(it => it !== undefined));
-        }
-    }
-
-    private trackOutboundLinks(): void {
-        addLinkClickListener((event, elm, {isOutbound}) => {
-            if (isOutbound) {
-                this.trackEvent("link-outbound-clicked", elm.href)
-            }
-        })
-    }
-
-    //Maybe public in the future
-    private trackPerformance() {
-        if ("getEntriesByType" in performance) {
-            const timing = performance.getEntriesByType("navigation")[0] as Undefinable<PerformanceNavigationTiming>;
-            if (timing) {
-                this.trackEvent("performance-measured", {
-                    domInteractive: Math.round(timing.domInteractive),
-                    now: Math.round(performance.now())
-                });
-            }
         }
     }
 

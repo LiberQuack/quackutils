@@ -89,21 +89,27 @@ export class State<T extends Dictionary<any>> {
 
     /**
      * This method release all updates that were on hold, check `holdUpdate()` to learn more
-     * @param updater Queued tasks will be run against the result of this param
+     * @param priorUpdate Queued tasks will be run against the result of this param
      */
-    async releaseUpdates(updater: Updater<T>): Promise<void> {
+    async releaseUpdates(priorUpdate?: Updater<T>): Promise<void> {
         const queue = this.queue;
         this.queue = [];
 
         this.hold = false;
-        await this.update(updater);
+
+        if (priorUpdate) {
+            await this.update(priorUpdate);
+        }
 
         for (let queueElement of queue) {
+            //Each loop will trigger this state subscriber, it's intentional
+            //if one of the update takes too long as it's async
+            //we want the respective subscribers listen to the changes as soon as possible
             await this.update(queueElement);
         }
     }
 
-    async update(updater: Updater<T>): Promise<void> {
+    async update(updater: Updater<T>, opts?: {}): Promise<void> {
         if (this.hold) {
             return new Promise<void>((resolve, reject) => {
                 this.queue.push(() => {

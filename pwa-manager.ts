@@ -7,7 +7,10 @@ import toUint8Array from 'urlb64touint8array';
 
 type PwaPromptResult = "accepted" | "dismissed" | "unknown";
 
-export class PwaManager {
+const UNKNOWN: PERMISSION = "unknown";
+const NOTIFICATIONS: PermissionName = "notifications"
+
+export class PwaManager<P extends Exclude<PermissionName, "push">> {
 
     readonly state = new State("pwa", {
         preventedNativePrompt: false,
@@ -17,18 +20,22 @@ export class PwaManager {
         promptingInstallResult: undefined as Undefinable<PwaPromptResult>,
         isOnline: true as boolean,
         swRegistered: false as boolean,
-        permissions: {
-            notification: "default" as PERMISSION
-        },
+        permissions: {[NOTIFICATIONS]: UNKNOWN} as Record<P, PERMISSION>,
         displayMode: undefined as Undefinable<"standalone" | "fullscreen" | "browser">
-    })
+    });
 
-    private deferredEvent?: BeforeInstallPromptEvent
+    private deferredEvent?: BeforeInstallPromptEvent;
     private swRegistration?: ServiceWorkerRegistration;
 
-    constructor(
-        private opts?: Partial<PwaManagerOpts>
-    ) { }
+    constructor(private opts?: Partial<PwaManagerOpts<P>>) {
+        if (opts?.permissions) {
+            const {permissions} = opts;
+
+            this.state.update(s => {
+                permissions.forEach(permissionName => {s.permissions[permissionName] = "unknown"});
+            });
+        }
+    }
 
     init() {
         console.log("Pwa-Manager: Starting");
@@ -47,7 +54,7 @@ export class PwaManager {
         });
     }
 
-    startDisplayModeDetector() {
+    async startDisplayModeDetector() {
         const standaloneMatcher = window.matchMedia('(display-mode: standalone)');
         const fullScreenMatcher = window.matchMedia('(display-mode: fullscreen)');
 
@@ -67,17 +74,23 @@ export class PwaManager {
     }
 
     async requestNotificationPermission(onAccepted: (subscription: NotificationSubscription, rawSubscription: PushSubscriptionJSON) => void): Promise<PERMISSION | undefined> {
+        if (this.opts?.permissions && this.opts.permissions.indexOf("notifications" as P) === -1) {
+            console.warn("Pwa-Manager: Add 'notifications' permission as opts");
+        }
+
         if ("Notification" in window) {
             this.state.update((s) => {s.promptingNotification = true});
 
             const [res] = await inlineErr((async (): Promise<PERMISSION | undefined> => {
-                const notificationResult = await Notification.requestPermission()
+                const notificationResult = await Notification.requestPermission();
 
                 if (notificationResult) {
-                    await this.state.update(s => {s.permissions.notification = notificationResult});
-                    console.log("Pwa-Manager: Notification permission is", notificationResult)
+                    const permission:PERMISSION = notificationResult === "default" ? "unknown" : notificationResult;
 
-                    if (notificationResult === "granted" && this.swRegistration && this.opts?.serverPushKey) {
+                    await this.state.update(s => {s.permissions["notifications" as P] = permission});
+                    console.log("Pwa-Manager: Notification permission is", permission)
+
+                    if (permission === "granted" && this.swRegistration && this.opts?.serverPushKey) {
                         const [subscriptionResult] = await inlineErr(this.swRegistration.pushManager.subscribe({
                             userVisibleOnly: true,
                             applicationServerKey: toUint8Array(this.opts.serverPushKey)
@@ -102,13 +115,13 @@ export class PwaManager {
                         };
 
                         onAccepted(subscriptionParsed, pushSubscriptionJSON);
-                        return notificationResult
+                        return permission
                     }
                 }
             })());
 
             this.state.update((s) => {s.promptingNotification = false});
-            return res
+            return res;
         }
     }
 
@@ -169,8 +182,16 @@ export class PwaManager {
         }
     }
 
-    private readPermissions() {
-        //TODO: Need to think about persistency... Safari do not allow permission reading
+    private async readPermissions() {
+        if (navigator.permissions && this.opts?.permissions) {
+            for (let permissionName of this.opts.permissions) {
+                const res = await navigator.permissions.query({name: permissionName})
+                this.state.update(s => {
+                    let permission:PERMISSION = res.state === "prompt" ? "unknown" : res.state;
+                    s.permissions[permissionName] = permission
+                })
+            }
+        }
     }
 
     /**
@@ -208,12 +229,13 @@ export class PwaManager {
     }
 }
 
-type PERMISSION = "default" | "denied" | "granted";
+type PERMISSION = "unknown" | "denied" | "granted";
 
-type PwaManagerOpts = {
-    sw: () => Promise<ServiceWorkerRegistration>,
+type PwaManagerOpts<P extends PermissionName> = {
+    sw: () => Promise<ServiceWorkerRegistration>;
     serverPushKey: string;
-    healthUrl: string,
+    healthUrl: string;
+    permissions: P[];
 
     /*** Value is expressed in seconds */
     healthCheckInterval: number;
