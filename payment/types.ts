@@ -98,7 +98,6 @@ export type PaymentPartialCheckout = PaymentProviderMinimalProperties & {
     }>
 }
 
-
 export type PaymentCheckout = PaymentProviderMinimalProperties & {
     _id?: string;
 
@@ -106,6 +105,7 @@ export type PaymentCheckout = PaymentProviderMinimalProperties & {
     userId: PaymentUser["_id"];
 
     subtotal: number;
+    shipping: number;
     tax: number;
     total: number;
 

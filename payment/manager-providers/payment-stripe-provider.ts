@@ -2,7 +2,6 @@ import {PaymentAccountProvider, PaymentProvider, PaymentProviderCheckout, Paymen
 import {PaymentCheckout, PaymentEnforceProviderBase, PaymentProduct, PaymentUser} from "../types";
 import {Stripe} from "stripe";
 import {PaymentIntentResult} from "@stripe/stripe-js";
-import {log} from "../../../src/utils/log";
 import {Undefinable} from "../../types";
 
 export type PaymentStripeAccount = PaymentEnforceProviderBase<{
@@ -59,7 +58,7 @@ export class PaymentStripeProvider implements PaymentAccountProvider<PaymentStri
                     return {providerCheckoutId: subId};
                 }
             default:
-                log(this.readWebhookCheckout, `Unhandled event type ${event.type}`);
+                console.log(this.readWebhookCheckout, `Unhandled event type ${event.type}`);
         }
     }
 
@@ -76,7 +75,7 @@ export class PaymentStripeProvider implements PaymentAccountProvider<PaymentStri
                 return this.buildCheckoutResult(checkout, subscription, [], checkout.items.map(it => it.product))
 
             default:
-                log(this.handleWebhook, `Stripe event ${eventType} ignored`);
+                console.log(this.handleWebhook, `Stripe event ${eventType} ignored`);
         }
     }
 

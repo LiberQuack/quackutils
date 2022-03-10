@@ -1,7 +1,5 @@
 import PushNotifications, {Data, Settings} from 'node-pushnotifications';
-import {log} from '../src/utils/log';
 import type {NotificationSubscription} from "./pwa-manager";
-
 
 export class PushManager {
 
@@ -12,13 +10,12 @@ export class PushManager {
     }
 
     async sendNotification(recipients: (Omit<NotificationSubscription, "type">)[], message: Data): Promise<PushNotifications.Result[]> {
-
         const results = await this.provider.send(recipients, message);
         const failures = results.filter(it => it.failure > 0);
         const failureCount = failures.reduce((acc, item) => acc + item.failure, 0);
 
         if (failureCount > 0) {
-            log(this.sendNotification, `Failure count ${failureCount}`)
+            console.log(this.sendNotification, `Failure count ${failureCount}`)
         }
 
         return results;

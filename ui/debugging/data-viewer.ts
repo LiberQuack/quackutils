@@ -170,7 +170,7 @@ class DataViewer extends LitElement {
                 }
             </style>
             
-            <div @click="${e => e.stopPropagation()}">${jsonTreeView.dom}</div>
+            <div @click="${(e: Event) => e.stopPropagation()}">${jsonTreeView.dom}</div>
         `;
     }
 }

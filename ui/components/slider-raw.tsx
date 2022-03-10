@@ -1,4 +1,4 @@
-import {useEffect, useRef, useState} from "haunted/lib/core";
+import {useEffect, useLayoutEffect, useRef, useState} from "haunted/lib/core";
 import {CustomElement, CustomEventType} from "../ui-types";
 import {css} from "../../../src/ui/util/css";
 import {debounce} from "debounce";
@@ -7,11 +7,6 @@ import {Undefinable} from "../../types";
 // import "swiper/swiper.min.css";
 
 export type SliderProps = { index: number, content: any[] };
-
-type SliderControls = {
-    next: () => void,
-    previous: () => void,
-};
 
 export const SliderIndicator: CustomElement<{ index: number, length: number }> = (props) => {
     css`
@@ -56,7 +51,7 @@ export const SliderIndicator: CustomElement<{ index: number, length: number }> =
 
 type SliderEvents = { onselect?: (e: CustomEvent<{ index: number }>) => void };
 
-export const SliderElement: CustomElement<{items: any[]}, SliderEvents> = function (props) {
+export const SliderElement: CustomElement<{items: any[], index?: number;}, SliderEvents> = function (props) {
     css`
         slider-element {
             display: block;
@@ -108,12 +103,27 @@ export const SliderElement: CustomElement<{items: any[]}, SliderEvents> = functi
 
             const event: CustomEventType<SliderEvents, "onselect"> = new CustomEvent("select", {detail: {index: indexElmCenter}});
             this.dispatchEvent(event);
-        }, 75), {passive: true})
+        }, 100), {passive: true});
+
+        setTimeout(() => {
+            this.scrollTo(0, 0);
+        }, 100);
 
         return () => {
             observer.disconnect();
         }
     }, []);
+
+    useEffect(() => {
+        if (typeof props.index === "number") {
+            const children = Array.from(refs.current.seContainer!.children) as HTMLElement[];
+            const child = children[props.index];
+
+            if (child) {
+                child.scrollIntoView();
+            }
+        }
+    }, [props.index]);
 
     return (
         <>
@@ -124,14 +134,19 @@ export const SliderElement: CustomElement<{items: any[]}, SliderEvents> = functi
     )}
 
 //TODO: Should change query url during navigation, because if user clicks on "back" button... we go to previous page instead of going back one step
-export function useSliderElement(opts: Pick<SliderProps, "index">): { props: Pick<SliderProps, "index">, controls: SliderControls } {
+export function useSliderElement(opts: Pick<SliderProps, "index"> & {length: number}) {
     const [_index, setIndex] = useState(opts.index);
+
+    useEffect(() => {
+        setIndex(_index % opts.length);
+    }, [opts.length])
 
     return {
         props: {index: _index},
         controls: {
-            next: () => setIndex(_index + 1),
-            previous: () => setIndex(_index - 1)
+            next: () => setIndex((_index + 1) % opts.length),
+            previous: () => setIndex(_index === 0 ? opts.length - 1 : (_index - 1) % opts.length),
+            setIndex: (index: number) => setIndex(index)
         }
     }
 }

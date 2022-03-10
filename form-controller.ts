@@ -2,8 +2,12 @@ import {ReactiveController, ReactiveControllerHost} from "lit";
 import * as s from "superstruct";
 import objectPath from "object-path"
 import {Dictionary} from "./types";
+import * as utilityType from "utility-types";
+import {debug} from "../bullapp-api/src/utils/log";
+import * as util from "util";
 
 export type FormControllerOpts<T = any> = Partial<{
+    initialRawData: Partial<T>,
     onSubmit: (isFormValid: boolean, form: FormController<T>) => undefined | Promise<void>
     debug: boolean;
 }>
@@ -29,11 +33,22 @@ function buildStatusProxy() {
 }
 
 //TODO: It would be interesting if we had an api like useAwait
-// const callback = useAwait(() => throw "Error message")
-// <span>{callback.err}</span>
-export class FormController<T = Dictionary<any>> implements ReactiveController {
+//  const callback = useAwait(() => throw "Error message")
+//  <div><allFields></div>
+//  <span>{callback.err}</span>
+//  <button>submit</submit>
+//  ...
+//  Current workaround for showing form submission errors consists in embedding useAwait in onSubmit
+//  const onSubmitCB = useAwait(() => {...})
+//  const form = useForm(..., ..., {onSubmit: onSubmitCB.run})
+//  ...
+//  From here we can embedded that feature in form controller OR
+//  we can remove it, and simply expect the useAwait
+export class FormController<T extends Dictionary<any>> implements ReactiveController {
 
-    data = {} as Partial<T>;
+    data?: T
+    rawData: Partial<T>;
+
     errors = {} as ErrorDictionary;
     submitAttempted = false;
     isSubmitting = false
@@ -48,6 +63,7 @@ export class FormController<T = Dictionary<any>> implements ReactiveController {
         this.host = host;
         this.schema = schema;
         this.opts = opts || {};
+        this.rawData = this.opts.initialRawData ?? {};
         host.addController(this);
     }
 
@@ -59,7 +75,7 @@ export class FormController<T = Dictionary<any>> implements ReactiveController {
     reset = () => {
         this.errors = {};
         this.status = buildStatusProxy();
-        this.data = {};
+        this.rawData = {};
         this.host.requestUpdate();
 
         if (this.opts.debug) {
@@ -69,19 +85,30 @@ export class FormController<T = Dictionary<any>> implements ReactiveController {
         }
     }
 
+    setSchema(schema?: s.Struct<T>) {
+        if (schema) {
+            this.schema = schema;
+            this.validate();
+        } else {
+            this.errors = {}
+        }
+
+        this.host.requestUpdate();
+    }
+
     setData = (nextData: Partial<T>) => {
-        this.data = nextData;
+        this.rawData = nextData;
         this.validate();
         this.host.requestUpdate();
     }
 
     //TODO: Maybe listen could have param name:string
-    listen = (e: Event) => {
+    fieldListener = (e: Event) => {
         const elm = e.target as HTMLInputElement | null;
 
         if (elm) {
-            const nextValue = elm.value;
-            const nextData = {...this.data};
+            let nextValue = this.castValue(elm);
+            const nextData = {...this.rawData};
             objectPath.set(nextData as any, elm.name, nextValue);
             this.status[elm.name] = {pristine: false, dirty: [undefined, null, false, ""].indexOf(elm.value) > -1};
             this.setData(nextData);
@@ -92,9 +119,22 @@ export class FormController<T = Dictionary<any>> implements ReactiveController {
                 console.log("host", this.host);
                 console.log("listenerAttachedOn", e.currentTarget);
                 console.log("eventOrigin", e.target);
-                console.log("controllerData", this.data);
+                console.log("controllerData", this.rawData);
                 console.groupEnd()
             }
+        }
+    }
+
+    private castValue(elm: HTMLInputElement) {
+        let type = elm.type;
+
+        switch (type) {
+            case "number":
+                return elm.value.length && Number(elm.value)
+            case "checkbox":
+                return elm.checked;
+            default:
+                return elm.value;
         }
     }
 
@@ -104,6 +144,7 @@ export class FormController<T = Dictionary<any>> implements ReactiveController {
         this.isSubmitting = Boolean(this.opts.onSubmit);
         this.host.requestUpdate();
 
+        this.validate();
         const isValid = !this.hasErrors;
 
         if (this.opts.debug) {
@@ -124,17 +165,21 @@ export class FormController<T = Dictionary<any>> implements ReactiveController {
     }
 
     private validate() {
-        const data = this.data
+        const {rawData} = this
+
         if (this.schema) {
-            const [error] = s.validate(data, this.schema);
+            const [error, data] = s.validate(rawData, this.schema);
+
             if (error) {
                 const errors = {} as ErrorDictionary;
                 for (let failure of error.failures()) {
                     errors[failure.path.join(".")] = failure;
                 }
                 this.errors = errors;
+                this.data = undefined
             } else {
                 this.errors = {};
+                this.data = data;
             }
         }
     }

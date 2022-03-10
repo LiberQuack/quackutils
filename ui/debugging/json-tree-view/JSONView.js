@@ -25,15 +25,24 @@ function JSONTreeView(name_, value_, parent_, isRoot_, regexFilter = /^[^_]/){
 		name_ = undefined;
 	}
 
-	var name, value, type, oldType = null, regexFilter = regexFilter, hidden = false,
-		readonly = false,
-		readonlyWhenFiltering = true,
-		alwaysShowRoot = false,
-		showCount = parent_ ? parent_.showCountOfObjectOrArray : true,
-		includingRootName = true,
-		domEventListeners = [], children = [], expanded = true,
-		edittingName = false, edittingValue = false,
-		nameEditable = false, valueEditable = true;
+	var name;
+	var value;
+	var type;
+	var oldType = null;
+	var regexFilter = regexFilter;
+	var hidden = false;
+	var readonly = false;
+	var readonlyWhenFiltering = true;
+	var alwaysShowRoot = false;
+	var showCount = parent_ ? parent_.showCountOfObjectOrArray : true;
+	var includingRootName = true;
+	var domEventListeners = [];
+	var children = [];
+	var expanded = true;
+	var edittingName = false;
+	var edittingValue = false;
+	var nameEditable = false;
+	var valueEditable = true;
 
 	var dom = {
 		container : document.createElement('div'),
@@ -410,7 +419,7 @@ function JSONTreeView(name_, value_, parent_, isRoot_, regexFilter = /^[^_]/){
 				...Object.entries(Object.getOwnPropertyDescriptors(value)),
 				...Object.entries(Object.getOwnPropertyDescriptors(Object.getPrototypeOf(value))),
 			])
-		].filter(it => it[1].get || it[1].value).map(it => it[0]).filter(it => ["constructor", "hasOwnProperty", "isPrototypeOf", "propertyIsEnumerable", "toLocaleString", "toString", "valueOf"].indexOf(it) === -1);
+		].map(it => it[0]).filter(it => ["constructor", "hasOwnProperty", "isPrototypeOf", "propertyIsEnumerable", "toLocaleString", "toString", "valueOf"].indexOf(it) === -1);
 
 		props.sort((a, b) => a.localeCompare(b))
 
