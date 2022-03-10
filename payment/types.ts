@@ -1,6 +1,7 @@
-import {PaymentManager} from "./payment-manager";
+import {AbstractPaymentService} from "./abstract-payment-service";
 import {ValuesType} from "utility-types";
 import {PaymentAccountProvider, PaymentProviderCheckout} from "./manager-providers/types";
+import {ObjectID} from "mongodb";
 
 export type PaymentProviderMinimalProperties = { provider: string };
 export type PaymentEnforceProviderBase<T extends PaymentProviderMinimalProperties> = T
@@ -36,6 +37,7 @@ export type PaymentProduct = {
     _id: string;
     title: string;
     price: number;
+    code: string;
     type: "product" | "plan"
     payment?: Array<PaymentProductProviderData>
 }
@@ -100,12 +102,13 @@ export type PaymentPartialCheckout = PaymentProviderMinimalProperties & {
 
 
 export type PaymentCheckout = PaymentProviderMinimalProperties & {
-    _id?: string;
+    _id?: ObjectID;
 
     coupon_code?: PaymentCoupon["code"];
     userId: PaymentUser["_id"];
 
     subtotal: number;
+    shipping: number;
     tax: number;
     total: number;
 
@@ -125,5 +128,5 @@ export type PaymentCheckout = PaymentProviderMinimalProperties & {
 }
 
 //Utility
-export type ProviderName<PM extends PaymentManager<any, any, any>> = ValuesType<PM["providers"]>["provider"]
-export type CreateCardData<PM extends PaymentManager<any, any, any>> = Parameters<Extract<ValuesType<PM["providers"]>, PaymentAccountProvider>["createCard"]>[1]
+export type ProviderName<PM extends AbstractPaymentService<any, any, any>> = ValuesType<PM["providers"]>["provider"]
+export type CreateCardData<PM extends AbstractPaymentService<any, any, any>> = Parameters<Extract<ValuesType<PM["providers"]>, PaymentAccountProvider>["createCard"]>[1]

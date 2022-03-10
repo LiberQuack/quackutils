@@ -55,19 +55,19 @@ export function dictionaryMap<T, R = any>(dict: Dictionary<T>, cb: (key: string,
  * Create a new object from dictionary, where values as transformed like
  *
  * @example
- *     dictionaryTransformEntries({a: 1, b: 2}, v => v * 2)
+ *     dictionaryTransformEntries({a: 1, b: 2}, (k, v) => v * 2)
  *     // {a: 2, b: 4}
  *
  * @param dict
  * @param transformer
  */
 //TODO: Should be dictionaryTransformValues
-export function dictionaryTransformEntries<T extends object, ER, TT extends AugmentedRequired<T>>(dict: T, transformer: (value: TT[keyof TT]) => ER): {[P in keyof T]: ER} {
+export function dictionaryTransformEntries<T extends object, ER, TT extends AugmentedRequired<T>>(dict: T, transformer: (key: keyof T, value: TT[keyof TT], index: number) => ER): {[P in keyof T]: ER} {
     const keys = Object.keys(dict) as (keyof T)[];
 
-    return keys.reduce((acc, key: keyof T) => {
+    return keys.reduce((acc, key: keyof T, i) => {
         const entry = dict[key];
-        acc[key] = transformer(entry as any) as ER;
+        acc[key] = transformer(key, entry as any, i) as ER;
         return acc;
     }, {} as { [P in keyof T]: ER });
 }
@@ -75,9 +75,10 @@ export function dictionaryTransformEntries<T extends object, ER, TT extends Augm
 /**
  * Reduce values of the dictionary
  *
- * @example
+ * @example key
  *     let list = [{gender: M, id: 1}, {gender: M, id: 2}, {gender: F, id: 3}]
  *     listToDictionaryAcc(list, "gender")
+ *
  *     // Result:
  *     // {
  *     //     M: [
@@ -88,6 +89,7 @@ export function dictionaryTransformEntries<T extends object, ER, TT extends Augm
  *     //            {gender: F, id: 3}
  *     //        ]
  *     // }
+ *
  * @param list
  * @param key
  */
@@ -103,6 +105,46 @@ export function listToDictionaryAcc<T>(list: T[], key: keyof T): Dictionary<T[]>
 }
 
 /**
+ * Reduce values of the dictionary
+ *
+ *
+ * @example predicate
+ *     let list = [{gender: M, id: 1}, {gender: M, id: 2}, {gender: F, id: 3}]
+ *     let predicate = (item) => item.id % 2
+ *     listToDictionaryPartitioner(["even","odd"], list, predicate)
+ *
+ *     // Result:
+ *     // {
+ *     //     "even": [
+ *     //            {gender: M, id: 1},
+ *     //            {gender: M, id: 2}
+ *     //         ],
+ *     //     "odd": [
+ *     //            {gender: F, id: 3}
+ *     //        ]
+ *     // }
+ *
+ * @param list
+ * @param partitions
+ * @param predicate
+ */
+export function listToDictionaryPartitioner<T, R extends string>(list: T[], partitions: R[], predicate: ((item: T) => number)): Record<R | "undefined", T[]> {
+    let acc = partitions.reduce((a, b) => {
+        a[b] = [];
+        return a;
+    }, {} as Record<R | "undefined", T[]>)
+
+    for (let item of list) {
+        let group = partitions[predicate(item)] as R ?? "undefined"
+        let previousValue = acc[group] as T[] | undefined
+        acc[group] = previousValue ? [...previousValue, item] : [item]
+    }
+
+    return acc;
+}
+
+
+/**
  * Accumulate dictionary list, resulting a new dictionary of lists
  * @example
  *     let list = [
@@ -116,7 +158,7 @@ export function listToDictionaryAcc<T>(list: T[], key: keyof T): Dictionary<T[]>
  *
  * @param list
  */
-export function listToDictionaryMergedKeys<T, U = UnionToIntersection<T>, Result = Partial<{[P in keyof U]: U[keyof U][]}>>(list: T[]): Result {
+export function listToDictionaryMergedKeys<T, U = UnionToIntersection<T>, Result = {[P in keyof U]: U[keyof U][]}>(list: T[]): Result {
     let acc = {} as Result
 
     for (let obj of list) {

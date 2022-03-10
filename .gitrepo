@@ -1,0 +1,12 @@
+; DO NOT EDIT (unless you know what you are doing)
+;
+; This subdirectory is a git "subrepo", and this file is maintained by the
+; git-subrepo command. See https://github.com/git-commands/git-subrepo#readme
+;
+[subrepo]
+	remote = git@github.com:QuackMartins/quackutils.git
+	branch = master
+	commit = 081db62944f6ea4bc82c8cd5f20b902794305c57
+	parent = 3fb293598d4559513b72397006a092030d64304a
+	method = merge
+	cmdver = 0.4.3

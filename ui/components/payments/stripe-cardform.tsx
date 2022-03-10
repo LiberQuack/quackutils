@@ -69,9 +69,9 @@ export const StripeCardform: CustomElement<{ forceLoading?: boolean, btnContent?
             return {...cfg, stripeElm, container}
         })
 
-        const htmlDict = dictionaryTransformEntries(listToDictionary(stripeElms, "name"), (entry) => {
-            entry.stripeElm.mount(entry.container);
-            return entry.container;
+        const htmlDict = dictionaryTransformEntries(listToDictionary(stripeElms, "name"), (key, value) => {
+            value.stripeElm.mount(value.container);
+            return value.container;
         });
 
         stripeRef.current = {

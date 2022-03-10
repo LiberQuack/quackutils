@@ -9,7 +9,7 @@ export type UnPartial<T> = T extends Partial<infer U> ? U : never
 export type Nullable<T> = T | null;
 export type Undefinable<T> = T | undefined;
 
-/** @deprecated */
+/** @deprecated Use ValuesType from "utility-types" instead */
 export type UnArray<T> = T extends Array<infer U> ? U : never
 
 export type StructType<T extends Struct<any>> = T extends Struct<infer U> ? U : never;

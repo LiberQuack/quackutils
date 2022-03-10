@@ -4,6 +4,7 @@ import {Stripe} from "stripe";
 import {PaymentIntentResult} from "@stripe/stripe-js";
 import {log} from "../../../src/utils/log";
 import {Undefinable} from "../../types";
+import {inlineErr} from "../../inline-error";
 
 export type PaymentStripeAccount = PaymentEnforceProviderBase<{
     provider: "stripe",
@@ -185,7 +186,7 @@ export class PaymentStripeProvider implements PaymentAccountProvider<PaymentStri
             const item: Stripe.SubscriptionCreateParams.Item = {
                 quantity: checkoutItem.quantity,
                 price_data: {
-                    product: product._id,
+                    product: product.code,
                     currency: "BRL", //TODO: Need to make it dynamic, maybe more methods should be abstract in interface
                     unit_amount: Math.floor(product.price * 100),
                     recurring: {
@@ -213,9 +214,10 @@ export class PaymentStripeProvider implements PaymentAccountProvider<PaymentStri
         return {
             checkout: {
                 ...checkoutObj,
-                providerId: subscription.id,
+                externalId: subscription.id,
                 providerData: subscription,
                 success: subscription.status === "active",
+                period: new Date(subscription.current_period_start * 1000),
             },
             products: providerProducts,
             subscription: {
@@ -238,7 +240,7 @@ export class PaymentStripeProvider implements PaymentAccountProvider<PaymentStri
             if (paymentDataList.find(it => it.provider === this.provider)) {
                 ensuredProducts.push(product)
             } else {
-                const stripeProduct = await this.stripe.products.create({id: product._id, name: product.title});
+                const stripeProduct = await this.stripe.products.create({id: product.code, name: product.code});
                 const paymentData = {data: stripeProduct, provider: this.provider};
                 generatedStripeData.push({productObj: product, providerData: paymentData})
                 ensuredProducts.push({...product, payment: [...paymentDataList, paymentData]})
