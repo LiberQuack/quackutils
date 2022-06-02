@@ -44,4 +44,4 @@ function fmtTime(time: number) {
     return `${hours}:${minutes.padStart(2, "0")}:${seconds.padStart(2, "0")}`
 }
 
-customElements.define("timer-element", component(TimerElement, {observedAttributes: ["target-date"] as any}));
+customElements.define("timer-element", component(TimerElement, {useShadowDOM: false, observedAttributes: ["target-date"] as any}));
