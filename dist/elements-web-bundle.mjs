@@ -36,21 +36,21 @@ if (parcelRequire == null) {
 
   $parcel$global["parcelRequireb699"] = parcelRequire;
 }
-parcelRequire.register("kKFo9", function(module, exports) {
-module.exports = Promise.resolve(require("./timer-element.d3a93e82.js")).then(()=>parcelRequire("24Rxt"));
+parcelRequire.register("ltVO5", function(module, exports) {
+module.exports = import("./timer-element.2819fec5.js").then(()=>parcelRequire("5hmFI"));
 
 });
 
-parcelRequire.register("hX9Uv", function(module, exports) {
-module.exports = Promise.resolve(require("./share-element.e4a0893a.js")).then(()=>parcelRequire("l9sLc"));
+parcelRequire.register("iDFpD", function(module, exports) {
+module.exports = import("./share-element.b291defd.js").then(()=>parcelRequire("HWFlE"));
 
 });
 
 console.log("Lazy loading components");
 
-if (document.querySelector("timer-element")) (parcelRequire("kKFo9"));
+if (document.querySelector("timer-element")) (parcelRequire("ltVO5"));
 
-if (document.querySelector("share-element")) (parcelRequire("hX9Uv"));
+if (document.querySelector("share-element")) (parcelRequire("iDFpD"));
 
 
-//# sourceMappingURL=elements.js.map
+//# sourceMappingURL=elements-web-bundle.mjs.map
