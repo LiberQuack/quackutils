@@ -37,12 +37,17 @@ if (parcelRequire == null) {
   $parcel$global["parcelRequireb699"] = parcelRequire;
 }
 parcelRequire.register("ltVO5", function(module, exports) {
-module.exports = import("./timer-element.2819fec5.js").then(()=>parcelRequire("5hmFI"));
+module.exports = import("./timer-element.0c7bc8d8.js").then(()=>parcelRequire("5hmFI"));
 
 });
 
 parcelRequire.register("iDFpD", function(module, exports) {
-module.exports = import("./share-element.b291defd.js").then(()=>parcelRequire("HWFlE"));
+module.exports = import("./share-element.6f27ce13.js").then(()=>parcelRequire("HWFlE"));
+
+});
+
+parcelRequire.register("8puEM", function(module, exports) {
+module.exports = import("./increment-number.a2a331d3.js").then(()=>parcelRequire("crQfv"));
 
 });
 
@@ -50,7 +55,9 @@ console.log("Lazy loading components");
 
 if (document.querySelector("timer-element")) (parcelRequire("ltVO5"));
 
-if (document.querySelector("share-element")) (parcelRequire("iDFpD"));
+if (document.querySelector("increment-number")) (parcelRequire("iDFpD"));
+
+if (document.querySelector("increment-number")) (parcelRequire("8puEM"));
 
 
 //# sourceMappingURL=elements-web-bundle.mjs.map

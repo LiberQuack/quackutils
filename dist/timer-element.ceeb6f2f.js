@@ -696,6 +696,7 @@ $parcel$export(module.exports, "default", () => $aa34f5756b3f6c3c$export$2e2bcd8
 $parcel$export(module.exports, "useEffect", () => (parcelRequire("cTUZO")).useEffect);
 $parcel$export(module.exports, "useState", () => (parcelRequire("2lQDC")).useState);
 $parcel$export(module.exports, "useMemo", () => (parcelRequire("8LSTU")).useMemo);
+$parcel$export(module.exports, "useRef", () => (parcelRequire("04dGP")).useRef);
 
 var $7zVj6 = parcelRequire("7zVj6");
 
@@ -1438,6 +1439,8 @@ var $2hScI = parcelRequire("2hScI");
 
 parcelRequire.register("04dGP", function(module, exports) {
 
+$parcel$export(module.exports, "useRef", () => $00cafe5601451cd6$export$b8f5890fc79d6aca);
+
 var $8LSTU = parcelRequire("8LSTU");
 /**
  * @function
@@ -1723,4 +1726,4 @@ var $b87GI = parcelRequire("b87GI");
 
 
 
-//# sourceMappingURL=timer-element.6d1432d3.js.map
+//# sourceMappingURL=timer-element.ceeb6f2f.js.map

@@ -1,4 +1,4 @@
-import "./timer-element.6d1432d3.js";
+import "./timer-element.ceeb6f2f.js";
 
 function $parcel$interopDefault(a) {
   return a && a.__esModule ? a.default : a;
@@ -385,4 +385,4 @@ const $0e1c09788346ac87$export$dbf350e5966cf602 = (template, ...values)=>{
 
 
 
-//# sourceMappingURL=share-element.b291defd.js.map
+//# sourceMappingURL=share-element.6f27ce13.js.map

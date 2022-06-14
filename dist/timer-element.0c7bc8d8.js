@@ -1,4 +1,4 @@
-import "./timer-element.6d1432d3.js";
+import "./timer-element.ceeb6f2f.js";
 
 function $parcel$export(e, n, v, s) {
   Object.defineProperty(e, n, {get: v, set: s, enumerable: true, configurable: true});
@@ -65,4 +65,4 @@ customElements.define("timer-element", (0, $7WcZB.component)($d5b7ef9ed2f437f3$e
 });
 
 
-//# sourceMappingURL=timer-element.2819fec5.js.map
+//# sourceMappingURL=timer-element.0c7bc8d8.js.map
