@@ -47,7 +47,7 @@ module.exports = import("./share-element.6f27ce13.js").then(()=>parcelRequire("H
 });
 
 parcelRequire.register("8puEM", function(module, exports) {
-module.exports = import("./increment-number.a2a331d3.js").then(()=>parcelRequire("crQfv"));
+module.exports = import("./increment-number.50bd202e.js").then(()=>parcelRequire("crQfv"));
 
 });
 
@@ -55,7 +55,7 @@ console.log("Lazy loading components");
 
 if (document.querySelector("timer-element")) (parcelRequire("ltVO5"));
 
-if (document.querySelector("increment-number")) (parcelRequire("iDFpD"));
+if (document.querySelector("share-element")) (parcelRequire("iDFpD"));
 
 if (document.querySelector("increment-number")) (parcelRequire("8puEM"));
 

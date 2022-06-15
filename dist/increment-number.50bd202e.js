@@ -26,7 +26,16 @@ var $7WcZB = parcelRequire("7WcZB");
 var $eC0rA = parcelRequire("eC0rA");
 
 var $2eXFe = parcelRequire("2eXFe");
-const $fb9a13bd8c646f69$export$b2b8b837786478cd = function({ from: from , to: to , bezier: bezier , secondsDuration: secondsDuration , maxDecimals: maxDecimals , minDecimals: minDecimals  }) {
+const $fb9a13bd8c646f69$var$attributes = [
+    "from",
+    "to",
+    "bezier",
+    "seconds-duration",
+    "max-decimals",
+    "min-decimals",
+    "once"
+];
+const $fb9a13bd8c646f69$export$b2b8b837786478cd = function({ from: from , to: to , bezier: bezier , secondsDuration: secondsDuration , maxDecimals: maxDecimals , minDecimals: minDecimals , once: once  }) {
     const attr = {
         bezier: bezier ?? "1, 0, 1, 1",
         secondsDuration: secondsDuration ?? "2",
@@ -67,25 +76,23 @@ const $fb9a13bd8c646f69$export$b2b8b837786478cd = function({ from: from , to: to
         to
     ]);
     (0, $eC0rA.useEffect)(()=>{
-        const observer = new IntersectionObserver((elms)=>{
+        const observerEnter = new IntersectionObserver((elms)=>{
             if (elms[0]?.isIntersecting) updateCurrentRef.current?.();
-            else this.textContent = attr.from;
+            if (elms[0]?.isIntersecting && once) observerEnter.disconnect();
         }, {
             threshold: 1
         });
-        observer.observe(this);
+        observerEnter.observe(this);
+        if (once) return;
+        const observerExit = new IntersectionObserver((elms)=>{
+            if (!elms[0]?.isIntersecting) this.textContent = attr.from;
+        });
+        observerExit.observe(this);
     }, []);
 };
 customElements.define("increment-number", (0, $7WcZB.component)($fb9a13bd8c646f69$export$b2b8b837786478cd, {
     useShadowDOM: false,
-    observedAttributes: [
-        "from",
-        "to",
-        "bezier",
-        "seconds-duration",
-        "max-decimals",
-        "min-decimals"
-    ]
+    observedAttributes: $fb9a13bd8c646f69$var$attributes
 }));
 
 });
@@ -173,4 +180,4 @@ module.exports = function bezier(mX1, mY1, mX2, mY2) {
 
 
 
-//# sourceMappingURL=increment-number.a2a331d3.js.map
+//# sourceMappingURL=increment-number.50bd202e.js.map

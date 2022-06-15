@@ -4,8 +4,17 @@ import {useEffect, useRef, useState} from "haunted/lib/core";
 import BezierEasing from "bezier-easing";
 import {Nullable} from "../../../types";
 
+const attributes = [
+    "from",
+    "to",
+    "bezier",
+    "seconds-duration",
+    "max-decimals",
+    "min-decimals",
+    "once"
+];
 
-export const IncrementNumber:CustomElement<{from: string, to: string, bezier: string, secondsDuration: string, maxDecimals: string, minDecimals: string}> = function({from, to, bezier, secondsDuration, maxDecimals, minDecimals}) {
+export const IncrementNumber:CustomElement<{from: string, to: string, bezier: string, secondsDuration: string, maxDecimals: string, minDecimals: string, once: boolean|string}> = function({from, to, bezier, secondsDuration, maxDecimals, minDecimals, once}) {
     const attr = {
         bezier: bezier ?? "1, 0, 1, 1",
         secondsDuration: secondsDuration ?? "2",
@@ -53,16 +62,21 @@ export const IncrementNumber:CustomElement<{from: string, to: string, bezier: st
     }, [from, to])
 
     useEffect(() => {
-        const observer = new IntersectionObserver((elms) => {
-            if (elms[0]?.isIntersecting) {
-                updateCurrentRef.current?.();
-            } else {
-                this.textContent = attr.from;
-            }
+        const observerEnter = new IntersectionObserver((elms) => {
+            if (elms[0]?.isIntersecting) updateCurrentRef.current?.();
+            if (elms[0]?.isIntersecting && once) observerEnter.disconnect();
         }, {threshold: 1});
+        observerEnter.observe(this);
 
-        observer.observe(this);
+        if (once) return
+
+        const observerExit = new IntersectionObserver((elms) => {
+            if (!elms[0]?.isIntersecting) this.textContent = attr.from;
+        });
+        observerExit.observe(this);
+
+
     }, [])
 }
 
-customElements.define("increment-number", component(IncrementNumber, {useShadowDOM: false, observedAttributes: ["from", "to", "bezier", "seconds-duration", "max-decimals", "min-decimals"] as any}));
+customElements.define("increment-number", component(IncrementNumber, {useShadowDOM: false, observedAttributes: attributes as any}));
