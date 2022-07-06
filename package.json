@@ -2,7 +2,10 @@
   "name": "quackutils",
   "version": "1.0.0",
   "description": "Quack utilities",
-  "exports": ["./dist"],
+  "exports": {
+    "./state": "dist/state.js",
+    "./elements": "dist/elements.js"
+  },
   "targets": {
     "lib-elements": {
       "source": "./elements.ts",
