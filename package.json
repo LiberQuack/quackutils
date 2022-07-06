@@ -1,5 +1,5 @@
 {
-  "name": "quackutils",
+  "name": "@liberquack/quackutils",
   "version": "1.0.0",
   "description": "Quack utilities",
   "exports": {
