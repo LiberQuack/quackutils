@@ -1,0 +1,59 @@
+{
+  "name": "quackutils",
+  "version": "1.0.0",
+  "description": "Quack utilities",
+  "main": "./dist/",
+  "targets": {
+    "lib-elements": {
+      "source": "./elements.ts",
+      "distDir": "./dist",
+      "includeNodeModules": true,
+      "isLibrary": true,
+      "outputFormat": "esmodule"
+    },
+    "lib-state": {
+      "source": "./state.ts",
+      "distDir": "./dist",
+      "includeNodeModules": true,
+      "isLibrary": true,
+      "outputFormat": "esmodule"
+    }
+  },
+  "browserslist": "Chrome > 80",
+  "scripts": {
+    "build": "rm -rf dist && parcel build",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/QuackMartins/quackutils.git"
+  },
+  "keywords": [
+    "quack",
+    "utils"
+  ],
+  "author": "Quack",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/QuackMartins/quackutils/issues"
+  },
+  "homepage": "https://github.com/QuackMartins/quackutils#readme",
+  "dependencies": {
+    "bezier-easing": "^2.1.0",
+    "haunted": "^5.0.0",
+    "idb": "^7.0.2",
+    "immer": "^9.0.15",
+    "lit": "^2.2.5",
+    "react": "^18.2.0",
+    "share-buttons": "^1.9.0"
+  },
+  "devDependencies": {
+    "@parcel/transformer-inline-string": "^2.6.0",
+    "@parcel/transformer-typescript-types": "^2.6.0",
+    "@types/bezier-easing": "^2.1.2",
+    "@types/react": "^18.0.15",
+    "parcel": "^2.6.0",
+    "typescript": "^4.7.2",
+    "utility-types": "^3.10.0"
+  }
+}
