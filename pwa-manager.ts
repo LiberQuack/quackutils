@@ -1,7 +1,7 @@
 /// <reference lib="dom"/>
 
 import {BeforeInstallPromptEvent, Undefinable} from "./types";
-import {State} from "./state";
+import {State} from "./src/app/state/state";
 import {inlineErr} from "./inline-error";
 import toUint8Array from 'urlb64touint8array';
 
