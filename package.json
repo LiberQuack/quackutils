@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "description": "Quack utilities",
   "exports": {
-    "./state": "dist/state.js",
-    "./elements": "dist/elements.js"
+    "./state": "./dist/state.js",
+    "./elements": "./dist/elements.js"
   },
   "targets": {
     "lib-elements": {
