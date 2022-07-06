@@ -2,7 +2,7 @@
   "name": "quackutils",
   "version": "1.0.0",
   "description": "Quack utilities",
-  "main": "./dist/",
+  "module": "dist",
   "targets": {
     "lib-elements": {
       "source": "./elements.ts",
