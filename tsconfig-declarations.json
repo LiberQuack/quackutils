@@ -4,5 +4,10 @@
     "declaration": true,
     "declarationMap": true,
     "emitDeclarationOnly": true,
-  }
+    "typeRoots": [
+      "index.d.ts",
+      "node_modules/@types"
+    ]
+  },
+  "exclude": ["node_modules"]
 }

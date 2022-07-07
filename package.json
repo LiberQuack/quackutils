@@ -4,16 +4,9 @@
   "description": "Quack utilities",
   "type": "module",
   "typeScriptVersion": "4.6.3",
-  "exports": {
-    "./state-glue-react": {
-      "default": "./bundle/state-glue-react.js",
-      "types": "./bundle/state-glue.react.d.ts"
-    },
-    ".": {
-      "default": "./bundle/index.js",
-      "types": "./bundle/index.ts"
-    }
-  },
+  "module": "bundle/index.js",
+  "main": "bundle/index.js",
+  "files": ["bundle"],
   "browserslist": "Chrome > 80",
   "scripts": {
     "build": "npm run build:js && npm run build:types && mv dist bundle",
