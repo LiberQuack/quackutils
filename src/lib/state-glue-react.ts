@@ -1,1 +1,1 @@
-export {State} from "../app/state"
+export {useGlue} from "../app/state/state-glue-react"
