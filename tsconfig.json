@@ -7,5 +7,6 @@
     "moduleResolution": "Node",
     "esModuleInterop": true,
     "outDir": "./dist"
-  }
+  },
+  "include": ["./src/*.ts"]
 }

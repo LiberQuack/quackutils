@@ -2,20 +2,20 @@
   "name": "@liberquack/quackutils",
   "version": "1.0.0",
   "description": "Quack utilities",
+  "types": "./bundle/types.d.ts",
   "exports": {
     "./*": {
-      "module": "./bundle/*.js",
-      "types": "./bundle/*.d.ts"
+      "module": "./bundle/*.js"
     },
     ".": {
-      "module": "./bundle/index.js",
-      "types": "./bundle/index.d.ts"
+      "module": "./bundle/index.js"
     }
   },
   "browserslist": "Chrome > 80",
   "scripts": {
-    "build": "npm run build:js && mv dist bundle",
-    "build:js": "rm -rf dist && tsc -p tsconfig-lib.json",
+    "build": "npm run build:js && npm run build:types && mv dist bundle",
+    "build:js": "rm -rf bundle dist && tsc -p tsconfig.json",
+    "build:types": "rm -rf bundle/types.d.ts dist/types.d.ts && tsc -p tsconfig-declarations.json",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
