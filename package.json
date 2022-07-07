@@ -4,10 +4,12 @@
   "description": "Quack utilities",
   "exports": {
     "./*": {
-      "module": "./bundle/*.js"
+      "module": "./bundle/*.js",
+      "types": "./bundle/*.d.ts"
     },
     ".": {
-      "module": "./bundle/index.js"
+      "module": "./bundle/index.js",
+      "types": "./bundle/index.d.ts"
     }
   },
   "browserslist": "Chrome > 80",
