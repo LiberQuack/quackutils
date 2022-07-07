@@ -3,17 +3,14 @@
   "version": "1.0.0",
   "description": "Quack utilities",
   "exports": {
-    "./*": {
-      "module": "./dist/*.js"
-    },
-    ".": {
-      "module": "./dist/index.js"
-    }
+    "./*": "./dist/*.js",
+    ".": "./dist/index.js"
   },
   "targets": {
     "default": {
       "isLibrary": true,
-      "outputFormat": "esmodule"
+      "outputFormat": "esmodule",
+      "includeNodeModules": false
     }
   },
   "browserslist": "Chrome > 80",
