@@ -14,7 +14,7 @@
       "distDir": "./dist",
       "includeNodeModules": true,
       "isLibrary": true,
-      "outputFormat": "esmodule",
+      "outputFormat": "commonjs",
       "context": "browser"
     },
     "lib-state": {
@@ -22,7 +22,7 @@
       "distDir": "./dist",
       "includeNodeModules": true,
       "isLibrary": true,
-      "outputFormat": "esmodule",
+      "outputFormat": "commonjs",
       "context": "browser"
     }
   },
