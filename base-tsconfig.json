@@ -8,6 +8,6 @@
     "strict": true,                                     /* Enable all strict type-checking options. */
     "noUncheckedIndexedAccess": true,                   /* Include 'undefined' in index signature results */
     "allowJs": true,
-    "declaration": true
+    "isolatedModules": true
   }
 }
