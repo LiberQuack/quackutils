@@ -10,14 +10,14 @@
   "types": "dist/types.d.ts",
   "targets": {
     "lib-elements": {
-      "source": "./elements.ts",
+      "source": "./src/lib/elements.ts",
       "distDir": "./dist",
       "isLibrary": true,
       "outputFormat": "commonjs",
       "context": "browser"
     },
     "lib-state": {
-      "source": "./state.ts",
+      "source": "./src/lib/state.ts",
       "distDir": "./dist",
       "isLibrary": true,
       "outputFormat": "commonjs",
