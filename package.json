@@ -10,12 +10,15 @@
     "default": {
       "isLibrary": true,
       "outputFormat": "esmodule",
-      "includeNodeModules": false
+      "includeNodeModules": false,
+      "distDir": "./dist"
     }
   },
   "browserslist": "Chrome > 80",
   "scripts": {
-    "build": "rm -rf dist && parcel build 'src/lib/*.ts'",
+    "build": "npm run build:js && npm run build:types",
+    "build:js": "rm -rf dist && parcel build 'src/lib/*.ts'",
+    "build:types": "tsc -p tsconfig-lib.json",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -39,7 +42,8 @@
     "immer": "^9.0.15",
     "lit": "^2.2.5",
     "react": "^18.2.0",
-    "share-buttons": "^1.9.0"
+    "share-buttons": "^1.9.0",
+    "superstruct": "^0.16.0"
   },
   "devDependencies": {
     "@parcel/packager-ts": "^2.6.0",

@@ -4,7 +4,8 @@
     "target": "ESNext",
     "lib": ["DOM", "DOM.Iterable", "ESNext"],
     "module": "esnext",
-    "esModuleInterop": true
-  },
-  "include": ["**/*.ts"]
+    "moduleResolution": "Node",
+    "esModuleInterop": true,
+    "outDir": "./dist"
+  }
 }
