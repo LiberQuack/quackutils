@@ -3,8 +3,12 @@
   "version": "1.0.0",
   "description": "Quack utilities",
   "exports": {
-    "./*": "./dist/*.js",
-    ".": "./dist/index.js"
+    "./*": {
+      "module": "./dist/*.js"
+    },
+    ".": {
+      "module": "./dist/index.js"
+    }
   },
   "targets": {
     "default": {

@@ -3,7 +3,8 @@
   "compilerOptions": {
     "target": "ESNext",
     "lib": ["DOM", "DOM.Iterable", "ESNext"],
-    "module": "esnext"
+    "module": "esnext",
+    "esModuleInterop": true
   },
   "include": ["**/*.ts"]
 }
