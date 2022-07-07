@@ -1,4 +1,4 @@
-import {Dictionary} from "../../../../types";
+import {Dictionary} from "../../../_/types";
 import {PaymentProduct} from "../../../payment/types";
 import {GtagProduct} from "../tracking-types";
 

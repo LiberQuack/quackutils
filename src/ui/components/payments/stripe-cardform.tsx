@@ -1,9 +1,9 @@
 import StripeTypes from "@stripe/stripe-js";
 import {CustomElement, CustomEventType} from "../../ui-types";
 import {useEffect, useRef, useState} from "haunted/lib/core";
-import {Nullable} from "../../../../types";
+import {Nullable} from "../../../_/types";
 import {useAwait} from "../../util/hooks/use-await";
-import {dictionaryTransformEntries, listToDictionary} from "../../../../dictionary";
+import {dictionaryTransformEntries, listToDictionary} from "../../../_/dictionary";
 import {CardElement} from "../../../../src/ui/components/card";
 import {ControlText} from "../../../../src/ui/components/controls/control-text";
 import {fmt} from "../../../../src/ui/util/formatters";

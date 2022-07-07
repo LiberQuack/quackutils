@@ -1,5 +1,5 @@
 import {TRACKING_PURCHASE_CHECKOUT, TRACKING_PURCHASE_JOURNEY, TrackingManagerProvider} from "../tracking-types";
-import {Dictionary} from "../../../../types";
+import {Dictionary} from "../../../_/types";
 import {PaymentCheckout, PaymentProduct} from "../../../payment/types";
 import {PaymentProviderCheckout} from "../../../payment/manager-providers/types";
 import {GoogleTrackingBaseOpts} from "./google-tracking-types";

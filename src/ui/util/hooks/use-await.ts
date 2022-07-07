@@ -1,6 +1,6 @@
 import {useState} from "haunted/lib/core";
-import {inlineErr} from "../../../../inline-error";
-import {Undefinable} from "../../../../types";
+import {inlineErr} from "../../../_/inline-error";
+import {Undefinable} from "../../../_/types";
 
 export function useAwait<R, T extends ((...args: any[]) => Promise<R>)>(cb: T): {run: T, result: Undefinable<R>, loading: boolean, err: undefined | Error} {
     const [loading, setLoading] = useState(false);

@@ -2,8 +2,8 @@ import {PaymentAccountProvider, PaymentProvider, PaymentProviderCheckout, Paymen
 import {PaymentCheckout, PaymentEnforceProviderBase, PaymentProduct, PaymentUser} from "../types";
 import {Stripe} from "stripe";
 import {PaymentIntentResult} from "@stripe/stripe-js";
-import {Undefinable} from "../../../types";
-import {inlineErr} from "../../../inline-error";
+import {Undefinable} from "../../_/types";
+import {inlineErr} from "../../_/inline-error";
 
 export type PaymentStripeAccount = PaymentEnforceProviderBase<{
     provider: "stripe",

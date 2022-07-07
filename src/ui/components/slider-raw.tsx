@@ -2,7 +2,7 @@ import {useEffect, useLayoutEffect, useRef, useState} from "haunted/lib/core";
 import {CustomElement, CustomEventType} from "../ui-types";
 import {css} from "../../../src/ui/util/css";
 import {debounce} from "debounce";
-import {Undefinable} from "../../../types";
+import {Undefinable} from "../../_/types";
 // import Swiper from "swiper";
 // import "swiper/swiper.min.css";
 

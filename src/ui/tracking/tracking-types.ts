@@ -1,6 +1,6 @@
 import {PaymentCheckout, PaymentProduct} from "../../payment/types";
 import {PaymentProviderCheckout} from "../../payment/manager-providers/types";
-import {Dictionary} from "../../../types";
+import {Dictionary} from "../../_/types";
 
 export type TRACKING_PURCHASE = TRACKING_PURCHASE_JOURNEY | TRACKING_PURCHASE_CHECKOUT
 

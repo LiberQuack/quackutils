@@ -2,7 +2,7 @@ import {CustomElement} from "../../ui-types";
 import {component} from "haunted";
 import {useEffect, useRef, useState} from "haunted/lib/core";
 import BezierEasing from "bezier-easing";
-import {Nullable} from "../../../../types";
+import {Nullable} from "../../../_/types";
 
 const attributes = [
     "from",

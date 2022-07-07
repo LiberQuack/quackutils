@@ -1,5 +1,5 @@
-import {Dictionary} from "../../../../types";
-import {dictionaryMap} from "../../../../dictionary";
+import {Dictionary} from "../../../_/types";
+import {dictionaryMap} from "../../../_/dictionary";
 import {GtagProduct, TRACKING_PURCHASE, TRACKING_PURCHASE_CHECKOUT, TRACKING_PURCHASE_JOURNEY, TrackingManagerProvider} from "../tracking-types";
 import {PaymentProviderCheckout} from "../../../payment/manager-providers/types";
 import {PaymentCheckout, PaymentProduct} from "../../../payment/types";

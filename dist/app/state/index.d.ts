@@ -1,4 +1,4 @@
-import { Dictionary, Undefinable } from "../../../types";
+import { Dictionary, Undefinable } from "../../_/types";
 import { DeepReadonly } from "utility-types";
 declare type Subscription<T = any> = (prev: Undefinable<StateData<T>>, current: StateData<T>) => void;
 declare type Updater<T extends Dictionary<any>> = (() => T | Promise<T>) | ((draftState: T) => void | Promise<void>);

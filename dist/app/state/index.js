@@ -1,41 +1,26 @@
-import $83cfJ$immer from "immer";
-
-function $parcel$export(e, n, v, s) {
-  Object.defineProperty(e, n, {get: v, set: s, enumerable: true, configurable: true});
-}
-var $3339d7d8fc279603$exports = {};
-
-$parcel$export($3339d7d8fc279603$exports, "State", () => $a08c88a429c4d4a7$export$7254cc27399e90bd);
-
-async function $310fd7c0054db06b$export$19af69b8fa933a33(arg, preventLog) {
-    try {
-        return [
-            await arg
-        ];
-    } catch (err) {
-        if (!preventLog) console.error(err);
-        return [
-            undefined,
-            err
-        ];
-    }
-}
-
-
-class $a08c88a429c4d4a7$export$7254cc27399e90bd {
+import produce from "immer";
+import { inlineErr } from "../../_/inline-error";
+export class State {
+    id;
+    state;
+    prevState;
+    subscriptions = [];
+    initialState;
+    hold = false;
+    queue = [];
+    isUpdating = false;
+    error;
     static instances = [];
-    constructor(id, state, opts){
+    constructor(id, state, opts) {
         this.id = id;
-        this.subscriptions = [];
-        this.hold = false;
-        this.queue = [];
-        this.isUpdating = false;
         this.state = state;
         this.initialState = state;
-        if (!opts?.preventInstanceTracking) $a08c88a429c4d4a7$export$7254cc27399e90bd.instances.push(this);
+        if (!opts?.preventInstanceTracking) {
+            State.instances.push(this);
+        }
     }
     static getInstances() {
-        return $a08c88a429c4d4a7$export$7254cc27399e90bd.instances;
+        return State.instances;
     }
     getState() {
         return this.state;
@@ -49,9 +34,7 @@ class $a08c88a429c4d4a7$export$7254cc27399e90bd {
     }
     resetState() {
         this.prevState = this.getStateData();
-        this.state = {
-            ...this.initialState
-        };
+        this.state = { ...this.initialState };
         this.runSubscribers();
     }
     getInitialState() {
@@ -77,42 +60,51 @@ class $a08c88a429c4d4a7$export$7254cc27399e90bd {
      *
      *     //result.js (after all is run)
      *     state.getState().count //RESULT IS: 11
-     */ holdUpdates() {
+     */
+    holdUpdates() {
         this.hold = true;
     }
     /**
      * This method release all updates that were on hold, check `holdUpdate()` to learn more
      * @param priorUpdate Queued tasks will be run against the result of this param
-     */ async releaseUpdates(priorUpdate) {
+     */
+    async releaseUpdates(priorUpdate) {
         const queue = this.queue;
         this.queue = [];
         this.hold = false;
-        if (priorUpdate) await this.update(priorUpdate);
-        for (let queueElement of queue)//Each loop will trigger this state subscriber, it's intentional
-        //if one of the update takes too long as it's async
-        //we want the respective subscribers listen to the changes as soon as possible
-        await this.update(queueElement);
+        if (priorUpdate) {
+            await this.update(priorUpdate);
+        }
+        for (let queueElement of queue) {
+            //Each loop will trigger this state subscriber, it's intentional
+            //if one of the update takes too long as it's async
+            //we want the respective subscribers listen to the changes as soon as possible
+            await this.update(queueElement);
+        }
     }
     async update(updater, opts) {
-        if (this.hold) return new Promise((resolve, reject)=>{
-            this.queue.push(()=>{
-                this.update(updater).then(resolve).catch(reject);
+        if (this.hold) {
+            return new Promise((resolve, reject) => {
+                this.queue.push(() => {
+                    this.update(updater).then(resolve).catch(reject);
+                });
             });
-        });
-        const produceResult = (0, $83cfJ$immer)(this.state, updater);
+        }
+        const produceResult = produce(this.state, updater);
         if (produceResult instanceof Promise) {
             this.prevState = this.getStateData();
             this.isUpdating = true;
             this.runSubscribers();
         }
-        const [result, err] = await (0, $310fd7c0054db06b$export$19af69b8fa933a33)(produceResult);
+        const [result, err] = await inlineErr(produceResult);
         this.prevState = this.getStateData();
         this.isUpdating = false;
         if (err) {
             this.error = err;
             this.runSubscribers();
             throw err;
-        } else {
+        }
+        else {
             this.state = result;
             this.runSubscribers();
         }
@@ -125,10 +117,10 @@ class $a08c88a429c4d4a7$export$7254cc27399e90bd {
     subscribe(subscription) {
         this.subscriptions.push(subscription);
         subscription(this.prevState, this.getStateData());
-        return ()=>this.unsubscribe(subscription);
+        return () => this.unsubscribe(subscription);
     }
     runSubscribers() {
-        this.subscriptions.forEach((it)=>it(this.prevState, this.getStateData()));
+        this.subscriptions.forEach(it => it(this.prevState, this.getStateData()));
     }
     unsubscribe(subscription) {
         const indexFound = this.subscriptions.indexOf(subscription);
@@ -136,9 +128,9 @@ class $a08c88a429c4d4a7$export$7254cc27399e90bd {
         return Boolean(deletedItem);
     }
 }
-const $a08c88a429c4d4a7$export$7fa6d73f36ba184f = (logName, state)=>{
-    console.log($a08c88a429c4d4a7$export$7fa6d73f36ba184f.name, "Started");
-    state.subscribe(()=>{
+export const stateLoggerInjector = (logName, state) => {
+    console.log(stateLoggerInjector.name, "Started");
+    state.subscribe(() => {
         console.groupCollapsed(`State ${logName}`);
         console.log("data:", state.getState());
         console.log("updating:", state.isUpdating);
@@ -146,9 +138,4 @@ const $a08c88a429c4d4a7$export$7fa6d73f36ba184f = (logName, state)=>{
         console.groupEnd();
     });
 };
-
-
-
-
-export {$a08c88a429c4d4a7$export$7254cc27399e90bd as State};
-//# sourceMappingURL=state.js.map
+//# sourceMappingURL=index.js.map

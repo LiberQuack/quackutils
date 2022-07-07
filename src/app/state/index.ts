@@ -1,6 +1,6 @@
 import produce from "immer";
-import {inlineErr} from "../../../inline-error";
-import {Dictionary, Undefinable} from "../../../types";
+import {inlineErr} from "../../_/inline-error";
+import {Dictionary, Undefinable} from "../../_/types";
 import {DeepReadonly} from "utility-types";
 
 type Subscription<T = any> = (prev:Undefinable<StateData<T>>, current:StateData<T>) => void;

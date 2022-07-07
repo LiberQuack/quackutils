@@ -1,7 +1,7 @@
 /// <reference lib="dom.iterable"/>
 
 import {State} from "./state/state";
-import {dictionaryMap} from "../../dictionary";
+import {dictionaryMap} from "../_/dictionary";
 
 export type RouteStateType = {
     path: string;
