@@ -10,12 +10,12 @@
     ".": {
       "module": "./dist/esm/index.js",
       "default": "./dist/cjs/index.js",
-      "types": "./dist/*.d.ts"
+      "types": "./dist/esm/*.d.ts"
     },
     "./*": {
       "module": "./dist/esm/*.js",
       "default": "./dist/cjs/*.js",
-      "types": "./dist/*.d.ts"
+      "types": "./dist/esm/*.d.ts"
     }
   },
   "browserslist": "Chrome > 80",
