@@ -4,24 +4,15 @@
   "description": "Quack utilities",
   "type": "module",
   "exports": {
-    "./state": "./dist/state.js",
-    "./elements": "./dist/elements.js"
+    ".": "./dist/index.js"
   },
   "types": "dist/types.d.ts",
   "targets": {
-    "lib-elements": {
-      "source": "./src/lib/elements.ts",
+    "lib": {
+      "source": "./src/lib/index.ts",
       "distDir": "./dist",
       "isLibrary": true,
-      "outputFormat": "esmodule",
-      "context": "browser"
-    },
-    "lib-state": {
-      "source": "./src/lib/state.ts",
-      "distDir": "./dist",
-      "isLibrary": true,
-      "outputFormat": "esmodule",
-      "context": "browser"
+      "outputFormat": "esmodule"
     }
   },
   "browserslist": "Chrome > 80",
