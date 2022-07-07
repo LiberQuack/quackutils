@@ -6,7 +6,8 @@
     "module": "esnext",
     "moduleResolution": "Node",
     "esModuleInterop": true,
-    "outDir": "./dist"
+    "outDir": "./dist",
+    "declaration": false
   },
   "include": ["./src/*.ts"]
 }
