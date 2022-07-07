@@ -2,7 +2,7 @@
   "compilerOptions": {
     "jsx": "preserve",                                  /* Specify what JSX code is generated. */
     "experimentalDecorators": true,                     /* Enable experimental support for TC39 stage 2 draft decorators. */
-    "sourceMap": true,                                  /* Create source map files for emitted JavaScript files. */
+    "inlineSourceMap": true,
     "esModuleInterop": true,                            /* Emit additional JavaScript to ease support for importing CommonJS modules. This enables `allowSyntheticDefaultImports` for type compatibility. */
     "forceConsistentCasingInFileNames": true,           /* Ensure that casing is correct in imports. */
     "strict": true,                                     /* Enable all strict type-checking options. */
@@ -10,6 +10,6 @@
     "allowJs": true,
     "isolatedModules": true,
     "allowSyntheticDefaultImports": true,
-    "resolveJsonModule": true,
+    "resolveJsonModule": true
   }
 }
