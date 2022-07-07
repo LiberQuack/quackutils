@@ -4,15 +4,14 @@
   "description": "Quack utilities",
   "type": "module",
   "exports": {
-    "./state.js": "./dist/state.js",
-    "./elements.js": "./dist/elements.js"
+    "./state": "./dist/state.js",
+    "./elements": "./dist/elements.js"
   },
   "types": "dist/types.d.ts",
   "targets": {
     "lib-elements": {
       "source": "./elements.ts",
       "distDir": "./dist",
-      "includeNodeModules": true,
       "isLibrary": true,
       "outputFormat": "commonjs",
       "context": "browser"
@@ -20,7 +19,6 @@
     "lib-state": {
       "source": "./state.ts",
       "distDir": "./dist",
-      "includeNodeModules": true,
       "isLibrary": true,
       "outputFormat": "commonjs",
       "context": "browser"

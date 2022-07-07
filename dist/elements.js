@@ -11,7 +11,7 @@ typeof globalThis !== 'undefined'
 var $parcel$modules = {};
 var $parcel$inits = {};
 
-var parcelRequire = $parcel$global["parcelRequireb699"];
+var parcelRequire = $parcel$global["parcelRequire9622"];
 if (parcelRequire == null) {
   parcelRequire = function(id) {
     if (id in $parcel$modules) {
@@ -34,30 +34,30 @@ if (parcelRequire == null) {
     $parcel$inits[id] = init;
   };
 
-  $parcel$global["parcelRequireb699"] = parcelRequire;
+  $parcel$global["parcelRequire9622"] = parcelRequire;
 }
-parcelRequire.register("giUei", function(module, exports) {
-module.exports = import("./timer-element.bcf36d69.js").then(()=>parcelRequire("bOlJ4"));
+parcelRequire.register("lTByv", function(module, exports) {
+module.exports = Promise.resolve(require("./timer-element.f9a8eaa1.js")).then(()=>parcelRequire("6bCY3"));
 
 });
 
-parcelRequire.register("5ssQK", function(module, exports) {
-module.exports = import("./share-element.6150248f.js").then(()=>parcelRequire("gnzVA"));
+parcelRequire.register("5NjaG", function(module, exports) {
+module.exports = Promise.resolve(require("./share-element.792fc7e9.js")).then(()=>parcelRequire("5KyK1"));
 
 });
 
-parcelRequire.register("dGg3n", function(module, exports) {
-module.exports = import("./increment-number.6a789660.js").then(()=>parcelRequire("9PUIi"));
+parcelRequire.register("cSkqO", function(module, exports) {
+module.exports = Promise.resolve(require("./increment-number.bbc4efb7.js")).then(()=>parcelRequire("luXp6"));
 
 });
 
 console.log("Lazy loading components");
 
-if (document.querySelector("timer-element")) (parcelRequire("giUei"));
+if (document.querySelector("timer-element")) (parcelRequire("lTByv"));
 
-if (document.querySelector("share-element")) (parcelRequire("5ssQK"));
+if (document.querySelector("share-element")) (parcelRequire("5NjaG"));
 
-if (document.querySelector("increment-number")) (parcelRequire("dGg3n"));
+if (document.querySelector("increment-number")) (parcelRequire("cSkqO"));
 
 
 //# sourceMappingURL=elements.js.map
