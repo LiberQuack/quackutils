@@ -1,1 +1,1 @@
-{"version":3,"file":"state-glue-react.d.ts","sourceRoot":"","sources":["../../src/state-glue-react.ts"],"names":[],"mappings":"AAAA,OAAO,EAAC,OAAO,EAAC,MAAM,8BAA8B,CAAA"}
+{"version":3,"file":"state-glue-react.d.ts","sourceRoot":"./dist/esm/","sources":["state-glue-react.ts"],"names":[],"mappings":"AAAA,OAAO,EAAC,OAAO,EAAC,MAAM,8BAA8B,CAAA"}

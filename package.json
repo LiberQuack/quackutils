@@ -18,6 +18,7 @@
   },
   "browserslist": "Chrome > 80",
   "scripts": {
+    "check": "tsc --noEmit",
     "build": "rm -rf ./dist && npm run build:esm && npm run build:cjs",
     "build:esm": "tsc -p tsconfig.json",
     "build:cjs": "tsc -p tsconfig-cjs.json",
