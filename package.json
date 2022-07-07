@@ -10,7 +10,7 @@
   "targets": {
     "default": {
       "isLibrary": true,
-      "outputFormat": "esmodule"
+      "outputFormat": "commonjs"
     }
   },
   "browserslist": "Chrome > 80",
