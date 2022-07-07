@@ -2,7 +2,6 @@
   "name": "@liberquack/quackutils",
   "version": "1.0.0",
   "description": "Quack utilities",
-  "type": "module",
   "exports": {
     "./*": "./dist/*.js",
     ".": "./dist/index.js"
@@ -10,7 +9,7 @@
   "targets": {
     "default": {
       "isLibrary": true,
-      "outputFormat": "commonjs"
+      "outputFormat": "esmodule"
     }
   },
   "browserslist": "Chrome > 80",

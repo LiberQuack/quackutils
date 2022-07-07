@@ -1,9 +1,4 @@
-function $parcel$export(e, n, v, s) {
-  Object.defineProperty(e, n, {get: v, set: s, enumerable: true, configurable: true});
-}
-
-$parcel$export(module.exports, "useGlue", () => $47061871c663a072$export$eed9a2a671845c2c);
-const $cf0409fc16cb98dc$export$bd89b0cf3447f70 = (useState, useEffect)=>function useGlue(externalState, logId) {
+const $0f99d2a3bc244acf$export$bd89b0cf3447f70 = (useState, useEffect)=>function useGlue(externalState, logId) {
         const initialState = [
             externalState.getState(),
             {
@@ -39,63 +34,63 @@ const $cf0409fc16cb98dc$export$bd89b0cf3447f70 = (useState, useEffect)=>function
     };
 
 
-let $5a3da4fb81011e26$export$97aac956da55dae9;
-let $5a3da4fb81011e26$var$currentId = 0;
-function $5a3da4fb81011e26$export$5f80f094fd31fffd(state) {
-    $5a3da4fb81011e26$export$97aac956da55dae9 = state;
+let $3b7604ddd556a79a$export$97aac956da55dae9;
+let $3b7604ddd556a79a$var$currentId = 0;
+function $3b7604ddd556a79a$export$5f80f094fd31fffd(state) {
+    $3b7604ddd556a79a$export$97aac956da55dae9 = state;
 }
-function $5a3da4fb81011e26$export$42ffd38884aecdac() {
-    $5a3da4fb81011e26$export$97aac956da55dae9 = null;
-    $5a3da4fb81011e26$var$currentId = 0;
+function $3b7604ddd556a79a$export$42ffd38884aecdac() {
+    $3b7604ddd556a79a$export$97aac956da55dae9 = null;
+    $3b7604ddd556a79a$var$currentId = 0;
 }
-function $5a3da4fb81011e26$export$5e14cdade93d6f7b() {
-    return $5a3da4fb81011e26$var$currentId++;
+function $3b7604ddd556a79a$export$5e14cdade93d6f7b() {
+    return $3b7604ddd556a79a$var$currentId++;
 }
 
 
-const $08d70b9a8f99f947$export$225ab0e0febd92b1 = Symbol("haunted.phase");
-const $08d70b9a8f99f947$export$819a7f3d5f1d869d = Symbol("haunted.hook");
-const $08d70b9a8f99f947$export$e3a0ce117547085d = Symbol("haunted.update");
-const $08d70b9a8f99f947$export$c3840c26fe093fdb = Symbol("haunted.commit");
-const $08d70b9a8f99f947$export$8e8d58c9b17fea3e = Symbol("haunted.effects");
-const $08d70b9a8f99f947$export$db08efd2f456c5bf = Symbol("haunted.layoutEffects");
-const $08d70b9a8f99f947$export$c1645e5fb9a50701 = "haunted.context";
+const $1e64966b90d2a6b4$export$225ab0e0febd92b1 = Symbol("haunted.phase");
+const $1e64966b90d2a6b4$export$819a7f3d5f1d869d = Symbol("haunted.hook");
+const $1e64966b90d2a6b4$export$e3a0ce117547085d = Symbol("haunted.update");
+const $1e64966b90d2a6b4$export$c3840c26fe093fdb = Symbol("haunted.commit");
+const $1e64966b90d2a6b4$export$8e8d58c9b17fea3e = Symbol("haunted.effects");
+const $1e64966b90d2a6b4$export$db08efd2f456c5bf = Symbol("haunted.layoutEffects");
+const $1e64966b90d2a6b4$export$c1645e5fb9a50701 = "haunted.context";
 
 
-class $3ec1678ef03da2e0$export$7254cc27399e90bd {
+class $0f8e12b50e76a011$export$7254cc27399e90bd {
     update;
     host;
     virtual;
-    [(0, $08d70b9a8f99f947$export$819a7f3d5f1d869d)];
-    [(0, $08d70b9a8f99f947$export$8e8d58c9b17fea3e)];
-    [(0, $08d70b9a8f99f947$export$db08efd2f456c5bf)];
+    [(0, $1e64966b90d2a6b4$export$819a7f3d5f1d869d)];
+    [(0, $1e64966b90d2a6b4$export$8e8d58c9b17fea3e)];
+    [(0, $1e64966b90d2a6b4$export$db08efd2f456c5bf)];
     constructor(update, host){
         this.update = update;
         this.host = host;
-        this[0, $08d70b9a8f99f947$export$819a7f3d5f1d869d] = new Map();
-        this[0, $08d70b9a8f99f947$export$8e8d58c9b17fea3e] = [];
-        this[0, $08d70b9a8f99f947$export$db08efd2f456c5bf] = [];
+        this[0, $1e64966b90d2a6b4$export$819a7f3d5f1d869d] = new Map();
+        this[0, $1e64966b90d2a6b4$export$8e8d58c9b17fea3e] = [];
+        this[0, $1e64966b90d2a6b4$export$db08efd2f456c5bf] = [];
     }
     run(cb) {
-        (0, $5a3da4fb81011e26$export$5f80f094fd31fffd)(this);
+        (0, $3b7604ddd556a79a$export$5f80f094fd31fffd)(this);
         let res = cb();
-        (0, $5a3da4fb81011e26$export$42ffd38884aecdac)();
+        (0, $3b7604ddd556a79a$export$42ffd38884aecdac)();
         return res;
     }
     _runEffects(phase) {
         let effects = this[phase];
-        (0, $5a3da4fb81011e26$export$5f80f094fd31fffd)(this);
+        (0, $3b7604ddd556a79a$export$5f80f094fd31fffd)(this);
         for (let effect of effects)effect.call(this);
-        (0, $5a3da4fb81011e26$export$42ffd38884aecdac)();
+        (0, $3b7604ddd556a79a$export$42ffd38884aecdac)();
     }
     runEffects() {
-        this._runEffects((0, $08d70b9a8f99f947$export$8e8d58c9b17fea3e));
+        this._runEffects((0, $1e64966b90d2a6b4$export$8e8d58c9b17fea3e));
     }
     runLayoutEffects() {
-        this._runEffects((0, $08d70b9a8f99f947$export$db08efd2f456c5bf));
+        this._runEffects((0, $1e64966b90d2a6b4$export$db08efd2f456c5bf));
     }
     teardown() {
-        let hooks = this[0, $08d70b9a8f99f947$export$819a7f3d5f1d869d];
+        let hooks = this[0, $1e64966b90d2a6b4$export$819a7f3d5f1d869d];
         hooks.forEach((hook)=>{
             if (typeof hook.teardown === "function") hook.teardown();
         });
@@ -104,8 +99,8 @@ class $3ec1678ef03da2e0$export$7254cc27399e90bd {
 
 
 
-const $5fde4fb169525d92$var$defer = Promise.resolve().then.bind(Promise.resolve());
-function $5fde4fb169525d92$var$runner() {
+const $b42353a0b89f35a7$var$defer = Promise.resolve().then.bind(Promise.resolve());
+function $b42353a0b89f35a7$var$runner() {
     let tasks = [];
     let id;
     function runTasks() {
@@ -116,32 +111,32 @@ function $5fde4fb169525d92$var$runner() {
     }
     return function(task) {
         tasks.push(task);
-        if (id == null) id = $5fde4fb169525d92$var$defer(runTasks);
+        if (id == null) id = $b42353a0b89f35a7$var$defer(runTasks);
     };
 }
-const $5fde4fb169525d92$var$read = $5fde4fb169525d92$var$runner();
-const $5fde4fb169525d92$var$write = $5fde4fb169525d92$var$runner();
-class $5fde4fb169525d92$export$61cd7faa6f3316a3 {
+const $b42353a0b89f35a7$var$read = $b42353a0b89f35a7$var$runner();
+const $b42353a0b89f35a7$var$write = $b42353a0b89f35a7$var$runner();
+class $b42353a0b89f35a7$export$61cd7faa6f3316a3 {
     renderer;
     host;
     state;
-    [(0, $08d70b9a8f99f947$export$225ab0e0febd92b1)];
+    [(0, $1e64966b90d2a6b4$export$225ab0e0febd92b1)];
     _updateQueued;
     constructor(renderer, host){
         this.renderer = renderer;
         this.host = host;
-        this.state = new (0, $3ec1678ef03da2e0$export$7254cc27399e90bd)(this.update.bind(this), host);
-        this[0, $08d70b9a8f99f947$export$225ab0e0febd92b1] = null;
+        this.state = new (0, $0f8e12b50e76a011$export$7254cc27399e90bd)(this.update.bind(this), host);
+        this[0, $1e64966b90d2a6b4$export$225ab0e0febd92b1] = null;
         this._updateQueued = false;
     }
     update() {
         if (this._updateQueued) return;
-        $5fde4fb169525d92$var$read(()=>{
-            let result = this.handlePhase((0, $08d70b9a8f99f947$export$e3a0ce117547085d));
-            $5fde4fb169525d92$var$write(()=>{
-                this.handlePhase((0, $08d70b9a8f99f947$export$c3840c26fe093fdb), result);
-                $5fde4fb169525d92$var$write(()=>{
-                    this.handlePhase((0, $08d70b9a8f99f947$export$8e8d58c9b17fea3e));
+        $b42353a0b89f35a7$var$read(()=>{
+            let result = this.handlePhase((0, $1e64966b90d2a6b4$export$e3a0ce117547085d));
+            $b42353a0b89f35a7$var$write(()=>{
+                this.handlePhase((0, $1e64966b90d2a6b4$export$c3840c26fe093fdb), result);
+                $b42353a0b89f35a7$var$write(()=>{
+                    this.handlePhase((0, $1e64966b90d2a6b4$export$8e8d58c9b17fea3e));
                 });
             });
             this._updateQueued = false;
@@ -149,16 +144,16 @@ class $5fde4fb169525d92$export$61cd7faa6f3316a3 {
         this._updateQueued = true;
     }
     handlePhase(phase, arg) {
-        this[0, $08d70b9a8f99f947$export$225ab0e0febd92b1] = phase;
+        this[0, $1e64966b90d2a6b4$export$225ab0e0febd92b1] = phase;
         switch(phase){
-            case 0, $08d70b9a8f99f947$export$c3840c26fe093fdb:
+            case 0, $1e64966b90d2a6b4$export$c3840c26fe093fdb:
                 this.commit(arg);
-                this.runEffects((0, $08d70b9a8f99f947$export$db08efd2f456c5bf));
+                this.runEffects((0, $1e64966b90d2a6b4$export$db08efd2f456c5bf));
                 return;
-            case 0, $08d70b9a8f99f947$export$e3a0ce117547085d:
+            case 0, $1e64966b90d2a6b4$export$e3a0ce117547085d:
                 return this.render();
-            case 0, $08d70b9a8f99f947$export$8e8d58c9b17fea3e:
-                return this.runEffects((0, $08d70b9a8f99f947$export$8e8d58c9b17fea3e));
+            case 0, $1e64966b90d2a6b4$export$8e8d58c9b17fea3e:
+                return this.runEffects((0, $1e64966b90d2a6b4$export$8e8d58c9b17fea3e));
         }
     }
     render() {
@@ -173,9 +168,9 @@ class $5fde4fb169525d92$export$61cd7faa6f3316a3 {
 }
 
 
-const $a7de8cdc932cdd44$var$toCamelCase = (val = "")=>val.replace(/-+([a-z])?/g, (_, char)=>char ? char.toUpperCase() : "");
-function $a7de8cdc932cdd44$export$3bc26eec1cc2439f(render) {
-    class Scheduler extends (0, $5fde4fb169525d92$export$61cd7faa6f3316a3) {
+const $58484142ef1f39b3$var$toCamelCase = (val = "")=>val.replace(/-+([a-z])?/g, (_, char)=>char ? char.toUpperCase() : "");
+function $58484142ef1f39b3$export$3bc26eec1cc2439f(render) {
+    class Scheduler extends (0, $b42353a0b89f35a7$export$61cd7faa6f3316a3) {
         frag;
         constructor(renderer, frag, host){
             super(renderer, host || frag);
@@ -213,7 +208,7 @@ function $a7de8cdc932cdd44$export$3bc26eec1cc2439f(render) {
             attributeChangedCallback(name, oldValue, newValue) {
                 if (oldValue === newValue) return;
                 let val = newValue === "" ? true : newValue;
-                Reflect.set(this, $a7de8cdc932cdd44$var$toCamelCase(name), val);
+                Reflect.set(this, $58484142ef1f39b3$var$toCamelCase(name), val);
             }
         }
         function reflectiveProp(initialValue) {
@@ -271,7 +266,7 @@ function $a7de8cdc932cdd44$export$3bc26eec1cc2439f(render) {
 
 
 
-class $d1f4fcf00739a904$export$e594a57fbda5c090 {
+class $1aa7371e30cbacd9$export$e594a57fbda5c090 {
     id;
     state;
     constructor(id, state){
@@ -279,26 +274,26 @@ class $d1f4fcf00739a904$export$e594a57fbda5c090 {
         this.state = state;
     }
 }
-function $d1f4fcf00739a904$var$use(Hook1, ...args) {
-    let id = (0, $5a3da4fb81011e26$export$5e14cdade93d6f7b)();
-    let hooks = (0, $5a3da4fb81011e26$export$97aac956da55dae9)[0, $08d70b9a8f99f947$export$819a7f3d5f1d869d];
+function $1aa7371e30cbacd9$var$use(Hook1, ...args) {
+    let id = (0, $3b7604ddd556a79a$export$5e14cdade93d6f7b)();
+    let hooks = (0, $3b7604ddd556a79a$export$97aac956da55dae9)[0, $1e64966b90d2a6b4$export$819a7f3d5f1d869d];
     let hook1 = hooks.get(id);
     if (!hook1) {
-        hook1 = new Hook1(id, (0, $5a3da4fb81011e26$export$97aac956da55dae9), ...args);
+        hook1 = new Hook1(id, (0, $3b7604ddd556a79a$export$97aac956da55dae9), ...args);
         hooks.set(id, hook1);
     }
     return hook1.update(...args);
 }
-function $d1f4fcf00739a904$export$1062a250c78723ea(Hook2) {
-    return $d1f4fcf00739a904$var$use.bind(null, Hook2);
+function $1aa7371e30cbacd9$export$1062a250c78723ea(Hook2) {
+    return $1aa7371e30cbacd9$var$use.bind(null, Hook2);
 }
 
 
 
 
 
-function $16db45d9390d00af$export$7ea7134f704deda4(setEffects) {
-    return (0, $d1f4fcf00739a904$export$1062a250c78723ea)(class extends (0, $d1f4fcf00739a904$export$e594a57fbda5c090) {
+function $3a5ebc238444ffbd$export$7ea7134f704deda4(setEffects) {
+    return (0, $1aa7371e30cbacd9$export$1062a250c78723ea)(class extends (0, $1aa7371e30cbacd9$export$e594a57fbda5c090) {
         callback;
         lastValues;
         values;
@@ -329,15 +324,15 @@ function $16db45d9390d00af$export$7ea7134f704deda4(setEffects) {
 }
 
 
-function $f4765662b4fcb1f1$export$2ff5f1970029d8ea(state, cb) {
-    state[0, $08d70b9a8f99f947$export$8e8d58c9b17fea3e].push(cb);
+function $9646d553a21536fa$export$2ff5f1970029d8ea(state, cb) {
+    state[0, $1e64966b90d2a6b4$export$8e8d58c9b17fea3e].push(cb);
 }
 /**
  * @function
  * @param {() => void} effect - callback function that runs each time dependencies change
  * @param {unknown[]} [dependencies] - list of dependencies to the effect
  * @return {void}
- */ const $f4765662b4fcb1f1$export$6d9c69b0de29b591 = (0, $16db45d9390d00af$export$7ea7134f704deda4)($f4765662b4fcb1f1$export$2ff5f1970029d8ea);
+ */ const $9646d553a21536fa$export$6d9c69b0de29b591 = (0, $3a5ebc238444ffbd$export$7ea7134f704deda4)($9646d553a21536fa$export$2ff5f1970029d8ea);
 
 
 /**
@@ -345,7 +340,7 @@ function $f4765662b4fcb1f1$export$2ff5f1970029d8ea(state, cb) {
  * @template T
  * @param    {Context<T>} context
  * @return   {T}
- */ const $350b4fa1c308f21f$export$fae74005e78b1a27 = (0, $d1f4fcf00739a904$export$1062a250c78723ea)(class extends (0, $d1f4fcf00739a904$export$e594a57fbda5c090) {
+ */ const $8f00e81d889bb7ca$export$fae74005e78b1a27 = (0, $1aa7371e30cbacd9$export$1062a250c78723ea)(class extends (0, $1aa7371e30cbacd9$export$e594a57fbda5c090) {
     Context;
     value;
     _ranEffect;
@@ -355,7 +350,7 @@ function $f4765662b4fcb1f1$export$2ff5f1970029d8ea(state, cb) {
         this._updater = this._updater.bind(this);
         this._ranEffect = false;
         this._unsubscribe = null;
-        (0, $f4765662b4fcb1f1$export$2ff5f1970029d8ea)(state, this);
+        (0, $9646d553a21536fa$export$2ff5f1970029d8ea)(state, this);
     }
     update(Context) {
         if (this.state.virtual) throw new Error("can't be used with virtual components");
@@ -382,7 +377,7 @@ function $f4765662b4fcb1f1$export$2ff5f1970029d8ea(state, cb) {
             Context: Context,
             callback: this._updater
         };
-        this.state.host.dispatchEvent(new CustomEvent((0, $08d70b9a8f99f947$export$c1645e5fb9a50701), {
+        this.state.host.dispatchEvent(new CustomEvent((0, $1e64966b90d2a6b4$export$c1645e5fb9a50701), {
             detail: detail,
             bubbles: true,
             cancelable: true,
@@ -398,7 +393,7 @@ function $f4765662b4fcb1f1$export$2ff5f1970029d8ea(state, cb) {
 });
 
 
-function $eeb586e04de90097$export$2d2e2a019c76af3(component) {
+function $87f4d97a66304bd6$export$2d2e2a019c76af3(component) {
     return (defaultValue)=>{
         const Context = {
             Provider: class extends HTMLElement {
@@ -407,10 +402,10 @@ function $eeb586e04de90097$export$2d2e2a019c76af3(component) {
                 constructor(){
                     super();
                     this.listeners = new Set();
-                    this.addEventListener((0, $08d70b9a8f99f947$export$c1645e5fb9a50701), this);
+                    this.addEventListener((0, $1e64966b90d2a6b4$export$c1645e5fb9a50701), this);
                 }
                 disconnectedCallback() {
-                    this.removeEventListener((0, $08d70b9a8f99f947$export$c1645e5fb9a50701), this);
+                    this.removeEventListener((0, $1e64966b90d2a6b4$export$c1645e5fb9a50701), this);
                 }
                 handleEvent(event) {
                     const { detail: detail  } = event;
@@ -433,7 +428,7 @@ function $eeb586e04de90097$export$2d2e2a019c76af3(component) {
                 }
             },
             Consumer: component(function({ render: render  }) {
-                const context = (0, $350b4fa1c308f21f$export$fae74005e78b1a27)(Context);
+                const context = (0, $8f00e81d889bb7ca$export$fae74005e78b1a27)(Context);
                 return render(context);
             }),
             defaultValue: defaultValue
@@ -450,7 +445,7 @@ function $eeb586e04de90097$export$2d2e2a019c76af3(component) {
  * @param  {() => T} fn function to memoize
  * @param  {unknown[]} values dependencies to the memoized computation
  * @return {T} The next computed value
- */ const $b7e7b0c24ff2b6ca$export$1538c33de8887b59 = (0, $d1f4fcf00739a904$export$1062a250c78723ea)(class extends (0, $d1f4fcf00739a904$export$e594a57fbda5c090) {
+ */ const $662d4ca61df79cbb$export$1538c33de8887b59 = (0, $1aa7371e30cbacd9$export$1062a250c78723ea)(class extends (0, $1aa7371e30cbacd9$export$e594a57fbda5c090) {
     value;
     values;
     constructor(id, state, fn, values){
@@ -477,20 +472,20 @@ function $eeb586e04de90097$export$2d2e2a019c76af3(component) {
  * @param    {T} fn - callback to memoize
  * @param    {unknown[]} inputs - dependencies to callback memoization
  * @return   {T}
- */ const $33ef48c091409c9c$export$35808ee640e87ca7 = (fn, inputs)=>(0, $b7e7b0c24ff2b6ca$export$1538c33de8887b59)(()=>fn, inputs);
+ */ const $b1799dd458d59aec$export$35808ee640e87ca7 = (fn, inputs)=>(0, $662d4ca61df79cbb$export$1538c33de8887b59)(()=>fn, inputs);
 
 
 
 
-function $dbcc06406911c5b4$var$setLayoutEffects(state, cb) {
-    state[0, $08d70b9a8f99f947$export$db08efd2f456c5bf].push(cb);
+function $e2995a0999640589$var$setLayoutEffects(state, cb) {
+    state[0, $1e64966b90d2a6b4$export$db08efd2f456c5bf].push(cb);
 }
 /**
  * @function
  * @param  {Effect} callback effecting callback
  * @param  {unknown[]} [values] dependencies to the effect
  * @return {void}
- */ const $dbcc06406911c5b4$export$e5c5a5f917a5871c = (0, $16db45d9390d00af$export$7ea7134f704deda4)($dbcc06406911c5b4$var$setLayoutEffects);
+ */ const $e2995a0999640589$export$e5c5a5f917a5871c = (0, $3a5ebc238444ffbd$export$7ea7134f704deda4)($e2995a0999640589$var$setLayoutEffects);
 
 
 
@@ -499,7 +494,7 @@ function $dbcc06406911c5b4$var$setLayoutEffects(state, cb) {
  * @template {*} T
  * @param {T} [initialState] - Optional initial state
  * @return {readonly [state: T, updaterFn: StateUpdater<T>]} stateTuple - Tuple of current state and state updater function
- */ const $d08246657a04646e$export$60241385465d0a34 = (0, $d1f4fcf00739a904$export$1062a250c78723ea)(class extends (0, $d1f4fcf00739a904$export$e594a57fbda5c090) {
+ */ const $1b665fc3e0e27e96$export$60241385465d0a34 = (0, $1aa7371e30cbacd9$export$1062a250c78723ea)(class extends (0, $1aa7371e30cbacd9$export$e594a57fbda5c090) {
     args;
     constructor(id, state, initialValue){
         super(id, state);
@@ -528,11 +523,11 @@ function $dbcc06406911c5b4$var$setLayoutEffects(state, cb) {
 });
 
 
-const $64318c670ac56624$var$microtask = Promise.resolve();
+const $90e463f97fa51720$var$microtask = Promise.resolve();
 /**
  * An implementation of ReactiveControllerHost that is driven by Haunted hooks
  * and `useController()`.
- */ class $64318c670ac56624$var$HauntedControllerHost {
+ */ class $90e463f97fa51720$var$HauntedControllerHost {
     count;
     kick;
     _controllers = [];
@@ -557,7 +552,7 @@ const $64318c670ac56624$var$microtask = Promise.resolve();
     requestUpdate() {
         if (!this._updatePending) {
             this._updatePending = true;
-            $64318c670ac56624$var$microtask.then(()=>this.kick(this.count + 1));
+            $90e463f97fa51720$var$microtask.then(()=>this.kick(this.count + 1));
         }
     }
     get updateComplete() {
@@ -584,10 +579,10 @@ const $64318c670ac56624$var$microtask = Promise.resolve();
         resolve(this._updatePending);
     }
 }
-function $64318c670ac56624$export$e8c786024a2b0a79(createController) {
-    const [count, kick] = (0, $d08246657a04646e$export$60241385465d0a34)(0);
-    const [host1] = (0, $d08246657a04646e$export$60241385465d0a34)(()=>{
-        const host = new $64318c670ac56624$var$HauntedControllerHost(count, kick);
+function $90e463f97fa51720$export$e8c786024a2b0a79(createController) {
+    const [count, kick] = (0, $1b665fc3e0e27e96$export$60241385465d0a34)(0);
+    const [host1] = (0, $1b665fc3e0e27e96$export$60241385465d0a34)(()=>{
+        const host = new $90e463f97fa51720$var$HauntedControllerHost(count, kick);
         const controller = createController(host);
         host.primaryController = controller;
         host.connected();
@@ -595,11 +590,11 @@ function $64318c670ac56624$export$e8c786024a2b0a79(createController) {
     });
     // We use useLayoutEffect because we need updated() called synchronously
     // after rendering.
-    (0, $dbcc06406911c5b4$export$e5c5a5f917a5871c)(()=>host1.updated());
+    (0, $e2995a0999640589$export$e5c5a5f917a5871c)(()=>host1.updated());
     // Returning a cleanup function simulates hostDisconnected timing. An empty
     // deps array tells Haunted to only call this once: on mount with the cleanup
     // called on unmount.
-    (0, $dbcc06406911c5b4$export$e5c5a5f917a5871c)(()=>()=>host1.disconnected(), []);
+    (0, $e2995a0999640589$export$e5c5a5f917a5871c)(()=>()=>host1.disconnected(), []);
     host1.update();
     return host1.primaryController;
 }
@@ -619,7 +614,7 @@ function $64318c670ac56624$export$e8c786024a2b0a79(createController) {
  * @param {I} initialState - the initial state of the reducer
  * @param {(init: I) => S} [init=undefined] - Optional initializer function, called on initialState if provided
  * @return {readonly [S, (action: A) => void]}
- */ const $4458c274e5bef8f3$export$13e3392192263954 = (0, $d1f4fcf00739a904$export$1062a250c78723ea)(class extends (0, $d1f4fcf00739a904$export$e594a57fbda5c090) {
+ */ const $df63287c8f4c355f$export$13e3392192263954 = (0, $1aa7371e30cbacd9$export$1062a250c78723ea)(class extends (0, $1aa7371e30cbacd9$export$e594a57fbda5c090) {
     reducer;
     currentState;
     constructor(id, state, _, initialState, init){
@@ -649,7 +644,7 @@ function $64318c670ac56624$export$e8c786024a2b0a79(createController) {
  * @template T
  * @param   {T} initialValue
  * @return  {{ current: T }} Ref
- */ const $38811abc097911a2$export$b8f5890fc79d6aca = (initialValue)=>(0, $b7e7b0c24ff2b6ca$export$1538c33de8887b59)(()=>({
+ */ const $00cafe5601451cd6$export$b8f5890fc79d6aca = (initialValue)=>(0, $662d4ca61df79cbb$export$1538c33de8887b59)(()=>({
             current: initialValue
         }), []);
 
@@ -657,9 +652,9 @@ function $64318c670ac56624$export$e8c786024a2b0a79(createController) {
 
 
 
-function $4d267b5c4426492d$export$2e2bcd8739ae039({ render: render  }) {
-    const component = (0, $a7de8cdc932cdd44$export$3bc26eec1cc2439f)(render);
-    const createContext = (0, $eeb586e04de90097$export$2d2e2a019c76af3)(component);
+function $aa34f5756b3f6c3c$export$2e2bcd8739ae039({ render: render  }) {
+    const component = (0, $58484142ef1f39b3$export$3bc26eec1cc2439f)(render);
+    const createContext = (0, $87f4d97a66304bd6$export$2d2e2a019c76af3)(component);
     return {
         component: component,
         createContext: createContext
@@ -667,9 +662,10 @@ function $4d267b5c4426492d$export$2e2bcd8739ae039({ render: render  }) {
 }
 
 
-const $47061871c663a072$export$eed9a2a671845c2c = (0, $cf0409fc16cb98dc$export$bd89b0cf3447f70)((0, $d08246657a04646e$export$60241385465d0a34), (0, $f4765662b4fcb1f1$export$6d9c69b0de29b591));
+const $51dfcd4759804fa9$export$eed9a2a671845c2c = (0, $0f99d2a3bc244acf$export$bd89b0cf3447f70)((0, $1b665fc3e0e27e96$export$60241385465d0a34), (0, $9646d553a21536fa$export$6d9c69b0de29b591));
 
 
 
 
+export {$51dfcd4759804fa9$export$eed9a2a671845c2c as useGlue};
 //# sourceMappingURL=state-glue-haunted.js.map
