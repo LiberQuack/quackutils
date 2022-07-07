@@ -9,13 +9,11 @@
   "exports": {
     ".": {
       "module": "./dist/esm/index.js",
-      "default": "./dist/cjs/index.js",
-      "types": "./dist/esm/*.d.ts"
+      "default": "./dist/cjs/index.js"
     },
     "./*": {
       "module": "./dist/esm/*.js",
-      "default": "./dist/cjs/*.js",
-      "types": "./dist/esm/*.d.ts"
+      "default": "./dist/cjs/*.js"
     }
   },
   "browserslist": "Chrome > 80",
