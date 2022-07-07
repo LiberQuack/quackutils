@@ -7,6 +7,9 @@
     "forceConsistentCasingInFileNames": true,           /* Ensure that casing is correct in imports. */
     "strict": true,                                     /* Enable all strict type-checking options. */
     "noUncheckedIndexedAccess": true,                   /* Include 'undefined' in index signature results */
-    "allowJs": true
+    "allowJs": true,
+    "isolatedModules": true,
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
   }
 }
