@@ -2,24 +2,28 @@
   "name": "@liberquack/quackutils",
   "version": "1.0.0",
   "description": "Quack utilities",
+  "type": "module",
   "exports": {
     "./state.js": "./dist/state.js",
     "./elements.js": "./dist/elements.js"
   },
+  "types": "dist/types.d.ts",
   "targets": {
     "lib-elements": {
       "source": "./elements.ts",
       "distDir": "./dist",
       "includeNodeModules": true,
       "isLibrary": true,
-      "outputFormat": "esmodule"
+      "outputFormat": "esmodule",
+      "context": "browser"
     },
     "lib-state": {
       "source": "./state.ts",
       "distDir": "./dist",
       "includeNodeModules": true,
       "isLibrary": true,
-      "outputFormat": "esmodule"
+      "outputFormat": "esmodule",
+      "context": "browser"
     }
   },
   "browserslist": "Chrome > 80",
