@@ -4,12 +4,11 @@
   "description": "Quack utilities",
   "type": "module",
   "exports": {
-    "./*": ".dist/*.js",
+    "./*": "./dist/*.js",
     ".": "./dist/index.js"
   },
   "targets": {
     "default": {
-      "distDir": "./output",
       "isLibrary": true,
       "outputFormat": "esmodule"
     }
