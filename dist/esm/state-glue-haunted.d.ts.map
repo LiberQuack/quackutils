@@ -1,1 +1,1 @@
-{"version":3,"file":"state-glue-haunted.d.ts","sourceRoot":"src/","sources":["state-glue-haunted.ts"],"names":[],"mappings":"AAAA,OAAO,EAAC,OAAO,EAAC,MAAM,gCAAgC,CAAA"}
+{"version":3,"file":"state-glue-haunted.d.ts","sourceRoot":"./src/","sources":["state-glue-haunted.ts"],"names":[],"mappings":"AAAA,OAAO,EAAC,OAAO,EAAC,MAAM,gCAAgC,CAAA"}
