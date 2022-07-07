@@ -61,4 +61,3 @@ export declare class State<T extends Dictionary<any>> {
 }
 export declare const stateLoggerInjector: (logName: string, state: State<any>) => void;
 export {};
-//# sourceMappingURL=index.d.ts.map

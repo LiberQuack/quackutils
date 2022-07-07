@@ -14,4 +14,3 @@ export declare type ExternalState<T> = State<T>;
  * ```
  */
 export declare const generateGlue: (useState: typeof reactUseState, useEffect: typeof reactUseEffect) => <Z>(externalState: State<Z>, logId?: string) => GlueResult<Z>;
-//# sourceMappingURL=state-glue-generator.d.ts.map

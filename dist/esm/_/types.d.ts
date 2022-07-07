@@ -35,4 +35,3 @@ declare global {
     }
 }
 export {};
-//# sourceMappingURL=types.d.ts.map

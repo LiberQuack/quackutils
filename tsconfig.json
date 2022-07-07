@@ -2,13 +2,12 @@
   "extends": "./base-tsconfig.json",
   "compilerOptions": {
     "outDir": "./dist/esm",
-    "sourceRoot": "./src",
+    "sourceRoot": "../../src",
     "target": "ESNext",
     "lib": ["DOM", "DOM.Iterable", "ESNext"],
     "module": "esnext",
     "moduleResolution": "Node",
     "declaration": true,
-    "declarationMap": true,
   },
   "include": ["./src/*.ts"],
   "exclude": ["node_modules/**/*"]
