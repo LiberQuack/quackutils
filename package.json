@@ -13,14 +13,14 @@
       "source": "./src/lib/elements.ts",
       "distDir": "./dist",
       "isLibrary": true,
-      "outputFormat": "commonjs",
+      "outputFormat": "esmodule",
       "context": "browser"
     },
     "lib-state": {
       "source": "./src/lib/state.ts",
       "distDir": "./dist",
       "isLibrary": true,
-      "outputFormat": "commonjs",
+      "outputFormat": "esmodule",
       "context": "browser"
     }
   },

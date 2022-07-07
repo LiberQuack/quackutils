@@ -36,28 +36,28 @@ if (parcelRequire == null) {
 
   $parcel$global["parcelRequire9622"] = parcelRequire;
 }
-parcelRequire.register("lTByv", function(module, exports) {
-module.exports = Promise.resolve(require("./timer-element.f9a8eaa1.js")).then(()=>parcelRequire("6bCY3"));
+parcelRequire.register("giUei", function(module, exports) {
+module.exports = import("./timer-element.5f1bcfc5.js").then(()=>parcelRequire("bOlJ4"));
 
 });
 
-parcelRequire.register("5NjaG", function(module, exports) {
-module.exports = Promise.resolve(require("./share-element.792fc7e9.js")).then(()=>parcelRequire("5KyK1"));
+parcelRequire.register("5ssQK", function(module, exports) {
+module.exports = import("./share-element.9c3b013b.js").then(()=>parcelRequire("gnzVA"));
 
 });
 
-parcelRequire.register("cSkqO", function(module, exports) {
-module.exports = Promise.resolve(require("./increment-number.bbc4efb7.js")).then(()=>parcelRequire("luXp6"));
+parcelRequire.register("dGg3n", function(module, exports) {
+module.exports = import("./increment-number.02b013c3.js").then(()=>parcelRequire("9PUIi"));
 
 });
 
 console.log("Lazy loading components");
 
-if (document.querySelector("timer-element")) (parcelRequire("lTByv"));
+if (document.querySelector("timer-element")) (parcelRequire("giUei"));
 
-if (document.querySelector("share-element")) (parcelRequire("5NjaG"));
+if (document.querySelector("share-element")) (parcelRequire("5ssQK"));
 
-if (document.querySelector("increment-number")) (parcelRequire("cSkqO"));
+if (document.querySelector("increment-number")) (parcelRequire("dGg3n"));
 
 
 //# sourceMappingURL=elements.js.map
