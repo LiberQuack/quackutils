@@ -13,6 +13,14 @@ type StateData<T> = {
     error: any
 }
 
+/**
+ * State manager
+ *
+ * TODO: take care about async operations inside update method
+ *  I need to test consistency, because appareantly the changes are made
+ *  againt the initial draft (which makes sense), but if that's true,
+ *  it means you can lose updates from parallel updates
+ */
 export class State<T extends Dictionary<any>> {
 
     private state: T;

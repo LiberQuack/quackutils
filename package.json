@@ -5,7 +5,10 @@
   "typeScriptVersion": "4.6.3",
   "module": "./dist/esm/index.js",
   "main": "./dist/cjs/index.js",
-  "files": ["./dist", "./src"],
+  "files": [
+    "./dist",
+    "./src"
+  ],
   "exports": {
     ".": {
       "module": "./dist/esm/index.js",
@@ -39,6 +42,7 @@
   },
   "homepage": "https://github.com/QuackMartins/quackutils#readme",
   "dependencies": {
+    "@stripe/stripe-js": "^1.32.0",
     "bezier-easing": "^2.1.0",
     "haunted": "^5.0.0",
     "idb": "^7.0.2",
