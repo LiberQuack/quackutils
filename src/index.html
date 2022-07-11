@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Comfortaa&display=swap" rel="stylesheet">
+</head>
+<body>
+<style>
+    root, body {
+        font-family: "Roboto";
+    }
+</style>
+
+<h1 style="text-align: center">Quack Utils</h1>
+<hr style="border: 1px solid #f1f1f1">
+<div id="root"></div>
+
+<script type="module">
+    // import mdxMapUrl from "./**/*.mdx"
+    import ReactDOM from "react-dom"
+    import {lazy, Suspense} from "react"
+    import {dictionaryMapList} from "./_/dictionary";
+    import flatObj from "flat-obj";
+    import {applyPolyfill} from 'custom-elements-hmr-polyfill';
+
+    async function start() {
+        applyPolyfill();
+
+        const mdxMapUrl = await import("./**/*.mdx");
+        const flatMdxMapUrl = flatObj(mdxMapUrl, "/");
+
+        const index = <div style={{display: "grid", gridTemplateColumns: "300px auto"}}>
+            <div>
+                <h2>UI</h2>
+                <ul style={{listStyle: "none", padding: 0, margin: 0}}>
+                    {dictionaryMapList(flatMdxMapUrl, (key) => (
+                        <li key={key} style={{padding: ".5em 0"}}>{key.split("/").at(-2)}</li>
+                    ))}
+                </ul>
+            </div>
+            <div>
+                {
+                    dictionaryMapList(flatMdxMapUrl, (key, mdxPromise) => {
+                        const Mdx = lazy(mdxPromise);
+                        return (
+                            <div key={mdxPromise}>
+                                <h2>{key.split("/").at(-2)}</h2>
+                                <div style={{background: "#f1f1f1", borderRadius: ".5em"}}>
+                                    <Suspense fallback="Loading...">
+                                        <Mdx/>
+                                    </Suspense>
+                                </div>
+                            </div>
+                        );
+                    })
+                }
+
+            </div>
+        </div>
+
+        ReactDOM.render(index, document.querySelector("#root"))
+    }
+
+    start();
+</script>
+
+</body>
+</html>

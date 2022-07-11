@@ -21,22 +21,6 @@ export function dictionaryForEach<T>(dict: Dictionary<T>, cb: (entry: T, key: st
 }
 
 /**
- * Returns a list for each entry
- *
- * @example
- *     dictionaryMap({a: 1, b: 2}, (value, key) => value + key)
- *     // ["a1", "b2"]
- *
- * @param dict
- * @param cb
- */
-export function dictionaryMapList<T, R>(dict: Dictionary<T>, cb: (key: string, value: T, index: number) => R) {
-    return Object.keys(dict).map((key, index) => {
-        return cb(key, dict[key]!, index);
-    })
-}
-
-/**
  * Generates a new dictionary from the original
  *
  * @example
@@ -52,24 +36,19 @@ export function dictionaryMap<T, R = any>(dict: Dictionary<T>, cb: (key: string,
 }
 
 /**
- * Create a new object from dictionary, where values as transformed like
+ * Returns a list for each entry
  *
  * @example
- *     dictionaryTransformEntries({a: 1, b: 2}, (k, v) => v * 2)
- *     // {a: 2, b: 4}
+ *     dictionaryMap({a: 1, b: 2}, (value, key) => value + key)
+ *     // ["a1", "b2"]
  *
  * @param dict
- * @param transformer
+ * @param cb
  */
-//TODO: Should be dictionaryTransformValues
-export function dictionaryTransformEntries<T extends object, ER, TT extends AugmentedRequired<T>>(dict: T, transformer: (key: keyof T, value: TT[keyof TT], index: number) => ER): {[P in keyof T]: ER} {
-    const keys = Object.keys(dict) as (keyof T)[];
-
-    return keys.reduce((acc, key: keyof T, i) => {
-        const entry = dict[key];
-        acc[key] = transformer(key, entry as any, i) as ER;
-        return acc;
-    }, {} as { [P in keyof T]: ER });
+export function dictionaryMapList<T, R>(dict: Dictionary<T>, cb: (key: string, value: T, index: number) => R) {
+    return Object.keys(dict).map((key, index) => {
+        return cb(key, dict[key]!, index);
+    })
 }
 
 /**

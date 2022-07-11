@@ -6,10 +6,8 @@ import {unsafeHTML} from "lit/directives/unsafe-html";
 import ShareButtons from "share-buttons";
 
 import fbSvg from "bundle-text:./fb_icon.svg";
-import linkedinSvg from "bundle-text:./linkedin_icon.svg";
 import twSvg from "bundle-text:./tw_icon.svg";
 import wpSvg from "bundle-text:./wp_icon.svg";
-import shareSvg from "bundle-text:./share_icon.svg";
 import {css} from "../../util/css";
 
 export const ShareElement:CustomElement = function () {
@@ -35,6 +33,7 @@ export const ShareElement:CustomElement = function () {
     }, [])
 
     return html`
+        <timerr-element target-date="2134124"></timerr-element>
         <a data-url="${document.location.href}" data-id="tw">${unsafeHTML(twSvg)}</a>
         <a data-url="${document.location.href}" data-id="fb">${unsafeHTML(fbSvg)}</a>
         <a data-url="${document.location.href}" data-id="wa">${unsafeHTML(wpSvg)}</a>

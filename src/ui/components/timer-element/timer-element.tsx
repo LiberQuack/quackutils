@@ -8,7 +8,9 @@ const minute = second * 60;
 const hour = minute * 60;
 const day = hour * 24;
 
-export const TimerElement:CustomElement<{targetDate: string}> = ({targetDate}) => {
+type TimerElementType = CustomElement<{ targetDate: string }>;
+
+export const TimerElement:TimerElementType = ({targetDate}) => {
 
     const initialDiff = useMemo(() => targetDate && fmtTime(calcTimeDiff(targetDate)), [])
     const [time, setTime] = useState(initialDiff || "00:00:00");
@@ -43,4 +45,5 @@ function fmtTime(time: number) {
     return `${hours}:${minutes.padStart(2, "0")}:${seconds.padStart(2, "0")}`
 }
 
+debugger;
 customElements.define("timer-element", component(TimerElement, {useShadowDOM: false, observedAttributes: ["target-date"] as any}));

@@ -1,0 +1,13 @@
+import {ReactHtmlRender} from "../../../react-html-render";
+import {html} from "lit";
+import "./stripe-form.tsx";
+import "./stripe-elements.tsx";
+const element = html`
+    <stripe-form .stripePublicKey="${"pk_test_51IG332FIx1iLyZGc71gYaVCUDKMPAFlRn49tyrzTqf3FYymriwKSJAnKbWyAK9c9WdIi3gn6O9Y8rOKc1tpSJGmQ00RU6pFiTC"}">
+        <stripe-card-number></stripe-card-number>
+        <stripe-card-expiry></stripe-card-expiry>
+        <stripe-card-cvc></stripe-card-cvc>
+    </stripe-form>
+`
+
+<ReactHtmlRender html={element}/>

@@ -14,7 +14,9 @@ const attributes = [
     "once"
 ];
 
-export const IncrementNumber:CustomElement<{from: string, to: string, bezier: string, secondsDuration: string, maxDecimals: string, minDecimals: string, once: boolean|string}> = function({from, to, bezier, secondsDuration, maxDecimals, minDecimals, once}) {
+type IncrementNumberType = { from: string, to: string, bezier: string, secondsDuration: string, maxDecimals: string, minDecimals: string, once: boolean | string };
+
+export const IncrementNumber:CustomElement<IncrementNumberType> = function({from, to, bezier, secondsDuration, maxDecimals, minDecimals, once}) {
     const attr = {
         bezier: bezier ?? "1, 0, 1, 1",
         secondsDuration: secondsDuration ?? "2",
@@ -80,3 +82,9 @@ export const IncrementNumber:CustomElement<{from: string, to: string, bezier: st
 }
 
 customElements.define("increment-number", component(IncrementNumber, {useShadowDOM: false, observedAttributes: attributes as any}));
+
+declare global {
+    interface HTMLElementTagNameMap {
+        "increment-number": IncrementNumberType
+    }
+}

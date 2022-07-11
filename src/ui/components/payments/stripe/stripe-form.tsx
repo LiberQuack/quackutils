@@ -1,14 +1,21 @@
+import "./stripe-context"
+
 import StripeTypes from "@stripe/stripe-js";
-import {CustomElement, CustomEventType} from "../../ui-types";
-import {useEffect, useRef, useState} from "haunted/lib/core";
-import {Nullable} from "../../../_/types";
-import {useAwait} from "../../util/hooks/use-await";
-import {dictionaryTransformEntries, listToDictionary} from "../../../_/dictionary";
-import {CardElement} from "../../../../src/ui/components/card";
-import {ControlText} from "../../../../src/ui/components/controls/control-text";
-import {fmt} from "../../../../src/ui/util/formatters";
-import {ButtonElement} from "../../../../src/ui/components/button-element";
-import {switcher} from "../../util/switch";
+import {CustomElement, CustomEventType} from "../../../ui-types";
+import {useEffect, useLayoutEffect, useRef, useState} from "haunted/lib/core";
+import {Nullable} from "../../../../_/types";
+import {useAwait} from "../../../util/hooks/use-await";
+import {dictionaryMap, listToDictionary} from "../../../../_/dictionary";
+import {component} from "haunted";
+import {html} from "lit";
+import {switcher} from "../../../util/switch";
+import {StripeRef} from "./types";
+import {StripeContext} from "./stripe-context";
+import {css} from "../../../util/css";
+
+const fmt = {
+    err: (...args: any[]) => args
+}
 
 export type StripeCardformEvents = {
     onformready: (e: CustomEvent) => void,
@@ -16,20 +23,19 @@ export type StripeCardformEvents = {
     onsendcardtoken: (e: CustomEvent<{ token: StripeTypes.Token }>) => void,
 };
 
-export const StripeCardform: CustomElement<{ forceLoading?: boolean, btnContent?: any, stripePublicKey: string }, Partial<StripeCardformEvents>> = function (props) {
+export type StripeCardFormType = CustomElement<{ forceLoading?: boolean, btnContent?: any, stripePublicKey: string, value: StripeRef}, Partial<StripeCardformEvents>>;
+
+export const StripeForm: StripeCardFormType = function (props) {
+
+    useLayoutEffect(() => {
+        css`
+            stripe-form { display: block }
+        `
+    }, [])
 
     const [formReady, setFormReady] = useState(false);
 
-    const stripeRef = useRef(null as Nullable<{
-        stripeClient: StripeTypes.Stripe,
-        stripeElements: StripeTypes.StripeElements,
-        stripeElementInstances: StripeTypes.StripeElementBase[],
-        html: {
-            cardNumber: HTMLElement,
-            cardExpiry: HTMLElement,
-            cardCvc: HTMLElement,
-        }
-    }>);
+    const stripeRef = useRef(null as Nullable<StripeRef>);
 
     const stripeCb = useAwait(async () => {
         const stripeImport = await import('@stripe/stripe-js');
@@ -69,9 +75,9 @@ export const StripeCardform: CustomElement<{ forceLoading?: boolean, btnContent?
             return {...cfg, stripeElm, container}
         })
 
-        const htmlDict = dictionaryTransformEntries(listToDictionary(stripeElms, "name"), (key, value) => {
+        const htmlDict = dictionaryMap(listToDictionary(stripeElms, "name"), (key, value) => {
             value.stripeElm.mount(value.container);
-            return value.container;
+            return [key, value.container];
         });
 
         stripeRef.current = {
@@ -80,6 +86,8 @@ export const StripeCardform: CustomElement<{ forceLoading?: boolean, btnContent?
             stripeElementInstances: stripeElms.map(it => it.stripeElm),
             html: htmlDict as any
         };
+
+        this.value = stripeRef.current;
     });
 
     useEffect(() => {
@@ -104,30 +112,33 @@ export const StripeCardform: CustomElement<{ forceLoading?: boolean, btnContent?
         }
     );
 
-    return <>
-        <div style$="position: relative;">
-            <ControlText name="cardNumber" label="Número do Cartão" inputElm={stripeRef.current?.html?.cardNumber}/>
+    return html`
+        <div style="position: relative;">
 
-            <div style$="display: grid; grid-template-columns: 1fr 1fr; grid-gap: 1.5em">
-                <ControlText name="cardExpiry" label="Expiração" style$="flex-grow: 1;" inputElm={stripeRef.current?.html?.cardExpiry}/>
-                <ControlText name="cardCvc" label="CVC" style$="flex-grow: 1;" inputElm={stripeRef.current?.html?.cardCvc}/>
-            </div>
-
-            {!onSubmit.err ? undefined : (
-                <div class$="t-danger" style$="margin-bottom: 1.5em">
-                    {fmt.err(onSubmit.err)}
-                </div>
-            )}
-
-            <ButtonElement onclick={onSubmit.run} content={(
-                <div>
-                    {switcher(
-                        {case: onSubmit.loading || props.forceLoading, then: "Cadastrando..."},
-                        {case: true, then: props.btnContent ?? "Cadastrar"},
-                    )}
-                </div>
-            )}/>
+                ${!onSubmit.err ? undefined : html`
+                    <div class="t-danger" style="margin-bottom: 1.5em">
+                        ${fmt.err(onSubmit.err)}
+                    </div>
+                `}
+    
+                <ButtonElement onclick=${onSubmit.run} .content=${(
+                    <div>
+                        {switcher(
+                            {case: onSubmit.loading || props.forceLoading, then: "Cadastrando..."},
+                            {case: true, then: props.btnContent ?? "Cadastrar"},
+                        )}
+                    </div>
+                )}/>
 
         </div>
-    </>;
+    `
+}
+
+let potato = component(StripeForm, {useShadowDOM: false, baseElement: StripeContext.Provider});
+customElements.define("stripe-form", potato)
+
+declare global {
+    interface HTMLElementTagNameMap {
+        'stripe-form': StripeCardFormType
+    }
 }
