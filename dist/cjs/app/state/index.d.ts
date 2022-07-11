@@ -7,6 +7,14 @@ declare type StateData<T> = {
     isUpdating: boolean;
     error: any;
 };
+/**
+ * State manager
+ *
+ * TODO: take care about async operations inside update method
+ *  I need to test consistency, because appareantly the changes are made
+ *  againt the initial draft (which makes sense), but if that's true,
+ *  it means you can lose updates from parallel updates
+ */
 export declare class State<T extends Dictionary<any>> {
     readonly id: string;
     private state;
