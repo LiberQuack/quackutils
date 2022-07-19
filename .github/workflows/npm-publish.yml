@@ -22,17 +22,16 @@ jobs:
   publish-npm:
     needs: test
     runs-on: ubuntu-latest
+    env:
+        NODE_AUTH_TOKEN: ${{ secrets.npm_token }}
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.npm_token }}
         with:
           node-version: 16
           registry-url: https://registry.npmjs.org
-          token: ${{ secrets.npm_token }}
-      - run: npm ci
       - run: |
           git config --global user.email "ci@nothing.com"
           git config --global user.name "Github CI"
+      - run: npm ci
       - run: npm run prerelease
