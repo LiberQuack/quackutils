@@ -34,4 +34,5 @@ jobs:
           echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
         env:
           NPM_TOKEN: ${{secrets.npm_token}}
+      - run: npm version prerelease --preid $(git rev-parse --short HEAD)
       - run: npm publish --tag latest --access public
