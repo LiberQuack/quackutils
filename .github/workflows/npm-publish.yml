@@ -32,10 +32,8 @@ jobs:
       - run: npm ci
       - run: npm run build
       - run: |
-          ls &&
-          git status &&
-          pwd &&
-          echo $HOME &&
+          git config --global user.email "ci@nothing.com"
+          git config --global user.name "Github CI"
           echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ${HOME}/.npmrc
         env:
           NPM_TOKEN: ${{secrets.npm_token}}
