@@ -28,6 +28,7 @@
     "build:mdx": "parcel build src/index.html",
     "build:esm": "tsc -p tsconfig.json",
     "build:cjs": "tsc -p tsconfig-cjs.json",
+    "prerelease": "npm version prerelease --preid $(git rev-parse --short HEAD) && npm publish --tag latest --access public",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "publishConfig": {

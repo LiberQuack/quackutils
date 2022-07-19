@@ -31,8 +31,9 @@ jobs:
       - run: npm ci
       - run: npm run build
       - run: |
-          echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
+          echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > .npmrc &&
+          ls &&
+          git status
         env:
           NPM_TOKEN: ${{secrets.npm_token}}
-      - run: npm version prerelease --preid $(git rev-parse --short HEAD)
-      - run: npm publish --tag latest --access public
+      - run: npm run pre-release
