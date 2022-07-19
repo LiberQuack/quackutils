@@ -14,15 +14,17 @@ export declare type StripeCardformEvents = {
         token: StripeTypes.Token;
     }>) => void;
 };
-export declare type StripeCardFormType = CustomElementDefinition<{
+declare type StripeFormProps = {
     forceLoading?: boolean;
     btnContent?: any;
     stripePublicKey: string;
     value: StripeContextType;
-}, Partial<StripeCardformEvents>>;
+};
+export declare type StripeCardFormType = CustomElementDefinition<StripeFormProps, Partial<StripeCardformEvents>>;
 export declare const StripeForm: StripeCardFormType;
 declare global {
     interface HTMLElementTagNameMap {
         'stripe-form': CustomElement<StripeCardFormType>;
     }
 }
+export {};
