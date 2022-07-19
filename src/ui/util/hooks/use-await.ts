@@ -18,9 +18,9 @@ export function useAwait<R, T extends ((...args: any[]) => Promise<R>)>(job: T, 
     const run = (async (...args) => {
         if (!loading) {
             setLoading(true);
-            setErr(undefined);
+            setErr(undefined as any);
             const [result, err] = await inlineErr(job(...args));
-            setErr(err);
+            setErr(err as any);
             setResult(result as any);
             setLoading(false);
             return result;
