@@ -1,6 +1,6 @@
 {
   "name": "@liberquack/quackutils",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "Quack utilities",
   "typeScriptVersion": "4.6.3",
   "files": [
