@@ -31,9 +31,11 @@ jobs:
       - run: npm ci
       - run: npm run build
       - run: |
-          echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > .npmrc &&
+          echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > /root/.npmrc &&
           ls &&
-          git status
+          git status &&
+          pwd &&
+          echo $HOME
         env:
           NPM_TOKEN: ${{secrets.npm_token}}
       - run: npm run prerelease
