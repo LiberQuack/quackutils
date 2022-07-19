@@ -36,4 +36,4 @@ jobs:
           git status
         env:
           NPM_TOKEN: ${{secrets.npm_token}}
-      - run: npm run pre-release
+      - run: npm run prerelease
