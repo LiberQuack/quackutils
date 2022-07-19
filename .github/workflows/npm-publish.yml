@@ -35,7 +35,7 @@ jobs:
           git status &&
           pwd &&
           echo $HOME &&
-          echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ${HOME}/.npmrc &&
+          echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ${HOME}/.npmrc
         env:
           NPM_TOKEN: ${{secrets.npm_token}}
       - run: npm run prerelease
