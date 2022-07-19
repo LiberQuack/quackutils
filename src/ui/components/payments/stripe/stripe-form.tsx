@@ -20,7 +20,14 @@ export type StripeCardformEvents = {
     onsendcardtoken: (e: CustomEvent<{ token: StripeTypes.Token }>) => void,
 };
 
-export type StripeCardFormType = CustomElementDefinition<{ forceLoading?: boolean, btnContent?: any, stripePublicKey: string, value: StripeContextType}, Partial<StripeCardformEvents>>;
+type StripeFormProps = {
+    forceLoading?: boolean,
+    btnContent?: any,
+    stripePublicKey: string,
+    value: StripeContextType
+};
+
+export type StripeCardFormType = CustomElementDefinition<StripeFormProps, Partial<StripeCardformEvents>>;
 
 css`stripe-form { display: block }`
 export const StripeForm: StripeCardFormType = function (props) {
@@ -80,7 +87,11 @@ export const StripeForm: StripeCardFormType = function (props) {
     }, []);
 }
 
-customElements.define("stripe-form", component(StripeForm, {useShadowDOM: false, baseElement: StripeContext.Provider}))
+customElements.define("stripe-form", component(StripeForm, {
+    useShadowDOM: false,
+    baseElement: StripeContext.Provider,
+    observedAttributes: ["stripe-public-key"] as any
+}))
 
 declare global {
     interface HTMLElementTagNameMap {

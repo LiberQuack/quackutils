@@ -15,7 +15,7 @@ export function ReactHtmlRender(props: {html: TemplateResult, hideSrc: boolean})
     const strings = props.html.strings;
     const linesWithContent = strings.join("").split("\n").filter(it => it.trim());
     const leftStart = Math.min(...linesWithContent?.map((it) => it.replace(/\S.*/, "").length));
-    const rawTemplate = strings.map((it, index) => it + (index < strings.length -1 ? "..." : ""));
+    const rawTemplate = strings.map((it, index) => it + (index < strings.length -1 ? props.html.values[index] : ""));
     const template = rawTemplate.join("").split("\n").map(it => it.substring(leftStart)).join("\n");
 
     return (
