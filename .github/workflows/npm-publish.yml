@@ -35,5 +35,4 @@ jobs:
       - run: |
           git config --global user.email "ci@nothing.com"
           git config --global user.name "Github CI"
-          echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ${HOME}/.npmrc
       - run: npm run prerelease
