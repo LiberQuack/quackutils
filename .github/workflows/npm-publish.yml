@@ -25,16 +25,15 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
-      - uses: pkg-src/github-action-git-bash@v1.1
         with:
           node-version: 16
-          registry-url: https://registry.npmjs.org/
+          registry-url: https://registry.npmjs.org
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.npm_token }}
       - run: npm ci
       - run: npm run build
       - run: |
           git config --global user.email "ci@nothing.com"
           git config --global user.name "Github CI"
           echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ${HOME}/.npmrc
-        env:
-          NPM_TOKEN: ${{secrets.npm_token}}
       - run: npm run prerelease
