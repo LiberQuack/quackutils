@@ -1,17 +1,17 @@
 import {PaymentCheckout, PaymentUserData} from "./types";
 import {PaymentProviderCheckout} from "./manager-providers/types";
-import {PaymentClientProvider} from "./client-providers/payment-client-provider";
+import {AbstractPaymentClientProvider} from "./client-providers/payment-abstract-client-provider";
 
 /**
  * PaymentClient is the class for executing the checkout on front-end
  */
-export abstract class PaymentClient {
+export abstract class AbstractPaymentClient {
 
-    private providers: PaymentClientProvider[] = [];
-    private providersInitializers: (() => PaymentClientProvider)[];
+    private providers: AbstractPaymentClientProvider[] = [];
+    private providersInitializers: (() => AbstractPaymentClientProvider)[];
     private inited = false
 
-    constructor(providers: (() => PaymentClientProvider)[]) {
+    constructor(providers: (() => AbstractPaymentClientProvider)[]) {
         this.providersInitializers = providers;
     }
 

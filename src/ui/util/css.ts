@@ -7,7 +7,7 @@ export const css = (template: TemplateStringsArray | string, ...values: (string 
     if (Array.isArray(template)) {
         for (let i = 0; i < template.length; i++) {
             text += template[i];
-            text += values[i];
+            text += i === template.length - 1 ? "" : values[i];
         }
     } else {
         text = template as string

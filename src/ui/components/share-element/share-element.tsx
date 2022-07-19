@@ -1,4 +1,4 @@
-import {CustomElement} from "../../ui-types";
+import {CustomElementDefinition} from "../../ui-types";
 import {component} from "haunted";
 import {useEffect} from "haunted/lib/core";
 import {html} from "lit";
@@ -10,7 +10,7 @@ import twSvg from "bundle-text:./tw_icon.svg";
 import wpSvg from "bundle-text:./wp_icon.svg";
 import {css} from "../../util/css";
 
-export const ShareElement:CustomElement = function () {
+export const ShareElement:CustomElementDefinition = function () {
 
     css`
         share-element a {

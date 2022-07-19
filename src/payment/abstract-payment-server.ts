@@ -3,7 +3,7 @@ import {ValuesType} from "utility-types";
 import {PaymentAccountProvider, PaymentAccountProviderData, PaymentAccountProviderType, PaymentProvider, PaymentProviderCheckout, PaymentProviderCheckoutProductsResult, PaymentProviderCheckoutResult} from "./manager-providers/types";
 import {AugmentedRequired} from "utility-types/dist/mapped-types";
 
-export abstract class AbstractPaymentService<U extends PaymentUser, P extends PaymentProduct, PP extends (PaymentAccountProvider | PaymentProvider)[]> {
+export abstract class AbstractPaymentServer<U extends PaymentUser, P extends PaymentProduct, PP extends (PaymentAccountProvider | PaymentProvider)[]> {
 
     providers: PP;
 

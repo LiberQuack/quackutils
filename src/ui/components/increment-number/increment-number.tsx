@@ -1,4 +1,4 @@
-import {CustomElement} from "../../ui-types";
+import {CustomElement, CustomElementDefinition} from "../../ui-types";
 import {component} from "haunted";
 import {useEffect, useRef, useState} from "haunted/lib/core";
 import BezierEasing from "bezier-easing";
@@ -16,7 +16,7 @@ const attributes = [
 
 type IncrementNumberType = { from: string, to: string, bezier: string, secondsDuration: string, maxDecimals: string, minDecimals: string, once: boolean | string };
 
-export const IncrementNumber:CustomElement<IncrementNumberType> = function({from, to, bezier, secondsDuration, maxDecimals, minDecimals, once}) {
+export const IncrementNumber:CustomElementDefinition<IncrementNumberType> = function({from, to, bezier, secondsDuration, maxDecimals, minDecimals, once}) {
     const attr = {
         bezier: bezier ?? "1, 0, 1, 1",
         secondsDuration: secondsDuration ?? "2",
@@ -85,6 +85,6 @@ customElements.define("increment-number", component(IncrementNumber, {useShadowD
 
 declare global {
     interface HTMLElementTagNameMap {
-        "increment-number": IncrementNumberType
+        "increment-number": CustomElement<IncrementNumberType>
     }
 }

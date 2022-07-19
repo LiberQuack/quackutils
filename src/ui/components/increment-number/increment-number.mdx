@@ -1,13 +1,14 @@
 import {ReactHtmlRender} from "../../react-html-render";
-import "./increment-number.tsx"
 import {html} from "lit";
+import "../../../ui";
 const template = html`
-    <increment-number from="2"
-                      to="0"
-                      min-decimals="2"
-                      max-decimals="2"
-                      seconds-duration="5"
-                      bezier="1,0,1,0.41">0</increment-number>%
+    <increment-number
+        from="2"
+        to="0"
+        min-decimals="2"
+        max-decimals="2"
+        seconds-duration="5"
+        bezier="1,0,1,0.41">0</increment-number>%
 `
 
 <ReactHtmlRender html={template}/>

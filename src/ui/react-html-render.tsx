@@ -1,7 +1,9 @@
 import {html, render, TemplateResult} from "lit";
 import {useRef, Fragment, createRef, useEffect} from "react";
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { nord as codeTheme } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
-export function ReactHtmlRender(props: {html: TemplateResult}) {
+export function ReactHtmlRender(props: {html: TemplateResult, hideSrc: boolean}) {
     const ref = useRef<HTMLDivElement | null>(null);
 
     useEffect(() => {
@@ -17,9 +19,24 @@ export function ReactHtmlRender(props: {html: TemplateResult}) {
     const template = rawTemplate.join("").split("\n").map(it => it.substring(leftStart)).join("\n");
 
     return (
-        <div style={{display: "flex", alignItems: "center", justifyContent: "space-between", gap: "1em", padding: "1em"}}>
-            <pre style={{flexGrow: 1}}>{template.trimStart().trimEnd()}</pre>
+        <div style={{display: "flex", alignItems: "center", justifyContent: "space-between", gap: "1em"}}>
+            {
+                !props.hideSrc ?
+                    <div style={{display: "flex", width: "50%", justifyItems: "stretch", flexDirection: "column"}}>
+                        <SyntaxHighlighter language="html" style={codeTheme}>{template.trimStart().trimEnd()}</SyntaxHighlighter>
+                    </div> :
+                    undefined
+            }
+
             <div style={{flexGrow: 1}} ref={ref}/>
+        </div>
+    )
+}
+
+export function ReactSrcRender(props: {src: string, language: "string"}) {
+    return (
+        <div style={{display: "flex", alignItems: "center", justifyContent: "space-between", gap: "1em"}}>
+            <SyntaxHighlighter language={props.language} style={codeTheme}>{props.src ?? ""}</SyntaxHighlighter>
         </div>
     )
 }

@@ -2,7 +2,15 @@ import {useState} from "haunted/lib/core";
 import {inlineErr} from "../../../_/inline-error";
 import {Undefinable} from "../../../_/types";
 
-export function useAwait<R, T extends ((...args: any[]) => Promise<R>)>(cb: T): {run: T, result: Undefinable<R>, loading: boolean, err: undefined | Error} {
+type useAwaitReturnType<T extends ((...args: any[]) => Promise<R>), R> = { run: T, result: Undefinable<R>, loading: boolean, err: undefined | Error };
+type useAwaitType<T extends ((...args: any[]) => Promise<R>), R> = useAwaitReturnType<T, R>;
+
+/**
+ *
+ * @param job Async function to be executed
+ * @param cb Callback executed everytime the stats change
+ */
+export function useAwait<R, T extends ((...args: any[]) => Promise<R>)>(job: T, cb?: (stats: useAwaitReturnType<T, R>) => void): useAwaitType<T, R> {
     const [loading, setLoading] = useState(false);
     const [err, setErr] = useState(undefined as undefined | Error);
     const [result, setResult] = useState(undefined as Undefinable<R>);
@@ -11,7 +19,7 @@ export function useAwait<R, T extends ((...args: any[]) => Promise<R>)>(cb: T): 
         if (!loading) {
             setLoading(true);
             setErr(undefined);
-            const [result, err] = await inlineErr(cb(...args));
+            const [result, err] = await inlineErr(job(...args));
             setErr(err);
             setResult(result as any);
             setLoading(false);
@@ -19,10 +27,16 @@ export function useAwait<R, T extends ((...args: any[]) => Promise<R>)>(cb: T): 
         }
     }) as T;
 
-    return {
+    const awaitStats: useAwaitReturnType<T, R> = {
         run,
         loading,
         result: result as Undefinable<R>,
         err
+    };
+
+    if (cb) {
+        cb(awaitStats);
     }
+
+    return awaitStats;
 }

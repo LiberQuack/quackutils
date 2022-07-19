@@ -1,12 +1,8 @@
 import StripeTypes from "@stripe/stripe-js";
+import {useAwait} from "../../../util/hooks/use-await";
 
-export type StripeRef = {
+export type StripeContextType = {
     stripeClient: StripeTypes.Stripe,
     stripeElements: StripeTypes.StripeElements,
-    stripeElementInstances: StripeTypes.StripeElementBase[],
-    html: {
-        cardNumber: HTMLElement,
-        cardExpiry: HTMLElement,
-        cardCvc: HTMLElement,
-    }
+    useSubmit: ReturnType<typeof useAwait>
 };

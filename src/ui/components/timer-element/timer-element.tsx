@@ -1,4 +1,4 @@
-import {CustomElement} from "../../ui-types";
+import {CustomElementDefinition} from "../../ui-types";
 import {component, useMemo} from "haunted";
 import {html} from "lit";
 import {useEffect, useState} from "haunted/lib/core";
@@ -8,7 +8,7 @@ const minute = second * 60;
 const hour = minute * 60;
 const day = hour * 24;
 
-type TimerElementType = CustomElement<{ targetDate: string }>;
+type TimerElementType = CustomElementDefinition<{ targetDate: string }>;
 
 export const TimerElement:TimerElementType = ({targetDate}) => {
 
@@ -45,5 +45,4 @@ function fmtTime(time: number) {
     return `${hours}:${minutes.padStart(2, "0")}:${seconds.padStart(2, "0")}`
 }
 
-debugger;
 customElements.define("timer-element", component(TimerElement, {useShadowDOM: false, observedAttributes: ["target-date"] as any}));

@@ -1,4 +1,10 @@
 {
     "extends": "@parcel/config-default",
-    "resolvers": ["@parcel/resolver-glob", "..."]
+    "resolvers": ["@parcel/resolver-glob", "..."],
+    "transformers": {
+        "bundle-text:*.ts": ["@parcel/transformer-inline-string"]
+    },
+    "optimizers": {
+        "bundle-text:*.ts": []
+    }
 }

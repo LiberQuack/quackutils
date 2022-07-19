@@ -1,13 +1,31 @@
 import {ReactHtmlRender} from "../../../react-html-render";
 import {html} from "lit";
-import "./stripe-form.tsx";
-import "./stripe-elements.tsx";
-const element = html`
+import "../../../../ui";
+const usage1 = html`
     <stripe-form .stripePublicKey="${"pk_test_51IG332FIx1iLyZGc71gYaVCUDKMPAFlRn49tyrzTqf3FYymriwKSJAnKbWyAK9c9WdIi3gn6O9Y8rOKc1tpSJGmQ00RU6pFiTC"}">
         <stripe-card-number></stripe-card-number>
         <stripe-card-expiry></stripe-card-expiry>
         <stripe-card-cvc></stripe-card-cvc>
+        <stripe-submit-error></stripe-submit-error>
+        <stripe-submit><button>Submit</button></stripe-submit>
+    </stripe-form>
+`
+const usage2 = html`
+    <stripe-form .stripePublicKey="${"pk_test_51IG332FIx1iLyZGc71gYaVCUDKMPAFlRn49tyrzTqf3FYymriwKSJAnKbWyAK9c9WdIi3gn6O9Y8rOKc1tpSJGmQ00RU6pFiTC"}">
+        <stripe-card></stripe-card>
+        <stripe-submit-error></stripe-submit-error>
+        <stripe-submit><button>Submit</button></stripe-submit>
     </stripe-form>
 `
 
-<ReactHtmlRender html={element}/>
+<div>Example 1</div>
+<ReactHtmlRender html={usage1}/>
+<div>Example 2</div>
+<ReactHtmlRender html={usage2}/>
+
+<hr/>
+
+<div>
+    Proceed to PaymentClient and PaymentClient providers documentations to understand
+    how to send stripe data to your api
+</div>

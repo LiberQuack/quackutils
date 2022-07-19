@@ -20,6 +20,10 @@
 <hr style="border: 1px solid #f1f1f1">
 <div id="root"></div>
 
+<div>
+    <stripe-form></stripe-form>
+</div>
+
 <script type="module">
     // import mdxMapUrl from "./**/*.mdx"
     import ReactDOM from "react-dom"
@@ -50,7 +54,7 @@
                         return (
                             <div key={mdxPromise}>
                                 <h2>{key.split("/").at(-2)}</h2>
-                                <div style={{background: "#f1f1f1", borderRadius: ".5em"}}>
+                                <div style={{background: "#f1f1f1", borderRadius: ".5em", padding: "1em"}}>
                                     <Suspense fallback="Loading...">
                                         <Mdx/>
                                     </Suspense>

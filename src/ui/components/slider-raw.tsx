@@ -1,5 +1,5 @@
 import {useEffect, useLayoutEffect, useRef, useState} from "haunted/lib/core";
-import {CustomElement, CustomEventType} from "../ui-types";
+import {CustomElementDefinition, CustomEventType} from "../ui-types";
 import {css} from "../../../src/ui/util/css";
 import {debounce} from "debounce";
 import {Undefinable} from "../../_/types";
@@ -8,7 +8,7 @@ import {Undefinable} from "../../_/types";
 
 export type SliderProps = { index: number, content: any[] };
 
-export const SliderIndicator: CustomElement<{ index: number, length: number }> = (props) => {
+export const SliderIndicator: CustomElementDefinition<{ index: number, length: number }> = (props) => {
     css`
         slider-indicator {
             text-align: center;
@@ -51,7 +51,7 @@ export const SliderIndicator: CustomElement<{ index: number, length: number }> =
 
 type SliderEvents = { onselect?: (e: CustomEvent<{ index: number }>) => void };
 
-export const SliderElement: CustomElement<{items: any[], index?: number;}, SliderEvents> = function (props) {
+export const SliderElement: CustomElementDefinition<{items: any[], index?: number;}, SliderEvents> = function (props) {
     css`
         slider-element {
             display: block;

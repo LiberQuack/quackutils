@@ -22,7 +22,7 @@
     "clean": "npm run clean:dist && npm run clean:cache",
     "clean:dist": "rm -rf ./dist",
     "clean:cache": "rm -rf ./.parcel-cache",
-    "start": "parcel src/index.html",
+    "start": "parcel src/index.html --port 9091",
     "check": "tsc --noEmit",
     "build": "npm run clean && npm run build:esm && npm run build:cjs && npm run build:mdx",
     "build:mdx": "parcel build src/index.html",
@@ -47,6 +47,9 @@
   "dependencies": {
     "@mdx-js/react": "^1.6.22",
     "@stripe/stripe-js": "^1.32.0",
+    "@types/mongodb": "^4.0.7",
+    "@types/react-syntax-highlighter": "^15.5.3",
+    "@types/stripe": "^8.0.417",
     "bezier-easing": "^2.1.0",
     "custom-elements-hmr-polyfill": "^1.0.3",
     "flat-obj": "^3.0.0",
@@ -56,6 +59,7 @@
     "lit": "^2.2.5",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
+    "react-syntax-highlighter": "^15.5.0",
     "share-buttons": "^1.9.0",
     "superstruct": "^0.16.0",
     "utility-types": "^3.10.0"

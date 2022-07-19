@@ -1,4 +1,4 @@
-import {CustomElement} from "../ui-types";
+import {CustomElementDefinition} from "../ui-types";
 import {css} from "../../../src/ui/util/css";
 import {useEffect, useRef, useState} from "haunted/lib/core";
 import debounce from "debounce";
@@ -19,7 +19,7 @@ export type SmartOverflowEvents = {
  * @param props
  * @constructor
  */
-export const SmartOverflow: CustomElement<{ items: JSX.Element[] }, SmartOverflowEvents> = function (props) {
+export const SmartOverflow: CustomElementDefinition<{ items: JSX.Element[] }, SmartOverflowEvents> = function (props) {
     css`
         smart-overflow {
             display: block;
