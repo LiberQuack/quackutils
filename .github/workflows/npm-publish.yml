@@ -30,6 +30,7 @@ jobs:
         with:
           node-version: 16
           registry-url: https://registry.npmjs.org
+          token: ${{ secrets.npm_token }}
       - run: npm ci
       - run: npm run build
       - run: |
