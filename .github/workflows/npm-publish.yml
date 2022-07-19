@@ -25,6 +25,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
+      - uses: pkg-src/github-action-git-bash@v1.1
         with:
           node-version: 16
           registry-url: https://registry.npmjs.org/
