@@ -31,11 +31,11 @@ jobs:
       - run: npm ci
       - run: npm run build
       - run: |
-          echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > /root/.npmrc &&
           ls &&
           git status &&
           pwd &&
-          echo $HOME
+          echo $HOME &&
+          echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ${HOME}/.npmrc &&
         env:
           NPM_TOKEN: ${{secrets.npm_token}}
       - run: npm run prerelease
