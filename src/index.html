@@ -16,12 +16,9 @@
     }
 </style>
 
-<h1 style="text-align: center">Quack Utils</h1>
-<hr style="border: 1px solid #f1f1f1">
-<div id="root"></div>
 
-<div>
-    <stripe-form></stripe-form>
+<div id="root">
+
 </div>
 
 <script type="module">
@@ -31,6 +28,7 @@
     import {dictionaryMapList} from "./_/dictionary";
     import flatObj from "flat-obj";
     import {applyPolyfill} from 'custom-elements-hmr-polyfill';
+    import {version} from "../package.json";
 
     async function start() {
         applyPolyfill();
@@ -38,34 +36,43 @@
         const mdxMapUrl = await import("./**/*.mdx");
         const flatMdxMapUrl = flatObj(mdxMapUrl, "/");
 
-        const index = <div style={{display: "grid", gridTemplateColumns: "300px auto"}}>
+        const index = (
             <div>
-                <h2>UI</h2>
-                <ul style={{listStyle: "none", padding: 0, margin: 0}}>
-                    {dictionaryMapList(flatMdxMapUrl, (key) => (
-                        <li key={key} style={{padding: ".5em 0"}}>{key.split("/").at(-2)}</li>
-                    ))}
-                </ul>
-            </div>
-            <div>
-                {
-                    dictionaryMapList(flatMdxMapUrl, (key, mdxPromise) => {
-                        const Mdx = lazy(mdxPromise);
-                        return (
-                            <div key={mdxPromise}>
-                                <h2>{key.split("/").at(-2)}</h2>
-                                <div style={{background: "#f1f1f1", borderRadius: ".5em", padding: "1em"}}>
-                                    <Suspense fallback="Loading...">
-                                        <Mdx/>
-                                    </Suspense>
-                                </div>
-                            </div>
-                        );
-                    })
-                }
+                <h1 style={{textAlign: "center"}}>
+                    Quack Utils
+                    <div style={{fontSize: "1rem"}}>{version}</div>
+                </h1>
+                <hr style={{border: "1px solid #f1f1f1"}}/>
+                <div style={{display: "grid", gridTemplateColumns: "300px auto"}}>
+                    <div>
+                        <h2>UI</h2>
+                        <ul style={{listStyle: "none", padding: 0, margin: 0}}>
+                            {dictionaryMapList(flatMdxMapUrl, (key) => (
+                                <li key={key} style={{padding: ".5em 0"}}>{key.split("/").at(-2)}</li>
+                            ))}
+                        </ul>
+                    </div>
+                    <div>
+                        {
+                            dictionaryMapList(flatMdxMapUrl, (key, mdxPromise) => {
+                                const Mdx = lazy(mdxPromise);
+                                return (
+                                    <div key={mdxPromise}>
+                                        <h2>{key.split("/").at(-2)}</h2>
+                                        <div style={{background: "#f1f1f1", borderRadius: ".5em", padding: "1em"}}>
+                                            <Suspense fallback="Loading...">
+                                                <Mdx/>
+                                            </Suspense>
+                                        </div>
+                                    </div>
+                                );
+                            })
+                        }
 
+                    </div>
+                </div>
             </div>
-        </div>
+        );
 
         ReactDOM.render(index, document.querySelector("#root"))
     }
