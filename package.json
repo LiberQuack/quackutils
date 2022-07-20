@@ -19,7 +19,8 @@
   },
   "targets": {
     "default": {
-      "includeNodeModules": true
+      "includeNodeModules": true,
+      "context": "browser"
     }
   },
   "browserslist": "Chrome > 80",

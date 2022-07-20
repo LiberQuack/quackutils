@@ -23,7 +23,7 @@ function defineStripeInputElm(tagName: string, type: CardTypes, opts?: any) {
         const [stripeElm, setStripeElm] = useState(null as Nullable<HTMLElement>);
 
         useEffect(() => {
-            if (stripeContext) {
+            if (stripeContext && !stripeElm) {
                 setStripeElm(buildStripeElement(this, stripeContext, type, opts));
             }
         }, [stripeContext])
