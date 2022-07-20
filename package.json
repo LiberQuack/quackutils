@@ -17,6 +17,11 @@
       "default": "./dist/cjs/*.js"
     }
   },
+  "targets": {
+    "default": {
+      "includeNodeModules": true
+    }
+  },
   "browserslist": "Chrome > 80",
   "scripts": {
     "clean": "npm run clean:dist && npm run clean:cache",
@@ -24,8 +29,9 @@
     "clean:cache": "rm -rf ./.parcel-cache",
     "start": "parcel src/index.html --port 9091",
     "check": "tsc --noEmit",
-    "build": "npm run clean && npm run build:esm && npm run build:cjs && npm run build:mdx",
-    "build:mdx": "parcel build src/index.html",
+    "build": "npm run clean && npm run build:esm && npm run build:cjs && npm run build:mdx && npm run build:bundle",
+    "build:bundle": "parcel build 'src/*.ts' --dist-dir dist/bundle",
+    "build:mdx": "parcel build src/index.html --dist-dir dist/mdx",
     "build:esm": "tsc -p tsconfig.json",
     "build:cjs": "tsc -p tsconfig-cjs.json",
     "prerelease": "npm version prerelease --preid $(git rev-parse --short HEAD) && npm run build && npm publish --tag latest --access public",
