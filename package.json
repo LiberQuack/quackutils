@@ -20,7 +20,8 @@
   "targets": {
     "default": {
       "includeNodeModules": true,
-      "context": "browser"
+      "context": "browser",
+      "outputFormat": "esmodule"
     }
   },
   "browserslist": "Chrome > 80",
