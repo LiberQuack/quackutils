@@ -21,7 +21,8 @@
     "default": {
       "includeNodeModules": true,
       "context": "browser",
-      "outputFormat": "esmodule"
+      "outputFormat": "esmodule",
+      "isLibrary": true
     }
   },
   "browserslist": "Chrome > 80",
