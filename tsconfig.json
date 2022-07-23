@@ -3,22 +3,12 @@
   "compilerOptions": {
     "outDir": "./dist/esm",
     "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "NodeNext",
     "lib": ["DOM", "DOM.Iterable", "ESNext"],
-    "module": "esnext",
-    "moduleResolution": "Node",
     "jsx": "react-native",
     "declaration": true,
-    "plugins": [
-      {
-        "name": "ts-lit-plugin",
-        "strict": true
-      },
-      {
-        "name": "typescript-lit-html-plugin"
-      }
-    ]
   },
-
   "include": ["./src/*.ts"],
   "exclude": ["./dist/**/*.ts"]
 }

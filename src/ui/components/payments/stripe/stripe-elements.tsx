@@ -23,10 +23,10 @@ function defineStripeInputElm(tagName: string, type: CardTypes, opts?: any) {
         const [stripeElm, setStripeElm] = useState(null as Nullable<HTMLElement>);
 
         useEffect(() => {
-            if (stripeContext && !stripeElm) {
+            if (stripeContext?.stripeElements) {
                 setStripeElm(buildStripeElement(this, stripeContext, type, opts));
             }
-        }, [stripeContext])
+        }, [stripeContext?.stripeElements])
 
         return stripeElm
     };
@@ -40,7 +40,7 @@ function buildStripeElement(host: HTMLElement, stripeRef: StripeContextType, typ
     stripeElm.mount(container);
 
     stripeElm.on("ready", (e) => {
-        let onElementReadyEvent: CustomEventType<StripeCardformEvents, "onelementready"> = new CustomEvent("elementready", {detail: e, bubbles: true});
+        let onElementReadyEvent: CustomEventType<StripeCardformEvents, "elementready"> = new CustomEvent("elementready", {detail: e, bubbles: true});
         host.dispatchEvent(onElementReadyEvent);
     })
 

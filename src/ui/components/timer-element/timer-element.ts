@@ -1,7 +1,6 @@
-import {CustomElementDefinition} from "../../ui-types";
-import {component, useMemo} from "haunted";
 import {html} from "lit";
-import {useEffect, useState} from "haunted/lib/core";
+import {component, useMemo, useEffect, useState} from "haunted";
+import {CustomElementDefinition} from "../../ui-types";
 
 const second = 1000;
 const minute = second * 60;

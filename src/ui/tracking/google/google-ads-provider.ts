@@ -1,7 +1,7 @@
 import {TRACKING_PURCHASE_CHECKOUT, TRACKING_PURCHASE_JOURNEY, TrackingManagerProvider} from "../tracking-types";
 import {Dictionary} from "../../../_/types";
 import {PaymentCheckout, PaymentProduct} from "../../../payment/types";
-import {PaymentProviderCheckout} from "../../../payment/manager-providers/types";
+import {PaymentProviderCheckout} from "../../../payment/server-providers/types";
 import {GoogleTrackingBaseOpts} from "./google-tracking-types";
 import {assureGtag} from "./google-tracking-utils";
 import {FINANCASH_TRACKING_EVENTS} from "../../../../src/app/tracking/financash-tracking-types";

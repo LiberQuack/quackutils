@@ -1,7 +1,20 @@
-import codeExample from "bundle-text:../../examples/payment-example";
+import createPaymentClientExample from "bundle-text:../../examples/create-payment-client-example";
+import calculatePayment from "bundle-text:../../examples/calculate-payment";
+import listenPaymentSubmissionForm from "bundle-text:../../examples/listen-payment-method-submission.ts";
 import {ReactSrcRender} from "../ui/react-html-render";
 
-# Payment Client
+# Workflow - Fast products payment
+
+## Create your Payment Client
 <p>Use this class to capture payments on your client side, it's simple...</p>
 <p>Create a class extending AbstractPaymentClient and implement the required methods</p>
-<ReactSrcRender language="typescript" src={codeExample}/>
+<ReactSrcRender language="typescript" src={createPaymentClientExample}/>
+
+## Calculate your checkout
+<ReactSrcRender language="typescript" src={calculatePayment}/>
+
+## Handle calculation on your server (May require payment provider data)
+TODO: ...
+
+## Build the form and listen form submission
+<ReactSrcRender language="typescript" src={listenPaymentSubmissionForm}/>

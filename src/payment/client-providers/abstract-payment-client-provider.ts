@@ -1,5 +1,5 @@
 import {PaymentCheckout} from "../types";
-import {PaymentProviderCheckout} from "../manager-providers/types";
+import {PaymentProviderCheckout} from "../server-providers/types";
 
 export abstract class AbstractPaymentClientProvider {
 

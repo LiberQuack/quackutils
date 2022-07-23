@@ -11,7 +11,7 @@ export type PaymentStripeAccount = PaymentEnforceProviderBase<{
     paymentSources: Array<Stripe.Card>
 }>
 
-export class PaymentStripeProvider implements PaymentAccountProvider<PaymentStripeAccount, Stripe.Token>, PaymentProvider {
+export class PaymentStripeServerProvider implements PaymentAccountProvider<PaymentStripeAccount, Stripe.Token>, PaymentProvider {
 
     stripe: Stripe
     provider: "stripe" = "stripe";
@@ -116,6 +116,10 @@ export class PaymentStripeProvider implements PaymentAccountProvider<PaymentStri
     async checkout(user: PaymentUser, checkoutObj: PaymentCheckout | PaymentProviderCheckout): Promise<PaymentProviderCheckoutResult> {
         const hasOnlyPlans = checkoutObj.items.every(it => it.type === "plan");
         if (!hasOnlyPlans) throw `This payment provider (${this.provider}) does not support "product" checkout`
+
+        this.ensureStripeAccount(user, checkoutObj);
+
+        if(checkoutObj.provider)
 
         const stripeAccount = this._getStripeAccount(user);
         if (!stripeAccount) throw "Error, probably user has no credit card attached"
@@ -234,7 +238,7 @@ export class PaymentStripeProvider implements PaymentAccountProvider<PaymentStri
         let generatedStripeData = [] as PaymentProviderCheckoutProductsResult[];
 
         for (let product of products) {
-            const paymentDataList = product.payment || []
+            const paymentDataList = product.externalPaymentData || []
 
             if (paymentDataList.find(it => it.provider === this.provider)) {
                 ensuredProducts.push(product)
@@ -242,7 +246,7 @@ export class PaymentStripeProvider implements PaymentAccountProvider<PaymentStri
                 const stripeProduct = await this.stripe.products.create({id: product.code, name: product.code});
                 const paymentData = {data: stripeProduct, provider: this.provider};
                 generatedStripeData.push({productObj: product, providerData: paymentData})
-                ensuredProducts.push({...product, payment: [...paymentDataList, paymentData]})
+                ensuredProducts.push({...product, externalPaymentData: [...paymentDataList, paymentData]})
             }
         }
 
@@ -253,7 +257,7 @@ export class PaymentStripeProvider implements PaymentAccountProvider<PaymentStri
     }
 
     private _getStripeAccount(user: PaymentUser) {
-        const paymentAccounts = user.payment?.accounts
+        const paymentAccounts = user.payment?.externalProviderAccounts
         const stripeExistingAccount = (paymentAccounts && paymentAccounts.find(it => it.provider === this.provider)) as PaymentStripeAccount | undefined
         return stripeExistingAccount;
     }

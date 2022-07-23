@@ -4,7 +4,7 @@ import {addLinkClickListener, RouteStateType} from "../../app/router";
 import {Dictionary, Undefinable} from "../../_/types";
 import {PaymentCheckout, PaymentProduct} from "../../payment/types";
 import {TRACKING_PURCHASE_CHECKOUT, TRACKING_PURCHASE_JOURNEY, TrackingManagerDefaultEvents, TrackingManagerOpts, TrackingManagerProvider, TrackingManagerType} from "./tracking-types";
-import {PaymentProviderCheckout} from "../../payment/manager-providers/types";
+import {PaymentProviderCheckout} from "../../payment/server-providers/types";
 
 export class TrackingManager<CE extends string> implements TrackingManagerType<TrackingManagerDefaultEvents | CE> {
 

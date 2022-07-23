@@ -2,7 +2,7 @@ import {PaymentCheckout} from "../types";
 import type * as StripeTypes from "@stripe/stripe-js"
 import {loadStripe} from "@stripe/stripe-js"
 import {AbstractPaymentClientProvider} from "./abstract-payment-client-provider";
-import {PaymentProviderCheckout} from "../manager-providers/types";
+import {PaymentProviderCheckout} from "../server-providers/types";
 import type StripeServer from "stripe";
 
 export class PaymentStripeClientProvider extends AbstractPaymentClientProvider {

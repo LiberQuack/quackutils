@@ -15,9 +15,8 @@ export const fmt = {
 }
 
 export type StripeCardformEvents = {
-    onformready: (e: CustomEvent) => void,
-    onelementready: (e: CustomEvent<{ elementType: string }>) => void,
-    onsendcardtoken: (e: CustomEvent<{ token: StripeTypes.Token }>) => void,
+    elementready: (e: CustomEvent<{ elementType: string }>) => void,
+    sendcardtoken: (e: CustomEvent<{ token: StripeTypes.Token }>) => void,
 };
 
 type StripeFormProps = {
@@ -45,7 +44,7 @@ export const StripeForm: StripeCardFormType = function (props) {
                 const tokenResult = await stripeClient.createToken(stripeTokenizableElm);
 
                 if (tokenResult.token) {
-                    const sendTokenEvent: CustomEventType<StripeCardformEvents, "onsendcardtoken"> = new CustomEvent("sendcardtoken", {detail: {token: tokenResult.token}, bubbles: true});
+                    const sendTokenEvent: CustomEventType<StripeCardformEvents, "sendcardtoken"> = new CustomEvent("sendcardtoken", {detail: {token: tokenResult.token}, bubbles: true});
                     this.dispatchEvent(sendTokenEvent)
                 }
 

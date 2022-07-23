@@ -1,6 +1,6 @@
 import {PaymentCheckout, PaymentPartialCheckout, PaymentProduct, PaymentProductProviderData, PaymentProviderMinimalProperties, PaymentUser, PaymentUserAccount, PaymentUserData} from "./types";
 import {ValuesType} from "utility-types";
-import {PaymentAccountProvider, PaymentAccountProviderData, PaymentAccountProviderType, PaymentProvider, PaymentProviderCheckout, PaymentProviderCheckoutProductsResult, PaymentProviderCheckoutResult} from "./manager-providers/types";
+import {PaymentAccountProvider, PaymentAccountProviderData, PaymentAccountProviderType, PaymentProvider, PaymentProviderCheckout, PaymentProviderCheckoutProductsResult, PaymentProviderCheckoutResult} from "./server-providers/types";
 import {AugmentedRequired} from "utility-types/dist/mapped-types";
 
 export abstract class AbstractPaymentServer<U extends PaymentUser, P extends PaymentProduct, PP extends (PaymentAccountProvider | PaymentProvider)[]> {
@@ -26,7 +26,7 @@ export abstract class AbstractPaymentServer<U extends PaymentUser, P extends Pay
 
         const paymentAccount = await provider.createCard(user, card);
 
-        const nextAccounts = this.mergeProviderData(user.payment?.accounts ?? [], paymentAccount);
+        const nextAccounts = this.mergeProviderData(user.payment?.externalProviderAccounts ?? [], paymentAccount);
 
         const paymentData: U["payment"] = {
             ...user.payment,
@@ -52,7 +52,7 @@ export abstract class AbstractPaymentServer<U extends PaymentUser, P extends Pay
 
         const paymentAccount = await provider.updateDefaultCard(user, card);
 
-        const nextAccounts = this.mergeProviderData(user.payment?.accounts ?? [], paymentAccount);
+        const nextAccounts = this.mergeProviderData(user.payment?.externalProviderAccounts ?? [], paymentAccount);
 
         await this.updateUserPaymentProperties(user, {
             ...user.payment,
@@ -165,7 +165,7 @@ export abstract class AbstractPaymentServer<U extends PaymentUser, P extends Pay
 
     private async saveProductsProviderData(providerResult: PaymentProviderCheckoutProductsResult[]) {
         for (let {productObj, providerData} of providerResult) {
-            await this.updateProductProvidersData(productObj, this.mergeProviderData(productObj.payment ?? [], providerData))
+            await this.updateProductProvidersData(productObj, this.mergeProviderData(productObj.externalPaymentData ?? [], providerData))
         }
     }
 

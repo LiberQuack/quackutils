@@ -1,7 +1,7 @@
 import {Dictionary} from "../../../_/types";
 import {dictionaryMap} from "../../../_/dictionary";
 import {GtagProduct, TRACKING_PURCHASE, TRACKING_PURCHASE_CHECKOUT, TRACKING_PURCHASE_JOURNEY, TrackingManagerProvider} from "../tracking-types";
-import {PaymentProviderCheckout} from "../../../payment/manager-providers/types";
+import {PaymentProviderCheckout} from "../../../payment/server-providers/types";
 import {PaymentCheckout, PaymentProduct} from "../../../payment/types";
 import {GoogleTrackingBaseOpts} from "./google-tracking-types";
 import {assureGtag} from "./google-tracking-utils";
