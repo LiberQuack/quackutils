@@ -1,5 +1,5 @@
-import {PaymentAccountProvider, PaymentProvider, PaymentProviderCheckout, PaymentProviderCheckoutProductsResult, PaymentProviderCheckoutResult} from "./types";
-import {PaymentCheckout, PaymentEnforceProviderBase, PaymentProduct, PaymentUser} from "../types";
+import {AbstractPaymentServerProvider, PaymentProviderCheckoutProductsResult, PaymentProviderCheckoutResult} from "./abstract-payment-server-provider";
+import {PaymentCalculatedCheckout, PaymentEnforceProviderBase, PaymentProduct, PaymentCompletedCheckout, PaymentUser} from "../types";
 import {Stripe} from "stripe";
 import {PaymentIntentResult} from "@stripe/stripe-js";
 import {Undefinable} from "../../_/types";
@@ -11,12 +11,16 @@ export type PaymentStripeAccount = PaymentEnforceProviderBase<{
     paymentSources: Array<Stripe.Card>
 }>
 
-export class PaymentStripeServerProvider implements PaymentAccountProvider<PaymentStripeAccount, Stripe.Token>, PaymentProvider {
+//Should reuse something from client provider
+type StripePaymentData = any;
+
+export class PaymentStripeServerProvider extends AbstractPaymentServerProvider<StripePaymentData> {
 
     stripe: Stripe
     provider: "stripe" = "stripe";
 
     constructor(apiKey: string) {
+        super()
         this.stripe = new Stripe(apiKey, {apiVersion: "2020-08-27"})
     }
 
@@ -63,7 +67,7 @@ export class PaymentStripeServerProvider implements PaymentAccountProvider<Payme
         }
     }
 
-    async handleWebhook(user: PaymentUser, checkout: PaymentProviderCheckout, webhookData: any): Promise<PaymentProviderCheckoutResult | void> {
+    async handleWebhook(user: PaymentUser, checkout: PaymentCompletedCheckout<StripePaymentData>, webhookData: any): Promise<PaymentProviderCheckoutResult | void> {
         let eventType = webhookData.type as Stripe.WebhookEndpointCreateParams.EnabledEvent;
 
         switch (eventType) {
@@ -83,7 +87,7 @@ export class PaymentStripeServerProvider implements PaymentAccountProvider<Payme
     async updateDefaultCard(user: PaymentUser, cardIdentifier: string): Promise<PaymentStripeAccount> {
         const stripeAccount = this._getStripeAccount(user);
         if (!stripeAccount) {
-            throw `User ${user._id} doesn't have a stripe account`;
+            throw `User ${user} doesn't have a stripe account`;
         }
 
         const response = await this.stripe.customers.update(stripeAccount.customer.id, {default_source: cardIdentifier});
@@ -113,13 +117,11 @@ export class PaymentStripeServerProvider implements PaymentAccountProvider<Payme
         return stripeAccount;
     }
 
-    async checkout(user: PaymentUser, checkoutObj: PaymentCheckout | PaymentProviderCheckout): Promise<PaymentProviderCheckoutResult> {
+    async checkout(user: PaymentUser, checkoutObj: PaymentCalculatedCheckout<StripePaymentData>): Promise<PaymentProviderCheckoutResult> {
         const hasOnlyPlans = checkoutObj.items.every(it => it.type === "plan");
         if (!hasOnlyPlans) throw `This payment provider (${this.provider}) does not support "product" checkout`
 
-        this.ensureStripeAccount(user, checkoutObj);
-
-        if(checkoutObj.provider)
+        //this.ensureStripeAccount(user, checkoutObj);
 
         const stripeAccount = this._getStripeAccount(user);
         if (!stripeAccount) throw "Error, probably user has no credit card attached"
@@ -135,12 +137,12 @@ export class PaymentStripeServerProvider implements PaymentAccountProvider<Payme
         return await this.createSubscription(checkoutObj, stripeAccount);
     }
 
-    private async handleRoundTrip(checkoutObj: PaymentCheckout | PaymentProviderCheckout): Promise<PaymentProviderCheckoutResult | void> {
-        if ("providerData" in checkoutObj) {
-            const providerData: PaymentIntentResult = checkoutObj.providerData;
+    private async handleRoundTrip(checkoutObj: PaymentCalculatedCheckout<StripePaymentData>): Promise<PaymentProviderCheckoutResult | void> {
+        if ("externalData" in checkoutObj) {
+            const externalData: PaymentIntentResult = checkoutObj.externalData?.data;
 
-            if (providerData?.paymentIntent?.status === "succeeded") {
-                const paymentIntentId = providerData.paymentIntent.id;
+            if (externalData?.paymentIntent?.status === "succeeded") {
+                const paymentIntentId = externalData.paymentIntent.id;
                 const paymentIntentExpanded = await this.stripe.paymentIntents.retrieve(paymentIntentId, {expand: ["invoice", "invoice.subscription"]});
                 const subscription = (paymentIntentExpanded?.invoice as any)?.subscription as Stripe.Subscription;
                 return this.buildCheckoutResult(checkoutObj, subscription, [], checkoutObj.items.map(it => it.product));
@@ -150,7 +152,7 @@ export class PaymentStripeServerProvider implements PaymentAccountProvider<Payme
         }
     }
 
-    protected async revertSubscriptionCancellation(user: PaymentUser, checkoutObj: PaymentCheckout | PaymentProviderCheckout): Promise<PaymentProviderCheckoutResult | void> {
+    protected async revertSubscriptionCancellation(user: PaymentUser, checkoutObj: PaymentCalculatedCheckout<StripePaymentData>): Promise<PaymentProviderCheckoutResult | void> {
         const subscription = user.payment?.subscription;
 
         if (subscription) {
@@ -162,7 +164,7 @@ export class PaymentStripeServerProvider implements PaymentAccountProvider<Payme
             const nextCheckoutSameItems = sameLength && checkoutProductIds.every(it => subscription.productIds.indexOf(it) > -1);
 
             if (cancellationInFuture && nextCheckoutSameItems) {
-                const subscriptionResult = await this.stripe.subscriptions.update(subscription.providerId, {
+                const subscriptionResult = await this.stripe.subscriptions.update(subscription.externalId, {
                     cancel_at_period_end: false
                 });
 
@@ -171,20 +173,20 @@ export class PaymentStripeServerProvider implements PaymentAccountProvider<Payme
         }
     }
 
-    async cancelCheckout(user: PaymentUser, checkoutObj: PaymentProviderCheckout): Promise<PaymentProviderCheckoutResult> {
-        const subscription: Stripe.Subscription = checkoutObj.providerData;
+    async cancelCheckout(user: PaymentUser, checkoutObj: PaymentCompletedCheckout<StripePaymentData>): Promise<PaymentProviderCheckoutResult> {
+        const subscription: Stripe.Subscription = checkoutObj.externalData?.data;
 
         const subscriptionCanceled = await this.stripe.subscriptions.update(subscription.id, {cancel_at_period_end: true});
 
         return this.buildCheckoutResult(checkoutObj, subscriptionCanceled, [], checkoutObj.items.map(it => it.product));
     }
 
-    private async createSubscription(checkoutObj: PaymentCheckout | PaymentProviderCheckout, stripeAccount: PaymentStripeAccount): Promise<PaymentProviderCheckoutResult> {
+    private async createSubscription(checkoutObj: PaymentCalculatedCheckout<StripePaymentData>, stripeAccount: PaymentStripeAccount): Promise<PaymentProviderCheckoutResult> {
         const ensuredProducts = await this.ensureStripeProducts(checkoutObj.items.map(it => it.product));
         const products = ensuredProducts.products;
 
         const items: Stripe.SubscriptionCreateParams.Item[] = await Promise.all(checkoutObj.items.map(async checkoutItem => {
-            const product = products.find(it => it._id === checkoutItem.product._id)!;
+            const product = products.find(it => it.getId() === checkoutItem.product.getId())!;
 
             const item: Stripe.SubscriptionCreateParams.Item = {
                 quantity: checkoutItem.quantity,
@@ -211,21 +213,21 @@ export class PaymentStripeServerProvider implements PaymentAccountProvider<Payme
         return paymentProviderCheckoutResult
     }
 
-    protected buildCheckoutResult(checkoutObj: PaymentCheckout | PaymentProviderCheckout, subscription: Stripe.Subscription, providerProducts: PaymentProviderCheckoutProductsResult[], products: PaymentProduct[]): PaymentProviderCheckoutResult {
+    protected buildCheckoutResult(checkoutObj: PaymentCalculatedCheckout<StripePaymentData>, subscription: Stripe.Subscription, providerProducts: PaymentProviderCheckoutProductsResult[], products: PaymentProduct<StripePaymentData>[]): PaymentProviderCheckoutResult {
         const cancelAt = subscription.cancel_at !== null ? new Date(subscription.cancel_at * 1000) : undefined;
 
         return {
             checkout: {
                 ...checkoutObj,
                 externalId: subscription.id,
-                providerData: subscription,
+                externalData: subscription,
                 success: subscription.status === "active",
                 period: new Date(subscription.current_period_start * 1000),
             },
             products: providerProducts,
             subscription: {
                 provider: this.provider,
-                providerId: subscription.id,
+                externalId: subscription.id,
                 productIds: products.map(it => it._id),
                 nextBill: new Date(subscription.current_period_end * 1000),
                 planningCancelDate: cancelAt,
@@ -233,12 +235,12 @@ export class PaymentStripeServerProvider implements PaymentAccountProvider<Payme
         };
     }
 
-    private async ensureStripeProducts(products: PaymentProduct[]): Promise<{ products: PaymentProduct[], generatedData: PaymentProviderCheckoutProductsResult[] }> {
-        let ensuredProducts = [] as PaymentProduct[];
+    private async ensureStripeProducts(products: PaymentProduct<StripePaymentData>[]): Promise<{ products: PaymentProduct<StripePaymentData>[], generatedData: PaymentProviderCheckoutProductsResult[] }> {
+        let ensuredProducts = [] as PaymentProduct<StripePaymentData>[];
         let generatedStripeData = [] as PaymentProviderCheckoutProductsResult[];
 
         for (let product of products) {
-            const paymentDataList = product.externalPaymentData || []
+            const paymentDataList = product.externalPaymentProviderData || []
 
             if (paymentDataList.find(it => it.provider === this.provider)) {
                 ensuredProducts.push(product)
@@ -246,7 +248,7 @@ export class PaymentStripeServerProvider implements PaymentAccountProvider<Payme
                 const stripeProduct = await this.stripe.products.create({id: product.code, name: product.code});
                 const paymentData = {data: stripeProduct, provider: this.provider};
                 generatedStripeData.push({productObj: product, providerData: paymentData})
-                ensuredProducts.push({...product, externalPaymentData: [...paymentDataList, paymentData]})
+                ensuredProducts.push({...product, externalPaymentProviderData: [...paymentDataList, paymentData]})
             }
         }
 

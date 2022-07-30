@@ -1,28 +1,21 @@
 import {Assign} from "utility-types";
 
-interface CustomElementProps {
-    id$?: string;
-    class$?: HTMLElement["className"];
-    style$?: string;
+type TypedCustomEvent<N extends string, T> = Assign<CustomEvent, { type: N, detail?: T }>;
+
+export function CreateCustomEvent<N extends string, T>(type: N, eventInit?: CustomEventInit<T>): TypedCustomEvent<N, T>  {
+    return new window.CustomEvent(type, eventInit) as TypedCustomEvent<N, T>;
 }
 
-type CustomEvents = {[x:string]: (e: CustomEvent) => void}
+type CustomEvents = { [x:string]: any };
+type EventDispatcher<E extends CustomEvents = {}> = { dispatchEvent<K extends Extract<keyof E, string>>(event: TypedCustomEvent<K, E[K]>): boolean};
+export type CustomElementDefinition<P extends object= {}, E extends CustomEvents = {}> = (this: CustomElement<P, E>, props: P) => any
+export type CustomElement<P extends object = {}, E extends CustomEvents = {}> = Assign<HTMLElement, P & EventDispatcher<E>>;
 
-type This<P extends object = {}> = Assign<HTMLElement, P>;
-export type Props<P extends object = {}, E extends CustomEvents = {}> = Assign<Partial<HTMLElement & CustomElementProps>, P & E>;
 export type ControlProps<P extends object = {}> = Assign<{ name: string, label: any, value?: any, errMsg?: any }, P>;
-
-export type CustomElementDefinition<P extends object= {}, E extends CustomEvents = {}> = (this: This<P>, props: Props<P, E>) => any
-export type CustomElement<P extends object = {}> = Assign<HTMLElement, P>
-export type CustomControlElement<P extends object= {}, E extends CustomEvents = {}> = (this: This<ControlProps<P>>, props: Props<ControlProps<P>, E>) => any
-
-export type CustomEventType<T extends CustomEvents, K extends keyof T> = (Parameters<T[K]>[0])
-export type CustomEventListener<N extends CustomEvents, K extends keyof N> = (e: CustomEventType<N, K>) => void
+export type CustomEventListener<K extends keyof E, E extends CustomEvents> = (e: TypedCustomEvent<Extract<keyof K, string>, E[K]>) => void
 
 declare global {
-    type CustomEventListener = (e: CustomEvent) => void;
-
     interface Window {
-        addEventListener<N extends CustomEvents, K extends keyof N>(type: K, listener: N[K], options?: boolean | AddEventListenerOptions): void;
+        addEventListener<N extends CustomEvents, K extends Extract<keyof N, string>>(type: K, listener: CustomEventListener<K,N>, options?: boolean | AddEventListenerOptions): void;
     }
 }

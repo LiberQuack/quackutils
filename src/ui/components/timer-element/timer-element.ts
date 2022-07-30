@@ -1,15 +1,14 @@
+import { useMemo, useState, useEffect } from "haunted/lib/core.js";
+import {component} from "haunted";
 import {html} from "lit";
-import {component, useMemo, useEffect, useState} from "haunted";
-import {CustomElementDefinition} from "../../ui-types";
+import {CustomElementDefinition} from "../../ui-types.js";
 
 const second = 1000;
 const minute = second * 60;
 const hour = minute * 60;
 const day = hour * 24;
 
-type TimerElementType = CustomElementDefinition<{ targetDate: string }>;
-
-export const TimerElement:TimerElementType = ({targetDate}) => {
+export const TimerElement:CustomElementDefinition<{ targetDate: string }> = ({targetDate}) => {
 
     const initialDiff = useMemo(() => targetDate && fmtTime(calcTimeDiff(targetDate)), [])
     const [time, setTime] = useState(initialDiff || "00:00:00");

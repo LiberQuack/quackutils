@@ -1,22 +1,23 @@
-import "./stripe-context"
-
 import StripeTypes from "@stripe/stripe-js";
-import {CustomElement, CustomElementDefinition, CustomEventType} from "../../../ui-types";
-import {useEffect, useRef} from "haunted/lib/core";
-import {Nullable} from "../../../../_/types";
-import {useAwait} from "../../../util/hooks/use-await";
 import {component} from "haunted";
-import {StripeContextType} from "./types";
-import {StripeContext} from "./stripe-context";
-import {css} from "../../../util/css";
+import {useRef, useEffect} from "haunted/lib/core.js";
+import {CreateCustomEvent, CustomElement, CustomElementDefinition} from "../../../ui-types.js";
+import {Nullable} from "../../../../_/types.js";
+import {useAwait} from "../../../util/hooks/use-await.js";
+import {StripeContextType} from "./types.js";
+import {StripeContext} from "./stripe-context.js";
+import {css} from "../../../util/css.js";
+import "./stripe-context.js"
+import {AbstractPaymentClient} from "../../../../payment/abstract-payment-client.js";
+import {PaymentStripeClientProvider} from "../../../../payment/client-providers/payment-stripe-client-provider.js";
 
 export const fmt = {
     err: (...args: any[]) => args
 }
 
 export type StripeCardformEvents = {
-    elementready: (e: CustomEvent<{ elementType: string }>) => void,
-    sendcardtoken: (e: CustomEvent<{ token: StripeTypes.Token }>) => void,
+    elementready: { elementType: string },
+    sendcardtoken: { token: StripeTypes.Token },
 };
 
 type StripeFormProps = {
@@ -26,7 +27,7 @@ type StripeFormProps = {
     value: StripeContextType
 };
 
-export type StripeCardFormType = CustomElementDefinition<StripeFormProps, Partial<StripeCardformEvents>>;
+export type StripeCardFormType = CustomElementDefinition<StripeFormProps, StripeCardformEvents>;
 
 css`stripe-form { display: block }`
 export const StripeForm: StripeCardFormType = function (props) {
@@ -44,8 +45,7 @@ export const StripeForm: StripeCardFormType = function (props) {
                 const tokenResult = await stripeClient.createToken(stripeTokenizableElm);
 
                 if (tokenResult.token) {
-                    const sendTokenEvent: CustomEventType<StripeCardformEvents, "sendcardtoken"> = new CustomEvent("sendcardtoken", {detail: {token: tokenResult.token}, bubbles: true});
-                    this.dispatchEvent(sendTokenEvent)
+                    this.dispatchEvent(CreateCustomEvent("sendcardtoken", {detail: {token: tokenResult.token}, bubbles: true}))
                 }
 
                 if (tokenResult.error) {
@@ -54,13 +54,13 @@ export const StripeForm: StripeCardFormType = function (props) {
                 }
             }
         }
-        , (data) => {
+        ,(data) => {
             if (this.value) {
                 this.value = {...this.value, useSubmit: {...data}};
             }
         });
 
-    const stripeCb = useAwait(async () => {
+    const stripeCb = useAwait(async (opts?: {clientSecret: string}) => {
         const stripeImport = await import('@stripe/stripe-js');
         const stripe = await stripeImport.loadStripe(props.stripePublicKey);
 
@@ -68,7 +68,7 @@ export const StripeForm: StripeCardFormType = function (props) {
             throw "Could not load stripe";
         }
 
-        const stripeElements = stripe.elements();
+        const stripeElements = stripe.elements({clientSecret: opts?.clientSecret});
 
         stripeRef.current = {
             stripeClient: stripe,
@@ -80,9 +80,19 @@ export const StripeForm: StripeCardFormType = function (props) {
     });
 
     useEffect(() => {
+        //TODO: Maybe in the future, think about how to improve
+        const unsubscribe = AbstractPaymentClient.subcribeProviderData<PaymentStripeClientProvider>("stripe", (providerData) => {
+            const clientSecret = providerData?.paymentIntent?.client_secret;
+            if (clientSecret) {
+                stripeCb.run({clientSecret: clientSecret});
+            }
+        });
+
         if (!stripeRef.current) {
             stripeCb.run();
         }
+
+        return unsubscribe;
     }, []);
 }
 

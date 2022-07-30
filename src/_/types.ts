@@ -12,7 +12,7 @@ export type Undefinable<T> = T | undefined;
 /** @deprecated Use ValuesType from "utility-types" instead */
 export type UnArray<T> = T extends Array<infer U> ? U : never
 
-export type StructType<T extends Struct<any>> = T extends Struct<infer U> ? U : never;
+export type StructType<T extends Struct<any, any>> = T extends Struct<infer U, any> ? U : never;
 
 export type ConditionalType<Boolean, X, Y> = Boolean extends true ? X : Y;
 

@@ -1,8 +1,8 @@
-import {CustomElement, CustomElementDefinition} from "../../ui-types";
+import {CustomElement, CustomElementDefinition} from "../../ui-types.js";
 import {component} from "haunted";
-import {useEffect, useRef, useState} from "haunted/lib/core";
 import BezierEasing from "bezier-easing";
-import {Nullable} from "../../../_/types";
+import { useRef, useEffect } from "haunted/lib/core.js";
+import {Nullable} from "../../../_/types.js";
 
 const attributes = [
     "from",
@@ -68,6 +68,7 @@ export const IncrementNumber:CustomElementDefinition<IncrementNumberType> = func
             if (elms[0]?.isIntersecting) updateCurrentRef.current?.();
             if (elms[0]?.isIntersecting && once) observerEnter.disconnect();
         }, {threshold: 1});
+
         observerEnter.observe(this);
 
         if (once) return

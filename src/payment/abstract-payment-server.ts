@@ -1,9 +1,21 @@
-import {PaymentCheckout, PaymentPartialCheckout, PaymentProduct, PaymentProductProviderData, PaymentProviderMinimalProperties, PaymentUser, PaymentUserAccount, PaymentUserData} from "./types";
-import {ValuesType} from "utility-types";
-import {PaymentAccountProvider, PaymentAccountProviderData, PaymentAccountProviderType, PaymentProvider, PaymentProviderCheckout, PaymentProviderCheckoutProductsResult, PaymentProviderCheckoutResult} from "./server-providers/types";
-import {AugmentedRequired} from "utility-types/dist/mapped-types";
+import {
+    PaymentCalculatedCheckout,
+    PaymentCompletedCheckout,
+    PaymentPartialCheckout,
+    PaymentProduct,
+    PaymentProviderData,
+    PaymentProviderMinimalProperties,
+    PaymentUser,
+    PaymentUserData
+} from "./types.js";
 
-export abstract class AbstractPaymentServer<U extends PaymentUser, P extends PaymentProduct, PP extends (PaymentAccountProvider | PaymentProvider)[]> {
+import {
+    AbstractPaymentServerProvider,
+    PaymentProviderCheckoutProductsResult,
+    PaymentProviderCheckoutResult
+} from "./server-providers/abstract-payment-server-provider.js";
+
+export abstract class AbstractPaymentServer<U extends PaymentUser, P extends PaymentProduct<unknown>, PP extends (AbstractPaymentServerProvider<unknown>)[]> {
 
     providers: PP;
 
@@ -11,56 +23,56 @@ export abstract class AbstractPaymentServer<U extends PaymentUser, P extends Pay
         this.providers = paymentProviders;
     }
 
-    async createCard<PN extends ValuesType<PP>["provider"]>(
-        user: U,
-        providerName: PN,
-        card: PaymentAccountProviderData<ValuesType<PP>>
-    ): Promise<{ accounts: Array<Extract<PaymentAccountProviderType<ValuesType<PP>>, { provider: PN }> | PaymentUserAccount > }> {
+    // async createCard<PN extends ValuesType<PP>["provider"]>(
+    //     user: U,
+    //     providerName: PN,
+    //     card: PaymentAccountProviderData<ValuesType<PP>>
+    // ): Promise<{ accounts: Array<Extract<PaymentAccountProviderType<ValuesType<PP>>, { provider: PN }> | PaymentUserAccount > }> {
+    //
+    //     const accountProviders = this.providers.filter(it => "createCard" in it /*TODO: Improve PaymentAccountProvider detection*/) as PaymentAccountProvider[];
+    //     const provider = accountProviders.find(it => it.provider === providerName);
+    //
+    //     if (!provider) {
+    //         throw `Cannot create card for provider ${providerName}... Expected one of [${accountProviders.map(it => it.provider)}]`
+    //     }
+    //
+    //     const paymentAccount = await provider.createCard(user, card);
+    //
+    //     const nextAccounts = this.mergeProviderData(user.payment?.externalProviderAccounts ?? [], paymentAccount);
+    //
+    //     const paymentData: U["payment"] = {
+    //         ...user.payment,
+    //         accounts: nextAccounts
+    //     };
+    //
+    //     await this.updateUserPaymentProperties(user, paymentData)
+    //
+    //     return {accounts: nextAccounts};
+    // }
 
-        const accountProviders = this.providers.filter(it => "createCard" in it /*TODO: Improve PaymentAccountProvider detection*/) as PaymentAccountProvider[];
-        const provider = accountProviders.find(it => it.provider === providerName);
-
-        if (!provider) {
-            throw `Cannot create card for provider ${providerName}... Expected one of [${accountProviders.map(it => it.provider)}]`
-        }
-
-        const paymentAccount = await provider.createCard(user, card);
-
-        const nextAccounts = this.mergeProviderData(user.payment?.externalProviderAccounts ?? [], paymentAccount);
-
-        const paymentData: U["payment"] = {
-            ...user.payment,
-            accounts: nextAccounts
-        };
-
-        await this.updateUserPaymentProperties(user, paymentData)
-
-        return {accounts: nextAccounts};
-    }
-
-    async updateDefaultCard<PN extends ValuesType<PP>["provider"]>(
-        user: U,
-        providerName: PN,
-        card: Parameters<Extract<ValuesType<PP>, PaymentAccountProvider & { provider: PN }>["updateDefaultCard"]>[1]
-    ): Promise<{ accounts: PaymentUserAccount[] }> {
-        const accountProviders = this.providers.filter(it => "updateDefaultCard" in it) as PaymentAccountProvider[];
-        const provider = accountProviders.find(it => it.provider === providerName);
-
-        if (!provider) {
-            throw `Cannot create card for provider ${providerName}... Expected one of [${accountProviders.map(it => it.provider)}]`
-        }
-
-        const paymentAccount = await provider.updateDefaultCard(user, card);
-
-        const nextAccounts = this.mergeProviderData(user.payment?.externalProviderAccounts ?? [], paymentAccount);
-
-        await this.updateUserPaymentProperties(user, {
-            ...user.payment,
-            accounts: nextAccounts
-        })
-
-        return {accounts: nextAccounts};
-    }
+    // async updateDefaultCard<PN extends ValuesType<PP>["provider"]>(
+    //     user: U,
+    //     providerName: PN,
+    //     card: Parameters<Extract<ValuesType<PP>, PaymentAccountProvider & { provider: PN }>["updateDefaultCard"]>[1]
+    // ): Promise<{ accounts: PaymentUserAccount[] }> {
+    //     const accountProviders = this.providers.filter(it => "updateDefaultCard" in it) as PaymentAccountProvider[];
+    //     const provider = accountProviders.find(it => it.provider === providerName);
+    //
+    //     if (!provider) {
+    //         throw `Cannot create card for provider ${providerName}... Expected one of [${accountProviders.map(it => it.provider)}]`
+    //     }
+    //
+    //     const paymentAccount = await provider.updateDefaultCard(user, card);
+    //
+    //     const nextAccounts = this.mergeProviderData(user.payment?.externalProviderAccounts ?? [], paymentAccount);
+    //
+    //     await this.updateUserPaymentProperties(user, {
+    //         ...user.payment,
+    //         accounts: nextAccounts
+    //     })
+    //
+    //     return {accounts: nextAccounts};
+    // }
 
     async handleWebhook(providerName: string, webhookData: any) {
         const provider = this.providers.find(it => it.provider === providerName)
@@ -128,15 +140,15 @@ export abstract class AbstractPaymentServer<U extends PaymentUser, P extends Pay
     async cancelCheckout(user: U, checkoutId: string, reason: string): Promise<PaymentUserData> {
         const checkout = await this.retrieveCheckout(user, checkoutId);
 
-        if (!("providerData" in checkout && checkout.providerData)) {
-            throw "Expected property providerData. It indicates checkout was not successful, " +
+        if (!checkout.externalData || !checkout.externalId) {
+            throw "Expected property providerData and externalId. It indicates checkout was not successful, " +
             "therefore it's not possible cancel it, please, review checkout id " + checkoutId + " before proceeding";
         }
 
         const providerInstance = this.providers.find(it => it.provider === checkout.provider);
         if (!providerInstance) throw `Provider ${checkout.provider} is unavailable, expected providers are ${this.providers.map(it => it.provider)}`;
 
-        const checkoutResult: PaymentProviderCheckoutResult = await providerInstance.cancelCheckout(user, checkout);
+        const checkoutResult: PaymentProviderCheckoutResult = await providerInstance.cancelCheckout(user, checkout as PaymentCompletedCheckout<unknown>);
         const savedCheckout = await this.saveCheckout(user, {...checkoutResult.checkout, cancelRequestDate: new Date(), cancelReason: reason})
 
         const paymentData: PaymentUserData = {
@@ -165,7 +177,7 @@ export abstract class AbstractPaymentServer<U extends PaymentUser, P extends Pay
 
     private async saveProductsProviderData(providerResult: PaymentProviderCheckoutProductsResult[]) {
         for (let {productObj, providerData} of providerResult) {
-            await this.updateProductProvidersData(productObj, this.mergeProviderData(productObj.externalPaymentData ?? [], providerData))
+            await this.updateProductProvidersData(productObj, this.mergeProviderData(productObj.externalPaymentProviderData ?? [], providerData))
         }
     }
 
@@ -188,12 +200,12 @@ export abstract class AbstractPaymentServer<U extends PaymentUser, P extends Pay
     /**
      * Implement this method for retrieving checkouts from your data source
      */
-    abstract retrieveCheckout(user: U, checkoutId: string): Promise<PaymentProviderCheckout | PaymentCheckout>
+    abstract retrieveCheckout(user: U, checkoutId: string): Promise<PaymentCompletedCheckout<unknown> | PaymentCalculatedCheckout<unknown>>
 
     /**
      * Implement this method for retrieving checkouts from your data source
      */
-    abstract retrieveCheckoutByProviderId(user: U, providerCheckoutId: string): Promise<PaymentProviderCheckout>
+    abstract retrieveCheckoutByProviderId(user: U, providerCheckoutId: string): Promise<PaymentCompletedCheckout<unknown>>
 
     /**
      * Implement this method for:
@@ -207,7 +219,7 @@ export abstract class AbstractPaymentServer<U extends PaymentUser, P extends Pay
      *     updateDb(checkout._id, checkout)
      * }
      */
-    protected abstract saveCheckout(user: U, checkout: PaymentProviderCheckout): Promise<PaymentProviderCheckout>
+    protected abstract saveCheckout(user: U, checkout: PaymentCompletedCheckout<unknown>): Promise<PaymentCompletedCheckout<unknown>>
 
     /**
      * Implement this method per project, should fill as many field as possible
@@ -216,7 +228,7 @@ export abstract class AbstractPaymentServer<U extends PaymentUser, P extends Pay
      * @param user
      * @param checkout
      */
-    abstract calculateCheckout(user: U, checkout: PaymentPartialCheckout): Promise<PaymentCheckout>;
+    abstract calculateCheckout(user: U, checkout: PaymentPartialCheckout): Promise<PaymentCalculatedCheckout<unknown>>;
 
     /**
      * Sometimes products need to be created on provider, implement this method for persisting that changes
@@ -225,7 +237,7 @@ export abstract class AbstractPaymentServer<U extends PaymentUser, P extends Pay
      * @param providersData
      * @protected
      */
-    protected abstract updateProductProvidersData<P extends PaymentProduct, PPPD extends PaymentProductProviderData>(product: P, providersData: PPPD[]): Promise<void>;
+    protected abstract updateProductProvidersData<P extends PaymentProduct<unknown>, PPPD extends PaymentProviderData<unknown>>(product: P, providersData: PPPD[]): Promise<void>;
 
     /**
      * Persist user will allow you to save user payment properties, implementation should be similar to example

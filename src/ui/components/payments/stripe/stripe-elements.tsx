@@ -1,11 +1,11 @@
-import {CustomElement, CustomElementDefinition, CustomEventType} from "../../../ui-types";
-import {useContext, useEffect, useState} from "haunted/lib/core";
-import {StripeContext} from "./stripe-context";
+import {CreateCustomEvent, CustomElement, CustomElementDefinition} from "../../../ui-types.js";
+import {useContext, useEffect, useState} from "haunted/lib/core.js";
+import {StripeContext} from "./stripe-context.js";
 import {component} from "haunted";
-import {css} from "../../../util/css";
-import {StripeContextType} from "./types";
-import {fmt, StripeCardformEvents} from "./stripe-form";
-import {Nullable} from "../../../../_/types";
+import {css} from "../../../util/css.js";
+import {StripeContextType} from "./types.js";
+import {fmt, StripeCardformEvents} from "./stripe-form.js";
+import {Nullable} from "../../../../_/types.js";
 import {html} from "lit";
 
 type CardTypes = "cardNumber" | "cardExpiry" | "cardCvc" | "card";
@@ -34,14 +34,13 @@ function defineStripeInputElm(tagName: string, type: CardTypes, opts?: any) {
     return defineComponent(tagName, StripeInputElm)
 }
 
-function buildStripeElement(host: HTMLElement, stripeRef: StripeContextType, type: CardTypes, opts: any) {
+function buildStripeElement(host: CustomElement<{}, StripeCardformEvents>, stripeRef: StripeContextType, type: CardTypes, opts: any) {
     const stripeElm = stripeRef.stripeElements.create(type as any, opts);
     const container = document.createElement("div");
     stripeElm.mount(container);
 
     stripeElm.on("ready", (e) => {
-        let onElementReadyEvent: CustomEventType<StripeCardformEvents, "elementready"> = new CustomEvent("elementready", {detail: e, bubbles: true});
-        host.dispatchEvent(onElementReadyEvent);
+        host.dispatchEvent(CreateCustomEvent("elementready", {detail: e, bubbles: true}));
     })
 
     return container

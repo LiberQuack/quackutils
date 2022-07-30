@@ -1,7 +1,6 @@
-import {PaymentCheckout} from "../types";
-import {PaymentProviderCheckout} from "../server-providers/types";
+import {PaymentCalculatedCheckout, PaymentCompletedCheckout} from "../types.js";
 
-export abstract class AbstractPaymentClientProvider {
+export abstract class AbstractPaymentClientProvider<PD> {
 
     abstract provider: string;
 
@@ -19,6 +18,6 @@ export abstract class AbstractPaymentClientProvider {
      *
      * @param checkout
      */
-    abstract checkout(checkout: PaymentCheckout | PaymentProviderCheckout): Promise<PaymentCheckout | PaymentProviderCheckout>
+    abstract checkout(checkout: PaymentCalculatedCheckout<PD>): Promise<PaymentCompletedCheckout<PD>>
 
 }

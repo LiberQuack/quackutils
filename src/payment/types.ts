@@ -1,7 +1,5 @@
-import {AbstractPaymentServer} from "./abstract-payment-server";
+import {AbstractPaymentServer} from "./abstract-payment-server.js";
 import {ValuesType} from "utility-types";
-import {PaymentAccountProvider, PaymentProviderCheckout} from "./server-providers/types";
-import type {ObjectId as ObjectID} from "mongodb";
 
 export type PaymentProviderMinimalProperties = { provider: string };
 export type PaymentEnforceProviderBase<T extends PaymentProviderMinimalProperties> = T
@@ -19,7 +17,7 @@ export type PaymentUserData = {
     /**
      * Convinience property for accessing the last checkout
      */
-    lastCheckout?: PaymentProviderCheckout;
+    lastCheckout?: PaymentCompletedCheckout<unknown>;
 
     /**
      * Some payment providers, like stripe, may have important data
@@ -42,7 +40,6 @@ export type PaymentUserData = {
  * }
  */
 export type PaymentUser = {
-    _id: string;
     email: string;
     payment?: PaymentUserData
 }
@@ -58,7 +55,7 @@ export type PaymentUserSubscriptionProperties = {
      */
     externalId: string;
 
-    productIds: PaymentProduct["_id"][];
+    productIds: string[];
     nextBill: Date;
     planningCancelDate?: Date;
     planningDowngradeToPlan?: string;
@@ -73,8 +70,9 @@ export type PaymentUserSubscriptionProperties = {
  *     color: "
  * }
  */
-export type PaymentProduct = {
-    _id: string;
+export type PaymentProduct<PD> = {
+
+    getId(): string
 
     /**
      * Human readable product name
@@ -126,12 +124,15 @@ export type PaymentProduct = {
      * When the product or plan is registered within our providers, the data will
      * be reflected in this property
      */
-    externalPaymentData?: Array<PaymentProductProviderData>;
+    externalPaymentProviderData?: Array<PaymentProviderData<PD>>;
 }
 
-export type PaymentProductProviderData = {
+/**
+ * It's a container for holding provider data
+ */
+export type PaymentProviderData<PD> = {
     provider: string;
-    data: any
+    data: PD
 };
 
 /**
@@ -139,7 +140,6 @@ export type PaymentProductProviderData = {
  * the total discount is going be the sum of all discounts
  */
 export type PaymentCoupon = {
-    _id: string,
     code: string;
     expiresAt?: Date;
     maxUsageCount?: number;
@@ -201,7 +201,7 @@ export type PaymentCoupon = {
 export type PaymentPartialCheckout = PaymentProviderMinimalProperties & {
     err?: any;
 
-    userId: PaymentUser["_id"];
+    userId: string;
     coupon_codes?: PaymentCoupon["code"][];
 
     /**
@@ -210,7 +210,7 @@ export type PaymentPartialCheckout = PaymentProviderMinimalProperties & {
      * these each entry will be populated
      */
     items: Array<{
-        productId: PaymentProduct["_id"];
+        productId: string;
         quantity: number;
     }>
 
@@ -219,23 +219,27 @@ export type PaymentPartialCheckout = PaymentProviderMinimalProperties & {
      * ideally when you call paymentClient.calculate(partialCheckout),
      * the api will do the necessary work, for example, creating these products
      */
-    inlineItems: Array<Omit<PaymentProduct, "_id" | "code" | "inline" | "externalPaymentData">>
+    inlineItems: Array<Omit<PaymentProduct<unknown>, "code" | "inline" | "externalPaymentProviderData">>
 }
 
 /**
- * PaymentCheckout is the calculated data, it's one step closed
+ * PaymentCalculatedCheckout is the calculated data, it's one step closed
  * from being sent to the payment provider for completing the purchase
  */
-export type PaymentCheckout = PaymentProviderMinimalProperties & {
-    _id?: ObjectID;
+export type PaymentCalculatedCheckout<PD> = PaymentProviderMinimalProperties & {
 
     coupon_code?: PaymentCoupon["code"];
-    userId: PaymentUser["_id"];
+    userId: string;
 
     /**
-     *
+     * Check PaymentProviderData
      */
-    providerData?: PaymentProductProviderData
+    externalData?: PaymentProviderData<PD>
+
+    /**
+     * External id for retrieving data from payment provider
+     */
+    externalId?: string;
 
     /**
      * The sum of products and plans before any discounts
@@ -288,18 +292,18 @@ export type PaymentCheckout = PaymentProviderMinimalProperties & {
         /**
          * Product Id
          */
-        productId: PaymentProduct["_id"];
+        productId: string;
 
         /**
          * Product data, it's a conviniance property
          * so you don't need to execute additional api calls
          */
-        product: PaymentProduct;
+        product: PaymentProduct<PD>;
 
         /**
          * Check PaymentProduct["type"] for more information
          */
-        type: PaymentProduct["type"];
+        type: PaymentProduct<PD>["type"];
 
         /**
          * Quantity of this product during the checkout
@@ -331,6 +335,19 @@ export type PaymentCheckout = PaymentProviderMinimalProperties & {
     }>
 }
 
-//Utility
-export type ProviderName<PM extends AbstractPaymentServer<any, any, any>> = ValuesType<PM["providers"]>["provider"]
-export type CreateCardData<PM extends AbstractPaymentServer<any, any, any>> = Parameters<Extract<ValuesType<PM["providers"]>, PaymentAccountProvider>["createCard"]>[1]
+/**
+ * PaymentCompletedCheckout as the name says, represents a completed checkout
+ */
+export type PaymentCompletedCheckout<PD> = PaymentCalculatedCheckout<PD> & {
+    success: boolean;
+    period?: Date
+
+    /**
+     * External id for retrieving data from payment provider
+     */
+    externalId: string;
+
+    //Use when checkout is cancelled | means payment was refunded
+    cancelReason?: string;
+    cancelRequestDate?: Date;
+}

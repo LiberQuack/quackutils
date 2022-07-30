@@ -1,5 +1,4 @@
-import {PaymentCheckout, PaymentProduct} from "../../payment/types";
-import {PaymentProviderCheckout} from "../../payment/server-providers/types";
+import {PaymentCalculatedCheckout, PaymentProduct, PaymentCompletedCheckout} from "../../payment/types";
 import {Dictionary} from "../../_/types";
 
 export type TRACKING_PURCHASE = TRACKING_PURCHASE_JOURNEY | TRACKING_PURCHASE_CHECKOUT
@@ -81,7 +80,7 @@ export interface TrackingManagerType<CE = string> {
      * @param checkout
      * @param opts
      */
-    trackPurchaseCheckout(eventName: TRACKING_PURCHASE_CHECKOUT, checkout: PaymentProviderCheckout | PaymentCheckout, opts?: {err?: Error}): void;
+    trackPurchaseCheckout(eventName: TRACKING_PURCHASE_CHECKOUT, checkout: PaymentCompletedCheckout | PaymentCalculatedCheckout, opts?: {err?: Error}): void;
 
     /**
      * Track events related to UX

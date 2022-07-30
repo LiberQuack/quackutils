@@ -1,4 +1,4 @@
-import {State} from "./index";
+import {State} from "./index.js";
 import {DeepReadonly} from "utility-types";
 import type {useEffect as reactUseEffect, useState as reactUseState} from "react";
 

@@ -1,17 +1,22 @@
-import {PaymentCheckout, PaymentPartialCheckout, PaymentUserData} from "./types";
-import {PaymentProviderCheckout} from "./server-providers/types";
-import {AbstractPaymentClientProvider} from "./client-providers/abstract-payment-client-provider";
+import {PaymentCalculatedCheckout, PaymentPartialCheckout, PaymentProviderData, PaymentCompletedCheckout, PaymentUserData} from "./types.js";
+import {AbstractPaymentClientProvider} from "./client-providers/abstract-payment-client-provider.js";
+import {State} from "../app/state/index.js";
+import {ProviderClientData} from "./client-providers/payment-stripe-client-provider.js";
+
+const paymentClientInitialState:PaymentProviderData<any> | {} = {};
 
 /**
  * PaymentClient is the class for executing the checkout on front-end
  */
 export abstract class AbstractPaymentClient {
 
-    private providers: AbstractPaymentClientProvider[] = [];
-    private providersInitializers: (() => AbstractPaymentClientProvider)[];
-    private inited = false
+    private static state = new State("payment-client", paymentClientInitialState);
 
-    constructor(providers: (() => AbstractPaymentClientProvider)[]) {
+    private inited = false
+    private providers: AbstractPaymentClientProvider<unknown>[] = [];
+    private providersInitializers: (() => AbstractPaymentClientProvider<unknown>)[];
+
+    constructor(providers: (() => AbstractPaymentClientProvider<unknown>)[]) {
         this.providersInitializers = providers;
     }
 
@@ -26,7 +31,7 @@ export abstract class AbstractPaymentClient {
      *
      * @param checkout
      */
-    protected abstract sendCheckout(checkout: PaymentCheckout | PaymentProviderCheckout): Promise<PaymentUserData>
+    protected abstract sendCheckout(checkout: PaymentCalculatedCheckout<unknown>): Promise<PaymentUserData>
 
     /**
      * Implement this method and send your partial checkout to the server,
@@ -35,13 +40,15 @@ export abstract class AbstractPaymentClient {
      * @param checkout
      * @protected
      */
-    protected abstract sendCalculateCheckout(checkout: PaymentPartialCheckout): Promise<PaymentCheckout>
+    protected abstract sendCalculateCheckout(checkout: PaymentPartialCheckout): Promise<PaymentCalculatedCheckout<unknown>>
 
-    async calculateCheckout(checkout: PaymentPartialCheckout): Promise<PaymentCheckout> {
+    protected abstract sendCancelCheckout(checkout: PaymentCompletedCheckout<unknown>): Promise<PaymentUserData>;
+
+    async calculateCheckout(checkout: PaymentPartialCheckout): Promise<PaymentCalculatedCheckout<unknown>> {
         return this.sendCalculateCheckout(checkout);
     }
 
-    async checkout(checkout: PaymentCheckout): Promise<PaymentUserData> {
+    async checkout(checkout: PaymentCalculatedCheckout<unknown>): Promise<PaymentUserData> {
         if (!this.inited) throw "Payment client instance has still not been initiated"
 
         const providerInstance = this.providers.find(it => it.provider === checkout.provider);
@@ -68,12 +75,31 @@ export abstract class AbstractPaymentClient {
         throw "maxRoundTrip reached";
     }
 
-    protected abstract sendCancelCheckout(checkout: PaymentProviderCheckout): Promise<PaymentUserData>;
-
-    async cancelCheckout(checkout: PaymentProviderCheckout, reason: string): Promise<PaymentUserData> {
-        if (!checkout._id) throw "Expected checkout id"
-
+    async cancelCheckout(checkout: PaymentCompletedCheckout<unknown>, reason: string): Promise<PaymentUserData> {
         const nextCheckout = {...checkout, reason}
         return this.sendCancelCheckout(checkout)
+    }
+
+    /**
+     * Use this method for subscribing to latest provider data,
+     * so after calculateCheckout, your elements can listen to it,
+     *
+     * For example <stripe-form> is always subscribed to 'stripe' provider data
+     * and when identifying a intentToken, <stripe-form> will recreate the ui
+     * using that information
+     *
+     * See more about PaymentStripeProviderData type and <stripe-form> element
+     *
+     * @param provider
+     * @param cb
+     */
+    static subcribeProviderData<P extends AbstractPaymentClientProvider<unknown>>(provider: P["provider"], cb: (arg: ProviderClientData<P>) => void) {
+        const unsubscribe = AbstractPaymentClient.state.subscribe((prev, {isUpdating, state}) => {
+            if (prev?.isUpdating && !isUpdating && "provider" in state && state.provider === provider) {
+                cb(state.data);
+            }
+        })
+
+        return unsubscribe;
     }
 }

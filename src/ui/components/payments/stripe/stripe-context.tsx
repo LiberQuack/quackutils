@@ -1,7 +1,7 @@
 import {createContext} from "haunted";
-import {Nullable} from "../../../../_/types";
-import {StripeContextType} from "./types";
-import {CustomElement} from "../../../ui-types";
+import {Nullable} from "../../../../_/types.js";
+import {StripeContextType} from "./types.js";
+import {CustomElement} from "../../../ui-types.js";
 
 export const StripeContext = createContext(null as Nullable<StripeContextType>);
 customElements.define("stripe-provider", StripeContext.Provider);
