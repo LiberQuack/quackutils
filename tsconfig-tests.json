@@ -1,17 +1,8 @@
 {
-  "extends": "@tsconfig/node16/tsconfig.json",
+  "extends": "./tsconfig.json",
   "compilerOptions": {
-    "outDir": "dist",
-    "target": "ESNext",
-    "module": "ES2020",
-    "esModuleInterop": true,
-    "importHelpers": true,
     "moduleResolution": "Node",
   },
-  "ts-node": {
-//    "experimentalResolverFeatures": true,
-//    "preferTsExts": true
-  },
-  "files": ["./tests/*.ts"],
+  "include": ["./tests/**/*.ts"],
   "exclude": ["node_modules"]
 }

@@ -5,10 +5,8 @@
     "target": "ESNext",
     "module": "ESNext",
     "moduleResolution": "NodeNext",
-    "lib": ["DOM", "DOM.Iterable", "ESNext"],
-    "jsx": "react-native",
-    "declaration": true,
+    "lib": ["DOM", "DOM.Iterable", "ESNext"]
   },
   "include": ["./src/*.ts"],
-  "exclude": ["./dist/**/*.ts"]
+  "exclude": ["node_modules/**/*.ts"]
 }

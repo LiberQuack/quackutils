@@ -1,23 +1,10 @@
 {
-  "name": "@liberquack/quackutils",
+  "name": "@liberquack/utils",
   "version": "0.0.2",
   "description": "Quack utilities",
-  "typeScriptVersion": "4.6.3",
+  "typeScriptVersion": "^4.7.2",
   "type": "module",
-  "files": [
-    "./dist",
-    "./src"
-  ],
-  "exports": {
-    ".": {
-      "module": "./dist/esm/index.js",
-      "default": "./dist/cjs/index.js"
-    },
-    "./*": {
-      "module": "./dist/esm/*.js",
-      "default": "./dist/cjs/*.js"
-    }
-  },
+  "browserslist": "Chrome > 80",
   "targets": {
     "default": {
       "includeNodeModules": true,
@@ -26,20 +13,40 @@
       "isLibrary": true
     }
   },
-  "browserslist": "Chrome > 80",
+  "watch": {
+    "link": {
+      "patterns": [
+        "src"
+      ],
+      "extensions": "js,ts"
+    },
+    "check": {
+      "patterns": [
+        "src"
+      ],
+      "extensions": "ts,tsx"
+    }
+  },
   "scripts": {
     "clean": "npm run clean:dist && npm run clean:cache",
     "clean:dist": "rm -rf ./dist",
     "clean:cache": "rm -rf ./.parcel-cache",
-    "start": "parcel src/index.html --port 9091",
-    "check": "tsc --noEmit",
-    "build": "npm run clean && npm run build:esm && npm run build:cjs && npm run build:mdx && npm run build:bundle",
+    "link": "npm run build",
+    "postlink": "cp package.json ./dist && cd dist && npm link",
+    "prebuild": "npm run clean && mkdir -p dist && cp *.json ./dist",
+    "build": "npm run build:esm",
+    "build:esm": "tsc -p tsconfig.json",
+    "postbuild:esm": "mv dist/esm/* dist && rm -rf dist/esm",
     "build:bundle": "parcel build 'src/*.ts' --dist-dir dist/bundle",
     "build:mdx": "parcel build src/index.html --dist-dir dist/mdx --public-url './' --target default",
-    "build:esm": "tsc -p tsconfig.json",
     "build:cjs": "tsc -p tsconfig-cjs.json",
+    "check": "tsc --noEmit",
+    "test": "tsc -p tsconfig-tests.json && mocha 'dist/tests/**/*-test.js'",
     "prerelease": "npm version prerelease --preid $(git rev-parse --short HEAD) && npm run build && npm publish --tag latest --access public",
-    "test": "tsc -p tsconfig-tests.json && node dist/tests/browser-environment.js"
+    "start": "npm run check && concurrently npm:start:*",
+    "start:docs": "parcel src/index.html --port 9091",
+    "start:check": "npm-watch check",
+    "start:link": "npm-watch link"
   },
   "publishConfig": {
     "registry": "https://registry.npmjs.org/"
@@ -61,8 +68,9 @@
   "dependencies": {
     "@mdx-js/react": "^1.6.22",
     "@stripe/stripe-js": "^1.32.0",
+    "@types/bezier-easing": "^2.1.2",
     "@types/mongodb": "^4.0.7",
-    "@types/react-syntax-highlighter": "^15.5.3",
+    "@types/react": "^18.0.15",
     "@types/stripe": "^8.0.417",
     "bezier-easing": "^2.1.0",
     "custom-elements-hmr-polyfill": "^1.0.3",
@@ -87,14 +95,22 @@
     "@parcel/transformer-mdx": "^2.6.2",
     "@parcel/transformer-typescript-tsc": "^2.6.2",
     "@parcel/transformer-typescript-types": "^2.6.2",
-    "@types/bezier-easing": "^2.1.2",
+    "@types/chai": "^4.3.1",
     "@types/jsdom": "^16.2.15",
-    "@types/react": "^18.0.15",
+    "@types/mocha": "^9.1.1",
     "@types/uuid": "^8.3.4",
+    "chai": "^4.3.6",
+    "concurrently": "^7.3.0",
     "jsdom": "^20.0.0",
+    "mocha": "^10.0.0",
+    "npm-watch": "^0.11.0",
     "parcel": "^2.6.2",
     "process": "^0.11.10",
     "typescript": "^4.7.2",
     "uuid": "^8.3.2"
-  }
+  },
+  "workspaces": [
+    "packages/*",
+    "src"
+  ]
 }
