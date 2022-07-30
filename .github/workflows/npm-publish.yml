@@ -34,7 +34,7 @@ jobs:
           git config --global user.email "ci@nothing.com"
           git config --global user.name "Github CI"
       - run: npm ci
-      - run: npm run prerelease
+      - run: npm run release:pre
       - name: Deploy Github Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
