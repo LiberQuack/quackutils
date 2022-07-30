@@ -1,6 +1,5 @@
 import {AbstractPaymentClient} from "../../src/payment/abstract-payment-client";
-import {PaymentProviderCheckout} from "../../src/payment/server-providers/types";
-import {PaymentCheckout, PaymentPartialCheckout, PaymentUserData} from "../../src/payment/types";
+import {PaymentCalculatedCheckout, PaymentPartialCheckout, PaymentCompletedCheckout, PaymentUserData} from "../../src/payment/types";
 import {PaymentStripeClientProvider} from "../../src/payment/client-providers/payment-stripe-client-provider";
 
 export class PaymentClientTest extends AbstractPaymentClient {
@@ -12,25 +11,21 @@ export class PaymentClientTest extends AbstractPaymentClient {
         super(providers);
     }
 
-    protected async sendCancelCheckout(checkout: PaymentProviderCheckout, reason: string): Promise<PaymentUserData> {
-        const cancellationCheckout: PaymentProviderCheckout = {...checkout};
-        cancellationCheckout.cancelReason = reason;
-
+    protected async sendCancelCheckout(checkout: PaymentCompletedCheckout): Promise<PaymentUserData> {
         const req: RequestInit = {body: JSON.stringify(checkout), method: "POST"};
         const paymentUserData = await fetch("https://fake-api/payments/cancel-checkout", req).then(it => it.json());
-        return paymentUserData
+        return paymentUserData as any
     }
 
-    protected async sendCheckout(checkout: PaymentCheckout | PaymentProviderCheckout): Promise<PaymentUserData> {
+    protected async sendCheckout(checkout: PaymentCalculatedCheckout | PaymentCompletedCheckout): Promise<PaymentUserData> {
         const reqOpts: RequestInit = {body: JSON.stringify(checkout), method: "POST"};
         const paymentUserData = await fetch("https://fake-api/payments/checkout", reqOpts).then(it => it.json());
         return paymentUserData
     }
 
-    protected async sendCalculateCheckout(partialCheckout: PaymentPartialCheckout): Promise<PaymentCheckout> {
+    protected async sendCalculateCheckout(partialCheckout: PaymentPartialCheckout): Promise<PaymentCalculatedCheckout> {
         const reqOpts: RequestInit = {body: JSON.stringify(partialCheckout), method: "POST"};
         const checkout = await fetch("https://fake-api/payments/calculate-checkout", reqOpts).then(it => it.json());
         return checkout
     }
-
 }

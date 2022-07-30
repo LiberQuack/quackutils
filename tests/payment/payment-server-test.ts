@@ -1,7 +1,6 @@
 import {AbstractPaymentServer} from "../../src/payment/abstract-payment-server";
 import {PaymentStripeClientProvider} from "../../src/payment/client-providers/payment-stripe-client-provider";
-import {PaymentCheckout, PaymentPartialCheckout, PaymentProduct, PaymentUser} from "../../src/payment/types";
-import {PaymentProviderCheckout} from "../../src/payment/server-providers/types";
+import {PaymentCalculatedCheckout, PaymentPartialCheckout, PaymentProduct, PaymentCompletedCheckout, PaymentUser} from "../../src/payment/types";
 import {PaymentStripeServerProvider} from "../../src/payment/server-providers/payment-stripe-server-provider";
 
 export class PaymentServerTest extends AbstractPaymentServer<PaymentUser, PaymentProduct, [PaymentStripeServerProvider]> {
@@ -11,15 +10,15 @@ export class PaymentServerTest extends AbstractPaymentServer<PaymentUser, Paymen
         super([stripeServerProvider]);
     }
 
-    calculateCheckout(user: {}, checkout: PaymentPartialCheckout): Promise<PaymentCheckout> {
+    calculateCheckout(user: {}, checkout: PaymentPartialCheckout): Promise<PaymentCalculatedCheckout> {
         throw "Not implemented";
     }
 
-    retrieveCheckout(user: {}, checkoutId: string): Promise<PaymentProviderCheckout | PaymentCheckout> {
+    retrieveCheckout(user: {}, checkoutId: string): Promise<PaymentCompletedCheckout | PaymentCalculatedCheckout> {
         throw "Not implemented";
     }
 
-    retrieveCheckoutByProviderId(user: {}, providerCheckoutId: string): Promise<PaymentProviderCheckout> {
+    retrieveCheckoutByProviderId(user: {}, providerCheckoutId: string): Promise<PaymentCompletedCheckout> {
         throw "Not implemented";
     }
 
@@ -30,7 +29,7 @@ export class PaymentServerTest extends AbstractPaymentServer<PaymentUser, Paymen
         }
     }
 
-    protected saveCheckout(user: {}, checkout: PaymentProviderCheckout): Promise<PaymentProviderCheckout> {
+    protected saveCheckout(user: {}, checkout: PaymentCompletedCheckout): Promise<PaymentCompletedCheckout> {
         throw "Not implemented";
     }
 
