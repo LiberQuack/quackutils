@@ -1,6 +1,6 @@
 import {paymentClient} from "./create-payment-client-example";
 import {StripeCardformEvents} from "../src/ui/components/payments/stripe/stripe-form";
-import {PaymentCheckout, PaymentPartialCheckout} from "../src/payment/types";
+import {PaymentCalculatedCheckout, PaymentPartialCheckout} from "../src/payment/types";
 import uuid from "uuid"
 import {calculatePayment} from "./calculate-payment";
 
