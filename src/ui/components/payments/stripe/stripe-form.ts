@@ -82,7 +82,8 @@ export const StripeForm: StripeCardFormType = function (props) {
     useEffect(() => {
         //TODO: Maybe in the future, think about how to improve
         const unsubscribe = AbstractPaymentClient.subcribeProviderData<PaymentStripeClientProvider>("stripe", (providerData) => {
-            const clientSecret = providerData?.paymentIntent?.client_secret;
+            const clientSecret = providerData?.clientSecret;
+
             if (clientSecret) {
                 stripeCb.run({clientSecret: clientSecret});
             }

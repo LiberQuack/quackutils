@@ -140,7 +140,7 @@ export class GoogleAnalyticsProvider implements TrackingManagerProvider {
             value: checkout.total,
             items: trackingProducts,
             transaction_id: checkout._id,
-            coupon: checkout.coupon_code,
+            coupon: checkout.coupon_codes,
             tax: checkout.tax,
             shipping: checkout.shipping,
             err: err,

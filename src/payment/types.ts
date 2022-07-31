@@ -1,6 +1,3 @@
-import {AbstractPaymentServer} from "./abstract-payment-server.js";
-import {ValuesType} from "utility-types";
-
 export type PaymentProviderMinimalProperties = { provider: string };
 export type PaymentEnforceProviderBase<T extends PaymentProviderMinimalProperties> = T
 export type PaymentUserAccount = PaymentProviderMinimalProperties
@@ -40,7 +37,8 @@ export type PaymentUserData = {
  * }
  */
 export type PaymentUser = {
-    email: string;
+    getId(): string;
+    email?: string;
     payment?: PaymentUserData
 }
 
@@ -70,12 +68,12 @@ export type PaymentUserSubscriptionProperties = {
  *     color: "
  * }
  */
-export type PaymentProduct<PD> = {
+export type PaymentProduct = {
 
     getId(): string
 
     /**
-     * Human readable product name
+     * Human-readable product name
      */
     title: string;
 
@@ -124,7 +122,7 @@ export type PaymentProduct<PD> = {
      * When the product or plan is registered within our providers, the data will
      * be reflected in this property
      */
-    externalPaymentProviderData?: Array<PaymentProviderData<PD>>;
+    externalPaymentProviderData?: Array<PaymentProviderData<unknown>>;
 }
 
 /**
@@ -199,8 +197,6 @@ export type PaymentCoupon = {
  * paymentClient.calculateCheckout(partialCheckout)
  */
 export type PaymentPartialCheckout = PaymentProviderMinimalProperties & {
-    err?: any;
-
     userId: string;
     coupon_codes?: PaymentCoupon["code"][];
 
@@ -219,16 +215,18 @@ export type PaymentPartialCheckout = PaymentProviderMinimalProperties & {
      * ideally when you call paymentClient.calculate(partialCheckout),
      * the api will do the necessary work, for example, creating these products
      */
-    inlineItems: Array<Omit<PaymentProduct<unknown>, "code" | "inline" | "externalPaymentProviderData">>
-}
+    inlineItems?: Array<Pick<PaymentProduct, "price" | "currency" | "type" | "title"> & {
+        quantity: number;
+    }>}
 
 /**
  * PaymentCalculatedCheckout is the calculated data, it's one step closed
  * from being sent to the payment provider for completing the purchase
  */
 export type PaymentCalculatedCheckout<PD> = PaymentProviderMinimalProperties & {
+    err?: any;
 
-    coupon_code?: PaymentCoupon["code"];
+    coupon_codes?: PaymentCoupon["code"][];
     userId: string;
 
     /**
@@ -289,6 +287,13 @@ export type PaymentCalculatedCheckout<PD> = PaymentProviderMinimalProperties & {
     currency: string;
 
     items: Array<{
+
+        /**
+         * Indicates if this product item comes from an inline source,
+         * Check more on PaymentPartialCheckout["inlineItems"]
+         */
+        inline?: boolean;
+
         /**
          * Product Id
          */
@@ -298,12 +303,12 @@ export type PaymentCalculatedCheckout<PD> = PaymentProviderMinimalProperties & {
          * Product data, it's a conviniance property
          * so you don't need to execute additional api calls
          */
-        product: PaymentProduct<PD>;
+        product: PaymentProduct;
 
         /**
          * Check PaymentProduct["type"] for more information
          */
-        type: PaymentProduct<PD>["type"];
+        type: PaymentProduct["type"];
 
         /**
          * Quantity of this product during the checkout
