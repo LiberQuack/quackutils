@@ -53,6 +53,7 @@ export class PaymentStripeClientProvider extends AbstractPaymentClientProvider<P
 
         const {html, render} = await import("lit");
         await import("../../ui/components/payments/stripe/stripe-elements.js");
+        await import("../../ui/components/payments/stripe/stripe-form.js");
 
         let stripeFormTemplate = html`
             <stripe-form .stripeClient="${await this.stripePromise}" .stripeClientSecret="${clientSecret}">
@@ -66,7 +67,6 @@ export class PaymentStripeClientProvider extends AbstractPaymentClientProvider<P
 
         let container = document.createElement("div");
         (container as EventListener<StripeCardformEvents>).addEventListener("payment-method-token", (e) => {
-
 
             const nextCheckout: NarrowedStripeCalculatedCheckout = {
                 ...checkout,
