@@ -1,15 +1,13 @@
 import {AbstractPaymentClient} from "../src/payment/abstract-payment-client";
 import {PaymentCalculatedCheckout, PaymentPartialCheckout, PaymentCompletedCheckout, PaymentUserData} from "../src/payment/types";
 import {PaymentStripeClientProvider} from "../src/payment/client-providers/payment-stripe-client-provider";
+import {AbstractPaymentClientProvider} from "../src";
 
-class PaymentClient extends AbstractPaymentClient {
+class PaymentClient<P extends () => AbstractPaymentClientProvider = any> extends AbstractPaymentClient<P> {
 
-    protected async sendCancelCheckout(checkout: PaymentCompletedCheckout, reason: string): Promise<PaymentUserData> {
-        const cancellationCheckout: PaymentCompletedCheckout = {...checkout};
-        cancellationCheckout.cancelReason = reason;
-
-        const req: RequestInit = {body: JSON.stringify(checkout), method: "POST"};
-        const paymentUserData = await fetch("https://fake-api/payments/cancel-checkout", req).then(it => it.json());
+    protected async sendCancelCheckout(checkout: PaymentCompletedCheckout): Promise<PaymentUserData> {
+        const reqOpts: RequestInit = {body: JSON.stringify(checkout), method: "POST"};
+        const paymentUserData = await fetch("https://fake-api/payments/cancel-checkout", reqOpts).then(it => it.json());
         return paymentUserData
     }
 

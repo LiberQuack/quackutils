@@ -1,6 +1,6 @@
 import StripeTypes from "@stripe/stripe-js";
 import {component} from "haunted";
-import {useRef, useEffect} from "haunted/lib/core.js";
+import {useEffect, useRef} from "haunted/lib/core.js";
 import {CreateCustomEvent, CustomElement, CustomElementDefinition} from "../../../ui-types.js";
 import {Nullable} from "../../../../_/types.js";
 import {useAwait} from "../../../util/hooks/use-await.js";
@@ -8,29 +8,33 @@ import {StripeContextType} from "./types.js";
 import {StripeContext} from "./stripe-context.js";
 import {css} from "../../../util/css.js";
 import "./stripe-context.js"
-import {AbstractPaymentClient} from "../../../../payment/abstract-payment-client.js";
-import {PaymentStripeClientProvider} from "../../../../payment/client-providers/payment-stripe-client-provider.js";
-
-export const fmt = {
-    err: (...args: any[]) => args
-}
+import {NarrowedStripeCalculatedCheckout} from "../../../../payment/payment-stripe-types.js";
+import {NonUndefined} from "utility-types";
 
 export type StripeCardformEvents = {
     elementready: { elementType: string },
-    sendcardtoken: { token: StripeTypes.Token },
+
+    /**
+     * Need to send the transaction token
+     * to your api in order to capture the payment
+     */
+    "payment-method-token":
+        NonUndefined<NarrowedStripeCalculatedCheckout["clientData"]> &
+        Pick<NarrowedStripeCalculatedCheckout["externalData"]["data"], "paymentMethodToken">
 };
 
-type StripeFormProps = {
-    forceLoading?: boolean,
-    btnContent?: any,
-    stripePublicKey: string,
+export type StripeFormProps = {
+    stripeClient?: StripeTypes.Stripe,
+    stripePublicKey?: string,
+    stripeClientSecret?: string,
     value: StripeContextType
 };
 
-export type StripeCardFormType = CustomElementDefinition<StripeFormProps, StripeCardformEvents>;
+export type StripeFormDefinition = CustomElementDefinition<StripeFormProps, StripeCardformEvents>;
 
 css`stripe-form { display: block }`
-export const StripeForm: StripeCardFormType = function (props) {
+
+export const StripeForm: StripeFormDefinition = function ({stripeClient, stripeClientSecret, stripePublicKey}) {
     const stripeRef = useRef(null as Nullable<StripeContextType>);
 
     const useSubmit = useAwait(async () => {
@@ -45,7 +49,10 @@ export const StripeForm: StripeCardFormType = function (props) {
                 const tokenResult = await stripeClient.createToken(stripeTokenizableElm);
 
                 if (tokenResult.token) {
-                    this.dispatchEvent(CreateCustomEvent("sendcardtoken", {detail: {token: tokenResult.token}, bubbles: true}))
+                    this.dispatchEvent(CreateCustomEvent("payment-method-token", {detail: {
+                            paymentMethodToken: tokenResult.token,
+                            cardElement: stripeTokenizableElm
+                        }, bubbles: true}))
                 }
 
                 if (tokenResult.error) {
@@ -60,15 +67,18 @@ export const StripeForm: StripeCardFormType = function (props) {
             }
         });
 
-    const stripeCb = useAwait(async (opts?: {clientSecret: string}) => {
-        const stripeImport = await import('@stripe/stripe-js');
-        const stripe = await stripeImport.loadStripe(props.stripePublicKey);
-
-        if (!stripe) {
-            throw "Could not load stripe";
+    const stripeCb = useAwait(async () => {
+        const loadStripeClient = async () => {
+            if (stripePublicKey) {
+                const stripeLib = await import('@stripe/stripe-js');
+                return stripeLib.loadStripe(stripePublicKey)
+            }
         }
 
-        const stripeElements = stripe.elements({clientSecret: opts?.clientSecret});
+        const stripe = stripeClient ?? await loadStripeClient();
+        if (!stripe) throw "Could not load stripe";
+
+        const stripeElements = stripe.elements({clientSecret: stripeClientSecret});
 
         stripeRef.current = {
             stripeClient: stripe,
@@ -80,20 +90,9 @@ export const StripeForm: StripeCardFormType = function (props) {
     });
 
     useEffect(() => {
-        //TODO: Maybe in the future, think about how to improve
-        const unsubscribe = AbstractPaymentClient.subcribeProviderData<PaymentStripeClientProvider>("stripe", (providerData) => {
-            const clientSecret = providerData?.clientSecret;
-
-            if (clientSecret) {
-                stripeCb.run({clientSecret: clientSecret});
-            }
-        });
-
         if (!stripeRef.current) {
             stripeCb.run();
         }
-
-        return unsubscribe;
     }, []);
 }
 
@@ -102,9 +101,3 @@ customElements.define("stripe-form", component(StripeForm, {
     baseElement: StripeContext.Provider,
     observedAttributes: ["stripe-public-key"] as any
 }))
-
-declare global {
-    interface HTMLElementTagNameMap {
-        'stripe-form': CustomElement<StripeCardFormType>
-    }
-}

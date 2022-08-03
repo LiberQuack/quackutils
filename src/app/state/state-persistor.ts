@@ -2,7 +2,7 @@ import {State} from "./state";
 import {Pojo} from "../../_/types";
 
 import {IDBPDatabase, IDBPTransaction, openDB, StoreNames} from 'idb';
-import {inlineErr} from "../../_/inline-error";
+import {inlineErr} from "../inline-error";
 
 export class StatePersistor {
 

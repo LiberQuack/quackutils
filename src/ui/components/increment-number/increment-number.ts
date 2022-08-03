@@ -1,7 +1,7 @@
 import {CustomElement, CustomElementDefinition} from "../../ui-types.js";
 import {component} from "haunted";
 import BezierEasing from "bezier-easing";
-import { useRef, useEffect } from "haunted/lib/core.js";
+import {useEffect, useRef} from "haunted/lib/core.js";
 import {Nullable} from "../../../_/types.js";
 
 const attributes = [

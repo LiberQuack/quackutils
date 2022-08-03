@@ -1,5 +1,5 @@
 import {produce} from "immer";
-import {inlineErr} from "../../_/inline-error.js";
+import {inlineErr} from "../inline-error.js";
 import {Dictionary, Undefinable} from "../../_/types.js";
 import {DeepReadonly} from "utility-types";
 

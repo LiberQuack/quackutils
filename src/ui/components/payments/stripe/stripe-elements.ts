@@ -4,9 +4,10 @@ import {StripeContext} from "./stripe-context.js";
 import {component} from "haunted";
 import {css} from "../../../util/css.js";
 import {StripeContextType} from "./types.js";
-import {fmt, StripeCardformEvents} from "./stripe-form.js";
+import {StripeCardformEvents} from "./stripe-form.js";
 import {Nullable} from "../../../../_/types.js";
 import {html} from "lit";
+import {fmt} from "../../../../fmt.js";
 
 type CardTypes = "cardNumber" | "cardExpiry" | "cardCvc" | "card";
 
@@ -73,13 +74,3 @@ export const StripeSubmit = defineComponent("stripe-submit", function() {
         }
     }, [submitCb])
 })
-
-
-declare global {
-    interface HTMLElementTagNameMap {
-        'stripe-card': CustomElement<typeof StripeCard>
-        'stripe-card-number': CustomElement<typeof StripeCardNumber>
-        'stripe-card-cvc': CustomElement<typeof StripeCardCvc>
-        'stripe-card-expiry': CustomElement<typeof StripeCardExpiry>
-    }
-}

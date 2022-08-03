@@ -1,5 +1,5 @@
 import {useState} from "haunted/lib/core.js";
-import {inlineErr} from "../../../_/inline-error.js";
+import {inlineErr} from "../../../app/inline-error.js";
 import {Undefinable} from "../../../_/types.js";
 
 type useAwaitReturnType<T extends ((...args: any[]) => Promise<R>), R> = { run: T, result: Undefinable<R>, loading: boolean, err: undefined | Error };

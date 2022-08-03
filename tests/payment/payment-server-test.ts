@@ -2,15 +2,16 @@ import {AbstractPaymentServer} from "../../src/payment/abstract-payment-server";
 import {PaymentStripeClientProvider} from "../../src/payment/client-providers/payment-stripe-client-provider";
 import {PaymentCalculatedCheckout, PaymentPartialCheckout, PaymentProduct, PaymentCompletedCheckout, PaymentUser} from "../../src/payment/types";
 import {PaymentStripeServerProvider} from "../../src/payment/server-providers/payment-stripe-server-provider";
+import {AbstractPaymentServerProvider} from "../../src";
 
-export class PaymentServerTest extends AbstractPaymentServer<PaymentUser, PaymentProduct, [PaymentStripeServerProvider]> {
+export class PaymentServerTest<P extends PaymentProduct = any> extends AbstractPaymentServer<PaymentUser,P, PaymentStripeServerProvider> {
 
     constructor() {
         const stripeServerProvider = new PaymentStripeServerProvider("sk_test_51IG332FIx1iLyZGcQNijexsy68POTsgRhCpND6yekwBffywFXa3EM5wvn2jJxPFMx4l2IqHvyHzLpY272HbqVlAN00PjmkPSzB")
         super([stripeServerProvider]);
     }
 
-    calculateCheckout(user: {}, checkout: PaymentPartialCheckout): Promise<PaymentCalculatedCheckout> {
+    calculateCheckout(user: {}, checkout: PaymentPartialCheckout<ArrayType<this["providers"]>["provider"]>): Promise<PaymentCalculatedCheckout> {
         throw "Not implemented";
     }
 
@@ -24,7 +25,9 @@ export class PaymentServerTest extends AbstractPaymentServer<PaymentUser, Paymen
 
     async retrieveUser(customerData: { id: string } | { email: string }): Promise<PaymentUser> {
         return {
-            _id: "Nothing",
+            getId(): string {
+                return "none"
+            },
             email: "always the same email",
         }
     }
@@ -37,7 +40,7 @@ export class PaymentServerTest extends AbstractPaymentServer<PaymentUser, Paymen
         return Promise.resolve(undefined);
     }
 
-    protected updateUserPaymentProperties(user: {}, paymentData: {}["payment"]): Promise<void> {
+    protected updateUserPaymentProperties(user: {}, paymentData: {}): Promise<void> {
         return Promise.resolve(undefined);
     }
 

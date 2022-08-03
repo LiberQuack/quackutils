@@ -1,11 +1,4 @@
-import {
-    PaymentCalculatedCheckout,
-    PaymentCompletedCheckout,
-    PaymentProduct,
-    PaymentProviderData,
-    PaymentUser,
-    PaymentUserSubscriptionProperties
-} from "../types.js";
+import {PaymentCalculatedCheckout, PaymentCompletedCheckout, PaymentProduct, PaymentProviderData, PaymentUser, PaymentUserSubscriptionProperties} from "../types.js";
 
 export interface PaymentProviderBaseProperties {
     provider: string;
@@ -13,16 +6,16 @@ export interface PaymentProviderBaseProperties {
 
 export type PaymentProviderCheckoutProductsResult = {
     productObj: PaymentProduct;
-    providerData: PaymentProviderData<unknown>
+    providerData: PaymentProviderData
 };
 
-export type PaymentProviderCheckoutResult<PD> = {
-    checkout: PaymentCompletedCheckout<PD>,
+export type PaymentProviderCheckoutResult = {
+    checkout: PaymentCompletedCheckout,
     products: Array<PaymentProviderCheckoutProductsResult>,
     subscription?: PaymentUserSubscriptionProperties
 };
 
-export abstract class AbstractPaymentServerProvider<PD> implements PaymentProviderBaseProperties {
+export abstract class AbstractPaymentServerProvider<PD = any> implements PaymentProviderBaseProperties {
 
     abstract provider: string;
 
@@ -32,7 +25,7 @@ export abstract class AbstractPaymentServerProvider<PD> implements PaymentProvid
      * @param user
      * @param calculatedCheckout
      */
-    abstract prepareCheckout(user: PaymentUser, calculatedCheckout: PaymentCalculatedCheckout<PD>): Promise<PaymentCalculatedCheckout<PD>>;
+    abstract prepareCheckout(user: PaymentUser, calculatedCheckout: PaymentCalculatedCheckout): Promise<PaymentCalculatedCheckout>;
 
     /**
      * This method should handle
@@ -44,19 +37,19 @@ export abstract class AbstractPaymentServerProvider<PD> implements PaymentProvid
      * @param user
      * @param checkoutObj Some providers have payment flow starting generating secrets on client, if it happens checkoutObj will be PaymentProviderCheckout
      */
-    abstract checkout(user: PaymentUser, checkoutObj: PaymentCalculatedCheckout<PD>): Promise<PaymentProviderCheckoutResult<PD>>;
+    abstract checkout(user: PaymentUser, checkoutObj: PaymentCalculatedCheckout): Promise<PaymentProviderCheckoutResult>;
 
     /**
      * Implement checkout cancel
      */
-    abstract cancelCheckout(user: PaymentUser, checkoutObj: PaymentCompletedCheckout<PD>): Promise<PaymentProviderCheckoutResult<PD>>;
+    abstract cancelCheckout(user: PaymentUser, checkoutObj: PaymentCompletedCheckout): Promise<PaymentProviderCheckoutResult>;
 
     /**
      * Handle webhooks
      *
      * @param data
      */
-    abstract handleWebhook(user: PaymentUser, checkout: PaymentCalculatedCheckout<PD> | PaymentCompletedCheckout<PD>, webhookData: any): Promise<PaymentProviderCheckoutResult<PD> | void>
+    abstract handleWebhook(user: PaymentUser, checkout: PaymentCalculatedCheckout | PaymentCompletedCheckout, webhookData: any): Promise<PaymentProviderCheckoutResult | void>
 
     /**
      * Read user data

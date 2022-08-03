@@ -1,7 +1,7 @@
-import {html, render, TemplateResult} from "lit";
-import {useRef, Fragment, createRef, useEffect} from "react";
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { nord as codeTheme } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import {render, TemplateResult} from "lit";
+import {useEffect, useRef} from "react";
+import {Prism as SyntaxHighlighter} from 'react-syntax-highlighter';
+import {nord as codeTheme} from 'react-syntax-highlighter/dist/esm/styles/prism';
 
 export function ReactHtmlRender(props: {html: TemplateResult, hideSrc: boolean}) {
     const ref = useRef<HTMLDivElement | null>(null);

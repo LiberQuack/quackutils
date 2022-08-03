@@ -2,9 +2,6 @@ import {ReactiveController, ReactiveControllerHost} from "lit";
 import * as s from "superstruct";
 import objectPath from "object-path"
 import {Dictionary} from "./types";
-import * as utilityType from "utility-types";
-import {debug} from "../bullapp-api/src/utils/log";
-import * as util from "util";
 
 export type FormControllerOpts<T = any> = Partial<{
     initialRawData: Partial<T>,

@@ -2,7 +2,6 @@
 
 import {Dictionary} from "./types";
 import {UnionToIntersection} from "utility-types";
-import {AugmentedRequired} from "utility-types/dist/mapped-types";
 
 export function listToDictionary<T>(list: T[], key: keyof T): Dictionary<T> {
     return list.reduce((acc, item) => {

@@ -1,3 +1,5 @@
+import {ArrayType, Narrow} from "../utils.js";
+
 export type PaymentProviderMinimalProperties = { provider: string };
 export type PaymentEnforceProviderBase<T extends PaymentProviderMinimalProperties> = T
 export type PaymentUserAccount = PaymentProviderMinimalProperties
@@ -14,7 +16,7 @@ export type PaymentUserData = {
     /**
      * Convinience property for accessing the last checkout
      */
-    lastCheckout?: PaymentCompletedCheckout<unknown>;
+    lastCheckout?: PaymentCompletedCheckout;
 
     /**
      * Some payment providers, like stripe, may have important data
@@ -78,18 +80,24 @@ export type PaymentProduct = {
     title: string;
 
     /**
-     * Product price
+     * Array of prices, purpose is to be able to charge
+     * in different currencies
      */
-    price: number;
+    prices:Array<{
+        /**
+         * Product price
+         */
+        price: number;
 
-    /**
-     * Currency, when empty, api will use it's defualt currency
-     *
-     * If the checkout has different currencies, it will throw error,
-     * or... Ideally will convert the prices for the currency with higher weight
-     * the weight will be in total amount of checkout
-     */
-    currency?: string;
+        /**
+         * Currency, when empty, api will use it's defualt currency
+         *
+         * If the checkout has different currencies, it will throw error,
+         * or... Ideally will convert the prices for the currency with higher weight
+         * the weight will be in total amount of checkout
+         */
+        currency: string;
+    }>
 
     /**
      * Indicate if this product was inlined in a checkout,
@@ -122,15 +130,15 @@ export type PaymentProduct = {
      * When the product or plan is registered within our providers, the data will
      * be reflected in this property
      */
-    externalPaymentProviderData?: Array<PaymentProviderData<unknown>>;
+    externalPaymentProviderData?: Array<PaymentProviderData>;
 }
 
 /**
  * It's a container for holding provider data
  */
-export type PaymentProviderData<PD> = {
+export type PaymentProviderData = {
     provider: string;
-    data: PD
+    data: any
 };
 
 /**
@@ -215,7 +223,7 @@ export type PaymentPartialCheckout = PaymentProviderMinimalProperties & {
      * ideally when you call paymentClient.calculate(partialCheckout),
      * the api will do the necessary work, for example, creating these products
      */
-    inlineItems?: Array<Pick<PaymentProduct, "price" | "currency" | "type" | "title"> & {
+    inlineItems?: Array<Pick<PaymentProduct, "type" | "title"> & ArrayType<PaymentProduct["prices"]> & {
         quantity: number;
     }>}
 
@@ -223,16 +231,28 @@ export type PaymentPartialCheckout = PaymentProviderMinimalProperties & {
  * PaymentCalculatedCheckout is the calculated data, it's one step closed
  * from being sent to the payment provider for completing the purchase
  */
-export type PaymentCalculatedCheckout<PD> = PaymentProviderMinimalProperties & {
+export type PaymentCalculatedCheckout = PaymentProviderMinimalProperties & {
     err?: any;
 
     coupon_codes?: PaymentCoupon["code"][];
     userId: string;
 
     /**
-     * Check PaymentProviderData
+     * externalData is a field intended to store in your database for easy access
+     * and share it to your client side
+     *
+     * For more, see PaymentProviderData
      */
-    externalData?: PaymentProviderData<PD>
+    externalData?: PaymentProviderData
+
+    /**
+     * clientData is a field for sharing information
+     * only on client side, may hold references and
+     * complex data
+     *
+     * Should not be sent back to the server
+     */
+    clientData?: any
 
     /**
      * External id for retrieving data from payment provider
@@ -337,15 +357,20 @@ export type PaymentCalculatedCheckout<PD> = PaymentProviderMinimalProperties & {
          * This is the final item price
          */
         total: number;
+
+        /**
+         * This is the currency
+         */
+        currency: string
     }>
 }
 
 /**
  * PaymentCompletedCheckout as the name says, represents a completed checkout
  */
-export type PaymentCompletedCheckout<PD> = PaymentCalculatedCheckout<PD> & {
+export type PaymentCompletedCheckout = PaymentCalculatedCheckout & {
     success: boolean;
-    period?: Date
+    subscription?: PaymentUserSubscriptionProperties
 
     /**
      * External id for retrieving data from payment provider
@@ -356,3 +381,15 @@ export type PaymentCompletedCheckout<PD> = PaymentCalculatedCheckout<PD> & {
     cancelReason?: string;
     cancelRequestDate?: Date;
 }
+
+export type NarrowCalculatedCheckout<T extends {provider: string, externalData: any, clientData: any}> = Narrow<PaymentCalculatedCheckout, {
+    provider: T["provider"],
+    externalData: Narrow<PaymentProviderData, { provider: T["provider"], data: T["externalData"] }>
+    clientData?: T["clientData"]
+}>;
+
+export type NarrowCompletedCheckout<T extends {provider: string, externalData: any, clientData: any}> = Narrow<PaymentCompletedCheckout, {
+    provider: T["provider"],
+    externalData: Narrow<PaymentProviderData, { provider: T["provider"], data: T["externalData"] }>
+    clientData?: T["clientData"]
+}>;

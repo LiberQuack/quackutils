@@ -14,11 +14,13 @@
     }
   },
   "scripts": {
-    "clean": "npm run clean:dist && npm run clean:cache",
+    "clean": "npm run clean:dist && npm run clean:cache && npm run clean:parcel-tmp",
     "clean:dist": "rm -rf ./dist",
     "clean:cache": "rm -rf ./.parcel-cache",
-    "link": "npm run build",
-    "postlink": "cp package.json ./dist && cd dist && npm link",
+    "clean:parcel-tmp": "rm -rf ./.parcel-tmp",
+    "prelink": "npm run build",
+    "link": "npm link",
+    "postlink": "cd dist && npm pack && mv *.tgz liberquack-utils.tgz",
     "prebuild": "npm run clean && mkdir -p dist && cp *.json ./dist",
     "build": "npm run build:esm",
     "build:esm": "tsc -p tsconfig.json",
@@ -30,7 +32,7 @@
     "test": "tsc -p tsconfig-tests.json && mocha 'dist/tests/**/*-test.js'",
     "release:pre": "npm version prerelease --preid $(git rev-parse --short HEAD) && npm run build && (cd dist && npm publish --tag latest --access public)",
     "start": "npm run check && concurrently npm:start:*",
-    "start:docs": "parcel src/index.html --port 9091",
+    "start:docs": "parcel src/index.html --port 9091 --dist-dir .parcel-tmp",
     "start:check": "npm-watch check",
     "start:link": "npm-watch link"
   },

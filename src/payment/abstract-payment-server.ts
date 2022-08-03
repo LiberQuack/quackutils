@@ -1,25 +1,12 @@
-import {
-    PaymentCalculatedCheckout,
-    PaymentCompletedCheckout,
-    PaymentPartialCheckout,
-    PaymentProduct,
-    PaymentProviderData,
-    PaymentProviderMinimalProperties,
-    PaymentUser,
-    PaymentUserData
-} from "./types.js";
+import {PaymentCalculatedCheckout, PaymentCompletedCheckout, PaymentPartialCheckout, PaymentProduct, PaymentProviderData, PaymentProviderMinimalProperties, PaymentUser, PaymentUserData} from "./types.js";
 
-import {
-    AbstractPaymentServerProvider,
-    PaymentProviderCheckoutProductsResult,
-    PaymentProviderCheckoutResult
-} from "./server-providers/abstract-payment-server-provider.js";
+import {AbstractPaymentServerProvider, PaymentProviderCheckoutProductsResult, PaymentProviderCheckoutResult} from "./server-providers/abstract-payment-server-provider.js";
 
-export abstract class AbstractPaymentServer<U extends PaymentUser, P extends PaymentProduct, PP extends (AbstractPaymentServerProvider<unknown>)[]> {
+export abstract class AbstractPaymentServer<U extends PaymentUser = any, P extends PaymentProduct = any, PP extends AbstractPaymentServerProvider = any> {
 
-    providers: PP;
+    providers: PP[];
 
-    constructor(paymentProviders: PP) {
+    constructor(paymentProviders: PP[]) {
         this.providers = paymentProviders;
     }
 
@@ -117,7 +104,7 @@ export abstract class AbstractPaymentServer<U extends PaymentUser, P extends Pay
 
     abstract retrieveUser(customerData: { id: string } | { email: string }): Promise<U>
 
-    async checkout(user: U, checkout: PaymentPartialCheckout): Promise<PaymentUserData> {
+    async checkout(user: U, checkout: PaymentCalculatedCheckout): Promise<PaymentUserData> {
         const providerData = await this.providerCheckout(user, checkout);
         await this.saveProductsProviderData(providerData.products);
 
@@ -148,7 +135,7 @@ export abstract class AbstractPaymentServer<U extends PaymentUser, P extends Pay
         const providerInstance = this.providers.find(it => it.provider === checkout.provider);
         if (!providerInstance) throw `Provider ${checkout.provider} is unavailable, expected providers are ${this.providers.map(it => it.provider)}`;
 
-        const checkoutResult: PaymentProviderCheckoutResult<unknown> = await providerInstance.cancelCheckout(user, checkout as PaymentCompletedCheckout<unknown>);
+        const checkoutResult: PaymentProviderCheckoutResult = await providerInstance.cancelCheckout(user, checkout as PaymentCompletedCheckout);
         const savedCheckout = await this.saveCheckout(user, {...checkoutResult.checkout, cancelRequestDate: new Date(), cancelReason: reason})
 
         const paymentData: PaymentUserData = {
@@ -162,15 +149,14 @@ export abstract class AbstractPaymentServer<U extends PaymentUser, P extends Pay
         return paymentData
     }
 
-    protected async providerCheckout(user: U, checkout: PaymentPartialCheckout): Promise<PaymentProviderCheckoutResult<unknown>> {
+    protected async providerCheckout(user: U, checkout: PaymentCalculatedCheckout): Promise<PaymentProviderCheckoutResult> {
         const providerInstance = this.providers.find(it => it.provider === checkout.provider);
 
         if (!providerInstance) {
             throw `Server has no payment provider called ${checkout.provider}, possible values are [${this.providers.map(it => it.provider)}]`
         }
 
-        const calculatedCheckout = await this.calculateCheckout(user, checkout);
-        const providerData = await providerInstance.checkout(user, calculatedCheckout);
+        const providerData = await providerInstance.checkout(user, checkout);
 
         return providerData;
     }
@@ -200,12 +186,12 @@ export abstract class AbstractPaymentServer<U extends PaymentUser, P extends Pay
     /**
      * Implement this method for retrieving checkouts from your data source
      */
-    abstract retrieveCheckout(user: U, checkoutId: string): Promise<PaymentCompletedCheckout<unknown> | PaymentCalculatedCheckout<unknown>>
+    abstract retrieveCheckout(user: U, checkoutId: string): Promise<PaymentCompletedCheckout | PaymentCalculatedCheckout>
 
     /**
      * Implement this method for retrieving checkouts from your data source
      */
-    abstract retrieveCheckoutByProviderId(user: U, providerCheckoutId: string): Promise<PaymentCompletedCheckout<unknown>>
+    abstract retrieveCheckoutByProviderId(user: U, providerCheckoutId: string): Promise<PaymentCompletedCheckout>
 
     /**
      * Implement this method for:
@@ -219,7 +205,7 @@ export abstract class AbstractPaymentServer<U extends PaymentUser, P extends Pay
      *     updateDb(checkout._id, checkout)
      * }
      */
-    protected abstract saveCheckout(user: U, checkout: PaymentCompletedCheckout<unknown>): Promise<PaymentCompletedCheckout<unknown>>
+    protected abstract saveCheckout(user: U, checkout: PaymentCompletedCheckout): Promise<PaymentCompletedCheckout>
 
     /**
      * Implement this method per project, should fill as many field as possible
@@ -228,7 +214,7 @@ export abstract class AbstractPaymentServer<U extends PaymentUser, P extends Pay
      * @param user
      * @param partialCheckout
      */
-    abstract calculateCheckout(user: U, partialCheckout: PaymentPartialCheckout): Promise<PaymentCalculatedCheckout<unknown>>;
+    abstract calculateCheckout(user: U, partialCheckout: PaymentPartialCheckout): Promise<PaymentCalculatedCheckout>;
 
     /**
      * Sometimes products need to be created on provider, implement this method for persisting that changes
@@ -237,7 +223,7 @@ export abstract class AbstractPaymentServer<U extends PaymentUser, P extends Pay
      * @param providersData
      * @protected
      */
-    protected abstract updateProductProvidersData<P extends PaymentProduct, PPPD extends PaymentProviderData<unknown>>(product: P, providersData: PPPD[]): Promise<void>;
+    protected abstract updateProductProvidersData<P extends PaymentProduct, PPPD extends PaymentProviderData>(product: P, providersData: PPPD[]): Promise<void>;
     /**
      * Persist user will allow you to save user payment properties, implementation should be similar to example
      *

@@ -1,9 +1,8 @@
 import {TRACKING_PURCHASE_CHECKOUT, TRACKING_PURCHASE_JOURNEY, TrackingManagerProvider} from "../tracking-types";
 import {Dictionary} from "../../../_/types";
-import {PaymentCalculatedCheckout, PaymentProduct, PaymentCompletedCheckout} from "../../../payment/types";
+import {PaymentCalculatedCheckout, PaymentCompletedCheckout, PaymentProduct} from "../../../payment/types";
 import {GoogleTrackingBaseOpts} from "./google-tracking-types";
 import {assureGtag} from "./google-tracking-utils";
-import {FINANCASH_TRACKING_EVENTS} from "../../../../src/app/tracking/financash-tracking-types";
 
 export abstract class GoogleAdsProvider<CE> implements TrackingManagerProvider<CE> {
 

@@ -1,4 +1,4 @@
-import {useEffect, useLayoutEffect, useRef, useState} from "haunted/lib/core";
+import {useEffect, useRef, useState} from "haunted/lib/core";
 import {CustomElementDefinition, CustomEventType} from "../ui-types";
 import {css} from "../../../src/ui/util/css";
 import {debounce} from "debounce";

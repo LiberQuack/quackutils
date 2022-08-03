@@ -1,4 +1,4 @@
-import {useEffect, useState} from "haunted/lib/core";
+import {useState} from "haunted/lib/core";
 
 export const useSetTimeout = (...args: { value: any, timeout: number }[]) => {
     const [isRunning, setIsRunning] = useState(false);

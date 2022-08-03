@@ -1,4 +1,4 @@
-import {PaymentCalculatedCheckout, PaymentProduct, PaymentCompletedCheckout} from "../../payment/types";
+import {PaymentCalculatedCheckout, PaymentCompletedCheckout, PaymentProduct} from "../../payment/types";
 import {Dictionary} from "../../_/types";
 
 export type TRACKING_PURCHASE = TRACKING_PURCHASE_JOURNEY | TRACKING_PURCHASE_CHECKOUT

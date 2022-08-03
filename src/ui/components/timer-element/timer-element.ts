@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from "haunted/lib/core.js";
+import {useEffect, useMemo, useState} from "haunted/lib/core.js";
 import {component} from "haunted";
 import {html} from "lit";
 import {CustomElementDefinition} from "../../ui-types.js";

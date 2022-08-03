@@ -1,22 +1,24 @@
-import {PaymentCalculatedCheckout, PaymentPartialCheckout, PaymentProviderData, PaymentCompletedCheckout, PaymentUserData} from "./types.js";
-import {AbstractPaymentClientProvider} from "./client-providers/abstract-payment-client-provider.js";
-import {State} from "../app/state/index.js";
-import {ProviderClientData} from "./client-providers/payment-stripe-client-provider.js";
+import {PaymentCalculatedCheckout, PaymentCompletedCheckout, PaymentPartialCheckout, PaymentProviderData, PaymentProviderMinimalProperties, PaymentUserData} from "./types.js";
+import {AbstractPaymentClientProvider, ProviderClientProviderData} from "./client-providers/abstract-payment-client-provider.js";
+import {Narrow} from "../utils.js";
+import {inlineErr} from "../app/inline-error.js";
+import {PromiseType} from "utility-types";
 
-const paymentClientInitialState:PaymentProviderData<any> | {} = {};
+type NarrowedCalculetedCheckout<P extends AbstractPaymentClientProvider = any, PN extends P["provider"] = any> = Narrow<PaymentCalculatedCheckout, {
+    provider: PN,
+    externalData: Narrow<PaymentProviderData, { provider: PN, data: ProviderClientProviderData<Extract<P, {provider: PN}>> }>
+}>;
 
 /**
  * PaymentClient is the class for executing the checkout on front-end
  */
-export abstract class AbstractPaymentClient {
-
-    private static state = new State("payment-client", paymentClientInitialState);
+export abstract class AbstractPaymentClient<P extends AbstractPaymentClientProvider = any> {
 
     private inited = false
-    private providers: AbstractPaymentClientProvider<unknown>[] = [];
-    private providersInitializers: (() => AbstractPaymentClientProvider<unknown>)[];
+    providers: P[] = [];
+    providersInitializers: (() => P)[];
 
-    constructor(providers: (() => AbstractPaymentClientProvider<unknown>)[]) {
+    constructor(providers: (() => P)[]) {
         this.providersInitializers = providers;
     }
 
@@ -26,36 +28,34 @@ export abstract class AbstractPaymentClient {
         this.inited = true
     }
 
-    /**
-     * Here you should send the checkout to the server
-     *
-     * @param checkout
-     */
-    protected abstract sendCheckout(checkout: PaymentCalculatedCheckout<unknown>): Promise<PaymentUserData>
+    async buildUi<PN extends P["provider"]>(calculatedCheckout: NarrowedCalculetedCheckout<P, PN>, opts: Parameters<Extract<P, {provider: PN}>["buildUi"]>[1] & {
+        onSuccess: (checkout: PaymentCompletedCheckout) => void,
+        onError: (err:Error, checkout?: PaymentCompletedCheckout) => void
+    }): Promise<PromiseType<ReturnType<Extract<P, { provider: PN }>["buildUi"]>>> {
+        this.checkInited();
+        const provider = this.getProvider(calculatedCheckout);
 
-    /**
-     * Implement this method and send your partial checkout to the server,
-     * then you will have ensured prices from your api
-     *
-     * @param checkout
-     * @protected
-     */
-    protected abstract sendCalculateCheckout(checkout: PaymentPartialCheckout): Promise<PaymentCalculatedCheckout<unknown>>
+        return provider.buildUi(calculatedCheckout, opts, async (calculatedCheckout) => {
+            const [paymentUserData, err] = await inlineErr(this.checkout(calculatedCheckout));
 
-    protected abstract sendCancelCheckout(checkout: PaymentCompletedCheckout<unknown>): Promise<PaymentUserData>;
-
-    async calculateCheckout(checkout: PaymentPartialCheckout): Promise<PaymentCalculatedCheckout<unknown>> {
-        return this.sendCalculateCheckout(checkout);
+            if (paymentUserData?.lastCheckout?.success) {
+                opts.onSuccess(paymentUserData.lastCheckout);
+            } else {
+                opts.onError(err ?? "Unexpected error", paymentUserData?.lastCheckout);
+            }
+        });
     }
 
-    async checkout(checkout: PaymentCalculatedCheckout<unknown>): Promise<PaymentUserData> {
-        if (!this.inited) throw "Payment client instance has still not been initiated"
 
-        const providerInstance = this.providers.find(it => it.provider === checkout.provider);
+    async calculateCheckout<PN extends P["provider"]>(checkout: Narrow<PaymentPartialCheckout, {provider: PN}>): Promise<NarrowedCalculetedCheckout<P, PN>> {
+        const calculatedCheckout = this.sendCalculateCheckout(checkout);
+        return calculatedCheckout as any;
+    }
 
-        if (!providerInstance) {
-            throw `There's no provider ${checkout.provider} available, try one of [${this.providers.map(it => it.provider)}]`
-        }
+    async checkout(checkout: PaymentCalculatedCheckout): Promise<PaymentUserData> {
+        this.checkInited();
+
+        const providerInstance = this.getProvider(checkout);
 
         let currentRoundTrip = 0;
         let maxRoundTrips = providerInstance.maxRoundTrips() ?? 0;
@@ -75,31 +75,39 @@ export abstract class AbstractPaymentClient {
         throw "maxRoundTrip reached";
     }
 
-    async cancelCheckout(checkout: PaymentCompletedCheckout<unknown>, reason: string): Promise<PaymentUserData> {
+    private getProvider<C extends PaymentProviderMinimalProperties>(checkout: C): Extract<P, { provider: typeof checkout}> {
+        const providerInstance = this.providers.find(it => it.provider === checkout.provider);
+        if (!providerInstance) {
+            throw `There's no provider ${checkout.provider} available, try one of [${this.providers.map(it => it.provider)}]`
+        }
+        return providerInstance as Extract<P, { provider: typeof checkout}>;
+    }
+
+    private checkInited() {
+        if (!this.inited) throw "Payment client instance has still not been initiated"
+    }
+
+    async cancelCheckout(checkout: PaymentCompletedCheckout, reason: string): Promise<PaymentUserData> {
         const nextCheckout = {...checkout, reason}
         return this.sendCancelCheckout(checkout)
     }
 
     /**
-     * Use this method for subscribing to latest provider data,
-     * so after calculateCheckout, your elements can listen to it,
+     * Here you should send the checkout to the server
      *
-     * For example <stripe-form> is always subscribed to 'stripe' provider data
-     * and when identifying a intentToken, <stripe-form> will recreate the ui
-     * using that information
-     *
-     * See more about PaymentStripeProviderData type and <stripe-form> element
-     *
-     * @param provider
-     * @param cb
+     * @param checkout
      */
-    static subcribeProviderData<P extends AbstractPaymentClientProvider<unknown>>(provider: P["provider"], cb: (arg: ProviderClientData<P>) => void) {
-        const unsubscribe = AbstractPaymentClient.state.subscribe((prev, {isUpdating, state}) => {
-            if (prev?.isUpdating && !isUpdating && "provider" in state && state.provider === provider) {
-                cb(state.data);
-            }
-        })
+    protected abstract sendCheckout(checkout: PaymentCalculatedCheckout): Promise<PaymentUserData>
 
-        return unsubscribe;
-    }
+    /**
+     * Implement this method and send your partial checkout to the server,
+     * then you will have ensured prices from your api
+     *
+     * @param checkout
+     * @protected
+     */
+    protected abstract sendCalculateCheckout(checkout: PaymentPartialCheckout): Promise<PaymentCalculatedCheckout>
+
+    protected abstract sendCancelCheckout(checkout: PaymentCompletedCheckout): Promise<PaymentUserData>;
+
 }

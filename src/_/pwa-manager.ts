@@ -2,7 +2,7 @@
 
 import {BeforeInstallPromptEvent, Undefinable} from "./types";
 import {State} from "./src/app/state/state";
-import {inlineErr} from "./inline-error";
+import {inlineErr} from "../app/inline-error";
 import toUint8Array from 'urlb64touint8array';
 
 type PwaPromptResult = "accepted" | "dismissed" | "unknown";

@@ -1,15 +1,9 @@
 import {AbstractPaymentClient} from "../../src/payment/abstract-payment-client";
 import {PaymentCalculatedCheckout, PaymentPartialCheckout, PaymentCompletedCheckout, PaymentUserData} from "../../src/payment/types";
 import {PaymentStripeClientProvider} from "../../src/payment/client-providers/payment-stripe-client-provider";
+import {AbstractPaymentClientProvider} from "../../src";
 
-export class PaymentClientTest extends AbstractPaymentClient {
-
-    constructor() {
-        const providers = [
-            () => new PaymentStripeClientProvider("pk_test_51IG332FIx1iLyZGc71gYaVCUDKMPAFlRn49tyrzTqf3FYymriwKSJAnKbWyAK9c9WdIi3gn6O9Y8rOKc1tpSJGmQ00RU6pFiTC")
-        ]
-        super(providers);
-    }
+export class PaymentClientTest<P extends AbstractPaymentClientProvider = any> extends AbstractPaymentClient<P> {
 
     protected async sendCancelCheckout(checkout: PaymentCompletedCheckout): Promise<PaymentUserData> {
         const req: RequestInit = {body: JSON.stringify(checkout), method: "POST"};
