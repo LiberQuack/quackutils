@@ -1,7 +1,7 @@
-import StripeServer from "stripe";
-import {NarrowCalculatedCheckout, NarrowCompletedCheckout} from "./types.js";
-import {Token} from "@stripe/stripe-js/types/api/tokens.js";
-import {StripeCardElement, StripeCardNumberElement} from "@stripe/stripe-js";
+import type StripeServer from "stripe";
+import type {NarrowCalculatedCheckout, NarrowCompletedCheckout} from "./types.js";
+import type {Token} from "@stripe/stripe-js/types/api/tokens.js";
+import type {StripeCardElement, StripeCardNumberElement} from "@stripe/stripe-js";
 
 export type PaymentStripeProviderData = {
 
@@ -17,7 +17,7 @@ export type PaymentStripeProviderData = {
     paymentMethodToken?: Token
 
     /**
-     *
+     * Should store a payment intent with status completed
      */
     finalPaymentIntent?: StripeServer.PaymentIntent
 
