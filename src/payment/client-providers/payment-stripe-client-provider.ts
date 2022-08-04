@@ -1,9 +1,9 @@
-import type * as StripeTypes from "@stripe/stripe-js"
 import {loadStripe} from "@stripe/stripe-js"
 import {AbstractPaymentClientProvider} from "./abstract-payment-client-provider.js";
-import {NarrowedStripeCalculatedCheckout, NarrowedStripeCompletedCheckout, PaymentStripeProviderData} from "../payment-stripe-types.js";
-import {EventListener} from "../../ui/ui-types.js";
-import {StripeCardformEvents} from "../../ui/components/payments/stripe/stripe-form.js";
+import type * as StripeTypes from "@stripe/stripe-js"
+import type {NarrowedStripeCalculatedCheckout, NarrowedStripeCompletedCheckout, PaymentStripeProviderData} from "../payment-stripe-types.js";
+import type {EventListener} from "../../ui/ui-types.js";
+import type {StripeCardformEvents} from "../../ui/components/payments/stripe/stripe-form.js";
 
 /**
  * This stripe client provider

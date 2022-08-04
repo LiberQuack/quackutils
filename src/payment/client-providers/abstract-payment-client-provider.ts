@@ -1,4 +1,4 @@
-import {PaymentCalculatedCheckout, PaymentCompletedCheckout, PaymentUserData} from "../types.js";
+import type {PaymentCalculatedCheckout, PaymentCompletedCheckout} from "../types.js";
 
 export type ProviderClientProviderData<P extends AbstractPaymentClientProvider> = P extends AbstractPaymentClientProvider<infer PD> ? PD : never;
 

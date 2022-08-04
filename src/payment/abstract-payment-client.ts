@@ -1,8 +1,8 @@
-import {PaymentCalculatedCheckout, PaymentCompletedCheckout, PaymentPartialCheckout, PaymentProviderData, PaymentProviderMinimalProperties, PaymentUserData} from "./types.js";
-import {AbstractPaymentClientProvider, ProviderClientProviderData} from "./client-providers/abstract-payment-client-provider.js";
-import {Narrow} from "../utils.js";
 import {inlineErr} from "../app/inline-error.js";
-import {PromiseType} from "utility-types";
+import type {PaymentCalculatedCheckout, PaymentCompletedCheckout, PaymentPartialCheckout, PaymentProviderData, PaymentProviderMinimalProperties, PaymentUserData} from "./types.js";
+import type {AbstractPaymentClientProvider, ProviderClientProviderData} from "./client-providers/abstract-payment-client-provider.js";
+import type {Narrow} from "../utils.js";
+import type{PromiseType} from "utility-types";
 
 type NarrowedCalculetedCheckout<P extends AbstractPaymentClientProvider = any, PN extends P["provider"] = any> = Narrow<PaymentCalculatedCheckout, {
     provider: PN,
