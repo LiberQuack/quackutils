@@ -4,6 +4,7 @@ import {PaymentEnforceProviderBase, PaymentProduct, PaymentUser} from "../types.
 import {Undefinable} from "../../_/types.js";
 import {NarrowedStripeCalculatedCheckout, NarrowedStripeCompletedCheckout, PaymentStripeProviderData} from "../payment-stripe-types.js";
 import {Narrow} from "../../utils.js";
+import { logger } from "../../logger.js";
 
 export type PaymentStripeAccount = PaymentEnforceProviderBase<{
     provider: "stripe",
@@ -17,7 +18,7 @@ export class PaymentStripeServerProvider extends AbstractPaymentServerProvider<P
     stripe: Stripe
     provider: "stripe" = "stripe";
 
-    constructor(apiKey: string, public opts?: {preCapture: (checkout: NarrowedStripeCalculatedCheckout, paymentIntent: Stripe.PaymentIntent) => void}) {
+    constructor(apiKey: string, public opts?: {preCapture: (checkout: NarrowedStripeCalculatedCheckout, paymentIntent: Stripe.PaymentIntent) => Promise<{requiresClientAction: boolean}>}) {
         super()
         this.stripe = new Stripe(apiKey, {apiVersion: "2020-08-27"})
     }
@@ -155,19 +156,25 @@ export class PaymentStripeServerProvider extends AbstractPaymentServerProvider<P
                 data: {
                     clientSecret: paymentIntent.client_secret
                 }
-            },
+            }
         }
 
         return nextCalculatedCheckout;
     }
 
     async checkout(user: PaymentUser, checkoutObj: NarrowedStripeCalculatedCheckout): Promise<PaymentProviderCheckoutResult> {
+        if (!("externalData" in checkoutObj)) {
+            throw "Expected externalData on checkout object"
+        }
+
+        logger.info("stripe-server", `Starting checkout for user ${checkoutObj.userId}, paymentIntent ${checkoutObj.externalId}`);
+
         const onlyProducts = checkoutObj.items.map(it => it.type).every(it => it === "product")
 
         if (onlyProducts) {
             //Handle second round trip (when 3D)
             let roundTripResult = await this.handleRoundTrip(checkoutObj);
-            if (roundTripResult) return roundTripResult;
+            return roundTripResult;
         } else {
             throw "Not supported at the moment"
             //Reverts plan cancellation
@@ -178,36 +185,26 @@ export class PaymentStripeServerProvider extends AbstractPaymentServerProvider<P
             // const subscription = await this.createSubscription(checkoutObj, /*stripeAccount*/null as any);
             // if (subscription) return subscription
         }
-
-        throw "Not supported at the moment"
     }
 
-    private async handleRoundTrip(checkoutObj: NarrowedStripeCalculatedCheckout): Promise<PaymentProviderCheckoutResult | void> {
-        if ("externalData" in checkoutObj) {
-            const paymentMethodToken = checkoutObj.externalData?.data?.paymentMethodToken;
+    protected async handleRoundTrip(checkoutObj: NarrowedStripeCalculatedCheckout): Promise<PaymentProviderCheckoutResult> {
+        const paymentMethodToken = checkoutObj.externalData?.data?.paymentMethodToken;
+        if (!paymentMethodToken) throw "Expected transaction token";
+        if (!checkoutObj.externalId) throw "Expected external id";
 
-            if (!paymentMethodToken) {
-                throw "Expected transaction token";
-            }
+        let paymentIntent = await this.stripe.paymentIntents.retrieve(checkoutObj.externalId, {});
+        const preCaptureResult = await this.opts?.preCapture?.(checkoutObj, paymentIntent);
 
-            if (!checkoutObj.externalId) {
-                throw "Expected external id";
-            }
-
-            let paymentIntent = await this.stripe.paymentIntents.retrieve(checkoutObj.externalId, {});
-
-            this.opts?.preCapture?.(checkoutObj, paymentIntent);
-
-            if (paymentIntent?.status === "requires_capture") {
-                paymentIntent = await this.stripe.paymentIntents.capture(paymentIntent.id);
-            }
-
-            if (paymentIntent?.status === "succeeded") {
-                return this.buildCheckoutResult(checkoutObj, paymentIntent, undefined, [], checkoutObj.items.map(it => it.product));
-            }
-
-            throw "Unexpected payment intent status"
+        if (preCaptureResult?.requiresClientAction) {
+            logger.info("stripe-server", "Precatpure callback is setting more actions to be taken on client side");
+            return this.buildCheckoutResult(checkoutObj, paymentIntent, undefined, [], checkoutObj.items.map(it => it.product));
         }
+
+        if (paymentIntent?.status === "requires_capture") {
+            paymentIntent = await this.stripe.paymentIntents.capture(paymentIntent.id);
+        }
+
+        return this.buildCheckoutResult(checkoutObj, paymentIntent, undefined, [], checkoutObj.items.map(it => it.product));
     }
 
     protected async revertSubscriptionCancellation(user: PaymentUser, checkoutObj: NarrowedStripeCalculatedCheckout): Promise<PaymentProviderCheckoutResult | void> {

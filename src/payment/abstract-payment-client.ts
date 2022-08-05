@@ -1,8 +1,9 @@
 import {inlineErr} from "../app/inline-error.js";
+import type {PromiseType} from "utility-types";
 import type {PaymentCalculatedCheckout, PaymentCompletedCheckout, PaymentPartialCheckout, PaymentProviderData, PaymentProviderMinimalProperties, PaymentUserData} from "./types.js";
 import type {AbstractPaymentClientProvider, ProviderClientProviderData} from "./client-providers/abstract-payment-client-provider.js";
 import type {Narrow} from "../utils.js";
-import type{PromiseType} from "utility-types";
+import type {Undefinable} from "../_/types.js";
 
 type NarrowedCalculetedCheckout<P extends AbstractPaymentClientProvider = any, PN extends P["provider"] = any> = Narrow<PaymentCalculatedCheckout, {
     provider: PN,
@@ -59,14 +60,14 @@ export abstract class AbstractPaymentClient<P extends AbstractPaymentClientProvi
 
         let currentRoundTrip = 0;
         let maxRoundTrips = providerInstance.maxRoundTrips() ?? 0;
+        let lastResult: Undefinable<PaymentUserData>;
 
-        let paymentData: PaymentUserData;
-        while (currentRoundTrip <= maxRoundTrips) {
-            const providerCheckout = await providerInstance.checkout(paymentData!?.lastCheckout ?? checkout);
-            paymentData = await this.sendCheckout(providerCheckout);
+        while (currentRoundTrip < maxRoundTrips) {
+            const providerCheckout = await providerInstance.checkout(lastResult?.lastCheckout ?? checkout);
+            lastResult = await this.sendCheckout(providerCheckout);
 
-            if (paymentData.lastCheckout?.success) {
-                return paymentData;
+            if (lastResult.lastCheckout?.success) {
+                return lastResult;
             }
 
             currentRoundTrip++;

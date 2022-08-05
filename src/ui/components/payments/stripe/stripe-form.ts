@@ -40,18 +40,18 @@ export const StripeForm: StripeFormDefinition = function ({stripeClient, stripeC
     const useSubmit = useAwait(async () => {
             if (stripeRef.current) {
                 const {stripeClient, stripeElements} = stripeRef.current;
-                const stripeTokenizableElm = stripeElements.getElement("cardNumber") || stripeElements.getElement("card");
+                const stripeCardElement = stripeElements.getElement("cardNumber") || stripeElements.getElement("card");
 
-                if (!stripeTokenizableElm) {
+                if (!stripeCardElement) {
                     throw "Input not found"
                 }
 
-                const tokenResult = await stripeClient.createToken(stripeTokenizableElm);
+                const tokenResult = await stripeClient.createToken(stripeCardElement);
 
                 if (tokenResult.token) {
                     this.dispatchEvent(CreateCustomEvent("payment-method-token", {detail: {
                             paymentMethodToken: tokenResult.token,
-                            cardElement: stripeTokenizableElm
+                            cardElement: stripeCardElement
                         }, bubbles: true}))
                 }
 

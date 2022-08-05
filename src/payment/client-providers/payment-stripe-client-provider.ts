@@ -1,6 +1,6 @@
 import {loadStripe} from "@stripe/stripe-js"
 import {AbstractPaymentClientProvider} from "./abstract-payment-client-provider.js";
-import type * as StripeTypes from "@stripe/stripe-js"
+import type StripeTypes from "@stripe/stripe-js"
 import type {NarrowedStripeCalculatedCheckout, NarrowedStripeCompletedCheckout, PaymentStripeProviderData} from "../payment-stripe-types.js";
 import type {EventListener} from "../../ui/ui-types.js";
 import type {StripeCardformEvents} from "../../ui/components/payments/stripe/stripe-form.js";
@@ -9,6 +9,7 @@ import type {StripeCardformEvents} from "../../ui/components/payments/stripe/str
  * This stripe client provider
  */
 export class PaymentStripeClientProvider extends AbstractPaymentClientProvider<PaymentStripeProviderData> {
+
     provider: "stripe" = "stripe";
 
     protected stripePromise: Promise<StripeTypes.Stripe | null>;
@@ -29,9 +30,7 @@ export class PaymentStripeClientProvider extends AbstractPaymentClientProvider<P
         const cardElement = checkout.clientData?.cardElement;
         if (!cardElement) throw "Expected stripe elements instance on checkout.clientData"
 
-        const stripePaymentIntentResult = await stripe.confirmCardPayment(clientSecret, {payment_method: {
-                card: cardElement
-        }});
+        const stripePaymentIntentResult = await stripe.confirmCardPayment(clientSecret, {payment_method: {card: cardElement}});
 
         const paymentIntentResult = stripePaymentIntentResult?.paymentIntent;
         const status = paymentIntentResult?.status;
@@ -89,6 +88,10 @@ export class PaymentStripeClientProvider extends AbstractPaymentClientProvider<P
 
 
         return container;
+    }
+
+    maxRoundTrips(): number {
+        return 2;
     }
 
 }

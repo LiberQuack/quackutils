@@ -1,6 +1,6 @@
 import {PaymentCalculatedCheckout, PaymentCompletedCheckout, PaymentPartialCheckout, PaymentProduct, PaymentProviderData, PaymentProviderMinimalProperties, PaymentUser, PaymentUserData} from "./types.js";
-
 import {AbstractPaymentServerProvider, PaymentProviderCheckoutProductsResult, PaymentProviderCheckoutResult} from "./server-providers/abstract-payment-server-provider.js";
+import {logger} from "../logger.js";
 
 export abstract class AbstractPaymentServer<U extends PaymentUser = any, P extends PaymentProduct = any, PP extends AbstractPaymentServerProvider = any> {
 
@@ -105,6 +105,8 @@ export abstract class AbstractPaymentServer<U extends PaymentUser = any, P exten
     abstract retrieveUser(customerData: { id: string } | { email: string }): Promise<U>
 
     async checkout(user: U, checkout: PaymentCalculatedCheckout): Promise<PaymentUserData> {
+        logger.info("payment-server", `Starting checkout for user ${checkout.userId}, provider ${checkout.provider}, products [${checkout.items.map(it => it.productId)}]`)
+
         const providerData = await this.providerCheckout(user, checkout);
         await this.saveProductsProviderData(providerData.products);
 
