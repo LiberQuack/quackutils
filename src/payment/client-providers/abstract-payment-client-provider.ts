@@ -1,4 +1,4 @@
-import type {PaymentCalculatedCheckout, PaymentCompletedCheckout} from "../types.js";
+import type {PaymentCalculatedCheckout, PaymentCheckoutExecution} from "../types.js";
 
 export type ProviderClientProviderData<P extends AbstractPaymentClientProvider> = P extends AbstractPaymentClientProvider<infer PD> ? PD : never;
 
@@ -12,7 +12,7 @@ export abstract class AbstractPaymentClientProvider<PD = any> {
      *
      * @param checkout
      */
-    abstract checkout(checkout: PaymentCalculatedCheckout): Promise<PaymentCompletedCheckout>
+    abstract checkout(checkout: PaymentCalculatedCheckout): Promise<PaymentCheckoutExecution>
 
     /**
      * Implement here UI elements from the provider

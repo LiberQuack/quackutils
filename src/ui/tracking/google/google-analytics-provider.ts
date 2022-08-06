@@ -1,7 +1,7 @@
 import {Dictionary} from "../../../_/types";
 import {dictionaryMap} from "../../../_/dictionary";
 import {GtagProduct, TRACKING_PURCHASE, TRACKING_PURCHASE_CHECKOUT, TRACKING_PURCHASE_JOURNEY, TrackingManagerProvider} from "../tracking-types";
-import {PaymentCalculatedCheckout, PaymentCompletedCheckout, PaymentProduct} from "../../../payment/types";
+import {PaymentCalculatedCheckout, PaymentCheckoutExecution, PaymentProduct} from "../../../payment/types";
 import {GoogleTrackingBaseOpts} from "./google-tracking-types";
 import {assureGtag} from "./google-tracking-utils";
 
@@ -125,7 +125,7 @@ export class GoogleAnalyticsProvider implements TrackingManagerProvider {
 
     //https://developers.google.com/analytics/devguides/collection/ga4/ecommerce
     //https://developers.google.com/analytics/devguides/collection/ga4/reference/events#purchase
-    trackPurchaseCheckout(eventName: TRACKING_PURCHASE_CHECKOUT, checkout: PaymentCalculatedCheckout | PaymentCompletedCheckout, opts?: {err?: Error}): void {
+    trackPurchaseCheckout(eventName: TRACKING_PURCHASE_CHECKOUT, checkout: PaymentCalculatedCheckout | PaymentCheckoutExecution, opts?: {err?: Error}): void {
         const trackingProducts = checkout.items.map(it =>
             this.translateProductData(it.product, {
                 quantity: it.quantity,

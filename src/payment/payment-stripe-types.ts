@@ -11,6 +11,11 @@ export type PaymentStripeProviderData = {
     clientSecret?: StripeServer.PaymentIntent["client_secret"]
 
     /**
+     * clientSecretReplacement
+     */
+    clientSecretReplacement?: StripeServer.PaymentIntent["client_secret"],
+
+    /**
      * Represents the payment method used by the client,
      * you may be able to store it, for posterior usage
      */

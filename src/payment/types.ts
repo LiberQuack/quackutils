@@ -1,22 +1,19 @@
 import {ArrayType, Narrow} from "../utils.js";
+import type {PaymentExternalProductData} from "./server-providers/abstract-payment-server-provider.js";
 
 export type PaymentProviderMinimalProperties = { provider: string };
 export type PaymentEnforceProviderBase<T extends PaymentProviderMinimalProperties> = T
 export type PaymentUserAccount = PaymentProviderMinimalProperties
 
 /**
- * The idea is that you append these data to your user,
- * for example
- *
- * type MyUserType = PaymentUserData & {
- *     name:string
- * }
+ * TODO: Delete it, was replaced by PaymentCheckoutExecution
+ * @Deprecated
  */
 export type PaymentUserData = {
     /**
      * Convinience property for accessing the last checkout
      */
-    lastCheckout?: PaymentCompletedCheckout;
+    lastCheckout?: PaymentCheckoutExecution;
 
     /**
      * Some payment providers, like stripe, may have important data
@@ -130,7 +127,7 @@ export type PaymentProduct = {
      * When the product or plan is registered within our providers, the data will
      * be reflected in this property
      */
-    externalPaymentProviderData?: Array<PaymentProviderData>;
+    externalPaymentData?: Array<PaymentProviderData>;
 }
 
 /**
@@ -238,12 +235,21 @@ export type PaymentCalculatedCheckout = PaymentProviderMinimalProperties & {
     userId: string;
 
     /**
-     * externalData is a field intended to store in your database for easy access
-     * and share it to your client side
+     * externalData should persist some communication data between the provider and the api,
+     * also could be useful on client side
      *
      * For more, see PaymentProviderData
      */
     externalData?: PaymentProviderData
+
+    /**
+     * Some providers need to have products registered on their system,
+     * if that's the case, the generated data, like, product id on their system
+     * should be placed in this field
+     *
+     * That field should be populated only once, when the provider generates that data
+     */
+    externalProductData?: Array<PaymentExternalProductData>
 
     /**
      * clientData is a field for sharing information
@@ -368,8 +374,14 @@ export type PaymentCalculatedCheckout = PaymentProviderMinimalProperties & {
 /**
  * PaymentCompletedCheckout as the name says, represents a completed checkout
  */
-export type PaymentCompletedCheckout = PaymentCalculatedCheckout & {
+export type PaymentCheckoutExecution = PaymentCalculatedCheckout & {
     success: boolean;
+
+    /**
+     * Subscription details, keep in mind that every time
+     * it's renewed, the system should understand it as a
+     * new checkout entry
+     */
     subscription?: PaymentUserSubscriptionProperties
 
     /**
@@ -388,7 +400,7 @@ export type NarrowCalculatedCheckout<T extends {provider: string, externalData: 
     clientData?: T["clientData"]
 }>;
 
-export type NarrowCompletedCheckout<T extends {provider: string, externalData: any, clientData: any}> = Narrow<PaymentCompletedCheckout, {
+export type NarrowCompletedCheckout<T extends {provider: string, externalData: any, clientData: any}> = Narrow<PaymentCheckoutExecution, {
     provider: T["provider"],
     externalData: Narrow<PaymentProviderData, { provider: T["provider"], data: T["externalData"] }>
     clientData?: T["clientData"]

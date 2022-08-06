@@ -2,7 +2,7 @@
 import {State} from "../../app/state/state";
 import {addLinkClickListener, RouteStateType} from "../../app/router";
 import {Dictionary, Undefinable} from "../../_/types";
-import {PaymentCalculatedCheckout, PaymentCompletedCheckout, PaymentProduct} from "../../payment/types";
+import {PaymentCalculatedCheckout, PaymentCheckoutExecution, PaymentProduct} from "../../payment/types";
 import {TRACKING_PURCHASE_CHECKOUT, TRACKING_PURCHASE_JOURNEY, TrackingManagerDefaultEvents, TrackingManagerOpts, TrackingManagerProvider, TrackingManagerType} from "./tracking-types";
 
 export class TrackingManager<CE extends string> implements TrackingManagerType<TrackingManagerDefaultEvents | CE> {
@@ -72,7 +72,7 @@ export class TrackingManager<CE extends string> implements TrackingManagerType<T
         this.cycleProviders("trackPurchaseJourney", [eventName, products, opts])
     }
 
-    trackPurchaseCheckout(eventName: TRACKING_PURCHASE_CHECKOUT, checkout: PaymentCompletedCheckout | PaymentCalculatedCheckout, opts?: {err?: Error}): void {
+    trackPurchaseCheckout(eventName: TRACKING_PURCHASE_CHECKOUT, checkout: PaymentCheckoutExecution | PaymentCalculatedCheckout, opts?: {err?: Error}): void {
         const enhancedOpts = opts?.err !== undefined ? {...opts, err: this.wrapError(opts.err)} : opts;
         this.cycleProviders("trackPurchaseCheckout", [eventName, checkout, enhancedOpts]);
     }

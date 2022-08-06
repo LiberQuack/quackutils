@@ -3,7 +3,7 @@ import {PaymentClientTest} from "./payment-client-test";
 import {PaymentServerTest} from "./payment-server-test";
 import {setupDomEnvironment} from "../setup-dom-environment";
 import {PaymentStripeClientProvider} from "../../src";
-import {PaymentCalculatedCheckout, PaymentCompletedCheckout} from "../../src/payment/types";
+import {PaymentCalculatedCheckout, PaymentCheckoutExecution} from "../../src/payment/types";
 
 describe("Checkout calc", async () => {
     throw "Need to implement it"

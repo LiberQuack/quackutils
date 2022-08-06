@@ -1,6 +1,7 @@
-import {PaymentCalculatedCheckout, PaymentCompletedCheckout, PaymentPartialCheckout, PaymentProduct, PaymentProviderData, PaymentProviderMinimalProperties, PaymentUser, PaymentUserData} from "./types.js";
-import {AbstractPaymentServerProvider, PaymentProviderCheckoutProductsResult, PaymentProviderCheckoutResult} from "./server-providers/abstract-payment-server-provider.js";
+import {PaymentCalculatedCheckout, PaymentCheckoutExecution, PaymentPartialCheckout, PaymentProduct, PaymentProviderData, PaymentProviderMinimalProperties, PaymentUser, PaymentUserData} from "./types.js";
+import {AbstractPaymentServerProvider, PaymentExternalProductData, PaymentProviderCheckoutResult} from "./server-providers/abstract-payment-server-provider.js";
 import {logger} from "../logger.js";
+import {Undefinable} from "../_/types.js";
 
 export abstract class AbstractPaymentServer<U extends PaymentUser = any, P extends PaymentProduct = any, PP extends AbstractPaymentServerProvider = any> {
 
@@ -79,51 +80,42 @@ export abstract class AbstractPaymentServer<U extends PaymentUser = any, P exten
         if (!user) throw `Could not find user from customer id ${customerData}`;
 
         const checkoutData = await provider.readWebhookCheckout(user, webhookData);
-        const checkout = checkoutData && await this.retrieveCheckoutByProviderId(user, checkoutData.providerCheckoutId)
-        if (!checkout) throw `Could not find checkout of webhook from ${user.getId()} provider ${providerName}`
+        const persistedCheckout = checkoutData && await this.retrieveCheckoutByProviderId(user, checkoutData.providerCheckoutId)
+        if (!persistedCheckout) throw `Could not find checkout of webhook from ${user.getId()} provider ${providerName}`
 
-        const providerCheckoutResult = await provider.handleWebhook(user, checkout, webhookData);
+        const checkoutExecution = await provider.handleWebhook(user, persistedCheckout, webhookData);
+        if (checkoutExecution) {
+            await this.saveCheckout(user, checkoutExecution)
 
-        if (providerCheckoutResult) {
-            const {success} = providerCheckoutResult.checkout;
-            const successfulCheckout = success ? await this.saveCheckout(user, providerCheckoutResult.checkout) : undefined;
-
-            const paymentData: PaymentUserData = {
-                ...user.payment,
-                subscription: providerCheckoutResult.subscription,
-                lastCheckout: successfulCheckout,
-            };
-
-            if (success) {
-                await this.updateUserPaymentProperties(user, paymentData);
+            if (checkoutExecution.success) {
+                await this.updateUserPaymentProperties(user, checkoutExecution);
             }
         }
-
-        return;
     }
 
     abstract retrieveUser(customerData: { id: string } | { email: string }): Promise<U>
 
-    async checkout(user: U, checkout: PaymentCalculatedCheckout): Promise<PaymentUserData> {
+    /**
+     * Checkout execution
+     *
+     * Keep in mind to watch success field,
+     *
+     *
+     * @param user
+     * @param checkout
+     */
+    async checkout(user: U, checkout: PaymentCalculatedCheckout): Promise<PaymentCheckoutExecution> {
         logger.info("payment-server", `Starting checkout for user ${checkout.userId}, provider ${checkout.provider}, products [${checkout.items.map(it => it.productId)}]`)
 
-        const providerData = await this.providerCheckout(user, checkout);
-        await this.saveProductsProviderData(providerData.products);
+        const checkoutExecution = await this.providerCheckout(user, checkout);
+        await this.saveProductsProviderData(checkoutExecution);
+        await this.saveCheckout(user, checkoutExecution);
 
-        const {success} = providerData.checkout;
-        const successfulCheckout = success ? await this.saveCheckout(user, providerData.checkout) : undefined;
-
-        const paymentData: PaymentUserData = {
-            ...user.payment,
-            subscription: providerData.subscription,
-            lastCheckout: successfulCheckout
-        };
-
-        if (success) {
-            await this.updateUserPaymentProperties(user, paymentData);
+        if (checkoutExecution.success) {
+            await this.updateUserPaymentProperties(user, checkoutExecution);
         }
 
-        return paymentData
+        return checkoutExecution;
     }
 
     async cancelCheckout(user: U, checkoutId: string, reason: string): Promise<PaymentUserData> {
@@ -137,8 +129,8 @@ export abstract class AbstractPaymentServer<U extends PaymentUser = any, P exten
         const providerInstance = this.providers.find(it => it.provider === checkout.provider);
         if (!providerInstance) throw `Provider ${checkout.provider} is unavailable, expected providers are ${this.providers.map(it => it.provider)}`;
 
-        const checkoutResult: PaymentProviderCheckoutResult = await providerInstance.cancelCheckout(user, checkout as PaymentCompletedCheckout);
-        const savedCheckout = await this.saveCheckout(user, {...checkoutResult.checkout, cancelRequestDate: new Date(), cancelReason: reason})
+        const checkoutResult: PaymentCheckoutExecution = await providerInstance.cancelCheckout(user, checkout as PaymentCheckoutExecution);
+        const savedCheckout = await this.saveCheckout(user, {...checkoutResult, cancelRequestDate: new Date(), cancelReason: reason})
 
         const paymentData: PaymentUserData = {
             ...user.payment,
@@ -151,21 +143,31 @@ export abstract class AbstractPaymentServer<U extends PaymentUser = any, P exten
         return paymentData
     }
 
-    protected async providerCheckout(user: U, checkout: PaymentCalculatedCheckout): Promise<PaymentProviderCheckoutResult> {
+    protected async providerCheckout(user: U, checkout: PaymentCalculatedCheckout): Promise<PaymentCheckoutExecution> {
         const providerInstance = this.providers.find(it => it.provider === checkout.provider);
 
         if (!providerInstance) {
             throw `Server has no payment provider called ${checkout.provider}, possible values are [${this.providers.map(it => it.provider)}]`
         }
 
-        const providerData = await providerInstance.checkout(user, checkout);
-
+        const providerData:PaymentCheckoutExecution = await providerInstance.checkout(user, checkout);
         return providerData;
     }
 
-    private async saveProductsProviderData(providerResult: PaymentProviderCheckoutProductsResult[]) {
-        for (let {productObj, providerData} of providerResult) {
-            await this.updateProductProvidersData(productObj, this.mergeProviderData(productObj.externalPaymentProviderData ?? [], providerData))
+    private async saveProductsProviderData(checkoutExecution: PaymentCheckoutExecution) {
+        const externalProductData: Undefinable<PaymentExternalProductData[]> = checkoutExecution.externalProductData
+
+        if (externalProductData) {
+            for (let extData of externalProductData) {
+                const product = checkoutExecution.items.find(it => it.productId === extData.productId)?.product;
+                if (!product) {
+                    logger.warn("payment-server", `Could not update product ${extData.productId} with provider ${checkoutExecution.provider} data`);
+                    continue;
+                }
+
+                const updatedProduct = this.mergeProviderData(product.externalPaymentData ?? [], extData.providerData);
+                await this.updateProductProvidersData(extData.productId, updatedProduct);
+            }
         }
     }
 
@@ -188,12 +190,12 @@ export abstract class AbstractPaymentServer<U extends PaymentUser = any, P exten
     /**
      * Implement this method for retrieving checkouts from your data source
      */
-    abstract retrieveCheckout(user: U, checkoutId: string): Promise<PaymentCompletedCheckout | PaymentCalculatedCheckout>
+    abstract retrieveCheckout(user: U, checkoutId: string): Promise<PaymentCheckoutExecution | PaymentCalculatedCheckout>
 
     /**
      * Implement this method for retrieving checkouts from your data source
      */
-    abstract retrieveCheckoutByProviderId(user: U, providerCheckoutId: string): Promise<PaymentCompletedCheckout>
+    abstract retrieveCheckoutByProviderId(user: U, providerCheckoutId: string): Promise<PaymentCheckoutExecution>
 
     /**
      * Implement this method for:
@@ -207,7 +209,7 @@ export abstract class AbstractPaymentServer<U extends PaymentUser = any, P exten
      *     updateDb(checkout._id, checkout)
      * }
      */
-    protected abstract saveCheckout(user: U, checkout: PaymentCompletedCheckout): Promise<PaymentCompletedCheckout>
+    protected abstract saveCheckout(user: U, checkout: PaymentCheckoutExecution): Promise<PaymentCheckoutExecution>
 
     /**
      * Implement this method per project, should fill as many field as possible
@@ -225,7 +227,7 @@ export abstract class AbstractPaymentServer<U extends PaymentUser = any, P exten
      * @param providersData
      * @protected
      */
-    protected abstract updateProductProvidersData<P extends PaymentProduct, PPPD extends PaymentProviderData>(product: P, providersData: PPPD[]): Promise<void>;
+    protected abstract updateProductProvidersData<PPPD extends PaymentProviderData>(product: string, providersData: PPPD[]): Promise<void>;
     /**
      * Persist user will allow you to save user payment properties, implementation should be similar to example
      *

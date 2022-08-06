@@ -1,6 +1,6 @@
 import {AbstractPaymentServer} from "../../src/payment/abstract-payment-server";
 import {PaymentStripeClientProvider} from "../../src/payment/client-providers/payment-stripe-client-provider";
-import {PaymentCalculatedCheckout, PaymentPartialCheckout, PaymentProduct, PaymentCompletedCheckout, PaymentUser} from "../../src/payment/types";
+import {PaymentCalculatedCheckout, PaymentPartialCheckout, PaymentProduct, PaymentCheckoutExecution, PaymentUser} from "../../src/payment/types";
 import {PaymentStripeServerProvider} from "../../src/payment/server-providers/payment-stripe-server-provider";
 import {AbstractPaymentServerProvider} from "../../src";
 
@@ -15,11 +15,11 @@ export class PaymentServerTest<P extends PaymentProduct = any> extends AbstractP
         throw "Not implemented";
     }
 
-    retrieveCheckout(user: {}, checkoutId: string): Promise<PaymentCompletedCheckout | PaymentCalculatedCheckout> {
+    retrieveCheckout(user: {}, checkoutId: string): Promise<PaymentCheckoutExecution | PaymentCalculatedCheckout> {
         throw "Not implemented";
     }
 
-    retrieveCheckoutByProviderId(user: {}, providerCheckoutId: string): Promise<PaymentCompletedCheckout> {
+    retrieveCheckoutByProviderId(user: {}, providerCheckoutId: string): Promise<PaymentCheckoutExecution> {
         throw "Not implemented";
     }
 
@@ -32,7 +32,7 @@ export class PaymentServerTest<P extends PaymentProduct = any> extends AbstractP
         }
     }
 
-    protected saveCheckout(user: {}, checkout: PaymentCompletedCheckout): Promise<PaymentCompletedCheckout> {
+    protected saveCheckout(user: {}, checkout: PaymentCheckoutExecution): Promise<PaymentCheckoutExecution> {
         throw "Not implemented";
     }
 

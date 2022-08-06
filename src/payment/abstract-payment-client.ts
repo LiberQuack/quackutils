@@ -1,6 +1,6 @@
 import {inlineErr} from "../app/inline-error.js";
 import type {PromiseType} from "utility-types";
-import type {PaymentCalculatedCheckout, PaymentCompletedCheckout, PaymentPartialCheckout, PaymentProviderData, PaymentProviderMinimalProperties, PaymentUserData} from "./types.js";
+import type {PaymentCalculatedCheckout, PaymentCheckoutExecution, PaymentPartialCheckout, PaymentProviderData, PaymentProviderMinimalProperties, PaymentUserData} from "./types.js";
 import type {AbstractPaymentClientProvider, ProviderClientProviderData} from "./client-providers/abstract-payment-client-provider.js";
 import type {Narrow} from "../utils.js";
 import type {Undefinable} from "../_/types.js";
@@ -30,8 +30,8 @@ export abstract class AbstractPaymentClient<P extends AbstractPaymentClientProvi
     }
 
     async buildUi<PN extends P["provider"]>(calculatedCheckout: NarrowedCalculetedCheckout<P, PN>, opts: Parameters<Extract<P, {provider: PN}>["buildUi"]>[1] & {
-        onSuccess: (checkout: PaymentCompletedCheckout) => void,
-        onError: (err:Error, checkout?: PaymentCompletedCheckout) => void
+        onSuccess: (checkout: PaymentCheckoutExecution) => void,
+        onError: (err:Error, checkout?: PaymentCheckoutExecution) => void
     }): Promise<PromiseType<ReturnType<Extract<P, { provider: PN }>["buildUi"]>>> {
         this.checkInited();
         const provider = this.getProvider(calculatedCheckout);
@@ -39,10 +39,10 @@ export abstract class AbstractPaymentClient<P extends AbstractPaymentClientProvi
         return provider.buildUi(calculatedCheckout, opts, async (calculatedCheckout) => {
             const [paymentUserData, err] = await inlineErr(this.checkout(calculatedCheckout));
 
-            if (paymentUserData?.lastCheckout?.success) {
-                opts.onSuccess(paymentUserData.lastCheckout);
+            if (paymentUserData?.success) {
+                opts.onSuccess(paymentUserData);
             } else {
-                opts.onError(err ?? "Unexpected error", paymentUserData?.lastCheckout);
+                opts.onError(err ?? "Unexpected error", paymentUserData);
             }
         });
     }
@@ -53,27 +53,26 @@ export abstract class AbstractPaymentClient<P extends AbstractPaymentClientProvi
         return calculatedCheckout as any;
     }
 
-    async checkout(checkout: PaymentCalculatedCheckout): Promise<PaymentUserData> {
+    async checkout(checkout: PaymentCalculatedCheckout): Promise<PaymentCheckoutExecution> {
         this.checkInited();
-
         const providerInstance = this.getProvider(checkout);
 
         let currentRoundTrip = 0;
         let maxRoundTrips = providerInstance.maxRoundTrips() ?? 0;
-        let lastResult: Undefinable<PaymentUserData>;
+        let lastExecution: Undefinable<PaymentCheckoutExecution>;
 
         while (currentRoundTrip < maxRoundTrips) {
-            const providerCheckout = await providerInstance.checkout(lastResult?.lastCheckout ?? checkout);
-            lastResult = await this.sendCheckout(providerCheckout);
+            const providerCheckout = await providerInstance.checkout(lastExecution ?? checkout);
+            lastExecution = await this.sendCheckout(providerCheckout);
 
-            if (lastResult.lastCheckout?.success) {
-                return lastResult;
+            if (lastExecution?.success) {
+                return lastExecution;
             }
 
             currentRoundTrip++;
         }
 
-        throw "maxRoundTrip reached";
+        throw "Payment failed, try other payment method\nor contact support";
     }
 
     private getProvider<C extends PaymentProviderMinimalProperties>(checkout: C): Extract<P, { provider: typeof checkout}> {
@@ -88,7 +87,7 @@ export abstract class AbstractPaymentClient<P extends AbstractPaymentClientProvi
         if (!this.inited) throw "Payment client instance has still not been initiated"
     }
 
-    async cancelCheckout(checkout: PaymentCompletedCheckout, reason: string): Promise<PaymentUserData> {
+    async cancelCheckout(checkout: PaymentCheckoutExecution, reason: string): Promise<PaymentUserData> {
         const nextCheckout = {...checkout, reason}
         return this.sendCancelCheckout(checkout)
     }
@@ -98,7 +97,7 @@ export abstract class AbstractPaymentClient<P extends AbstractPaymentClientProvi
      *
      * @param checkout
      */
-    protected abstract sendCheckout(checkout: PaymentCalculatedCheckout): Promise<PaymentUserData>
+    protected abstract sendCheckout(checkout: PaymentCalculatedCheckout): Promise<PaymentCheckoutExecution>
 
     /**
      * Implement this method and send your partial checkout to the server,
@@ -109,6 +108,6 @@ export abstract class AbstractPaymentClient<P extends AbstractPaymentClientProvi
      */
     protected abstract sendCalculateCheckout(checkout: PaymentPartialCheckout): Promise<PaymentCalculatedCheckout>
 
-    protected abstract sendCancelCheckout(checkout: PaymentCompletedCheckout): Promise<PaymentUserData>;
+    protected abstract sendCancelCheckout(checkout: PaymentCheckoutExecution): Promise<PaymentUserData>;
 
 }

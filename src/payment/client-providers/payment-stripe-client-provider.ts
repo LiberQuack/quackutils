@@ -23,8 +23,8 @@ export class PaymentStripeClientProvider extends AbstractPaymentClientProvider<P
         const stripe = await this.stripePromise;
         if (!stripe) throw "Could not load stripe";
 
-
-        const clientSecret = checkout.externalData?.data.clientSecret;
+        const data = checkout.externalData?.data;
+        const clientSecret = data?.clientSecretReplacement ?? data?.clientSecret;
         if (!clientSecret) throw "Expected data not found";
 
         const cardElement = checkout.clientData?.cardElement;
@@ -43,7 +43,7 @@ export class PaymentStripeClientProvider extends AbstractPaymentClientProvider<P
             };
         }
 
-        throw `Stripe payment intent failed, unexpected status ${status}`
+        throw (paymentIntentResult?.last_payment_error?.message ?? "Payment failed");
     }
 
     async buildUi(checkout: NarrowedStripeCalculatedCheckout, opts: {htmlTemplate?: any}, sendCheckoutToServer: (checkout: NarrowedStripeCalculatedCheckout) => void): Promise<HTMLElement> {

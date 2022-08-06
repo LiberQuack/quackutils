@@ -1,6 +1,6 @@
 import {TRACKING_PURCHASE_CHECKOUT, TRACKING_PURCHASE_JOURNEY, TrackingManagerProvider} from "../tracking-types";
 import {Dictionary} from "../../../_/types";
-import {PaymentCalculatedCheckout, PaymentCompletedCheckout, PaymentProduct} from "../../../payment/types";
+import {PaymentCalculatedCheckout, PaymentCheckoutExecution, PaymentProduct} from "../../../payment/types";
 import {GoogleTrackingBaseOpts} from "./google-tracking-types";
 import {assureGtag} from "./google-tracking-utils";
 
@@ -22,7 +22,7 @@ export abstract class GoogleAdsProvider<CE> implements TrackingManagerProvider<C
 
     abstract trackEvent(eventName: CE, value?: string | number | boolean | Dictionary<any>): void;
     abstract trackPageView(pathTemplate: string, fullPath: string, pageTitle: string): void;
-    abstract trackPurchaseCheckout(eventName: TRACKING_PURCHASE_CHECKOUT, checkout: PaymentCompletedCheckout | PaymentCalculatedCheckout, opts?: { err?: Error }): void;
+    abstract trackPurchaseCheckout(eventName: TRACKING_PURCHASE_CHECKOUT, checkout: PaymentCheckoutExecution | PaymentCalculatedCheckout, opts?: { err?: Error }): void;
     abstract trackPurchaseJourney(eventName: TRACKING_PURCHASE_JOURNEY, products: PaymentProduct[], opts?: { paymentProvider?: string }): void;
     abstract trackUserOff(): void;
 }

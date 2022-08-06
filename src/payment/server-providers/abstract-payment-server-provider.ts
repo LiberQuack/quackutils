@@ -1,17 +1,17 @@
-import {PaymentCalculatedCheckout, PaymentCompletedCheckout, PaymentProduct, PaymentProviderData, PaymentUser, PaymentUserSubscriptionProperties} from "../types.js";
+import {PaymentCalculatedCheckout, PaymentCheckoutExecution, PaymentProduct, PaymentProviderData, PaymentUser, PaymentUserSubscriptionProperties} from "../types.js";
 
 export interface PaymentProviderBaseProperties {
     provider: string;
 }
 
-export type PaymentProviderCheckoutProductsResult = {
-    productObj: PaymentProduct;
+export type PaymentExternalProductData = {
+    productId: string;
     providerData: PaymentProviderData
 };
 
 export type PaymentProviderCheckoutResult = {
-    checkout: PaymentCompletedCheckout,
-    products: Array<PaymentProviderCheckoutProductsResult>,
+    checkout: PaymentCheckoutExecution,
+    products: Array<PaymentExternalProductData>,
     subscription?: PaymentUserSubscriptionProperties
 };
 
@@ -37,19 +37,19 @@ export abstract class AbstractPaymentServerProvider<PD = any> implements Payment
      * @param user
      * @param checkoutObj Some providers have payment flow starting generating secrets on client, if it happens checkoutObj will be PaymentProviderCheckout
      */
-    abstract checkout(user: PaymentUser, checkoutObj: PaymentCalculatedCheckout): Promise<PaymentProviderCheckoutResult>;
+    abstract checkout(user: PaymentUser, checkoutObj: PaymentCalculatedCheckout): Promise<PaymentCheckoutExecution>;
 
     /**
      * Implement checkout cancel
      */
-    abstract cancelCheckout(user: PaymentUser, checkoutObj: PaymentCompletedCheckout): Promise<PaymentProviderCheckoutResult>;
+    abstract cancelCheckout(user: PaymentUser, checkoutObj: PaymentCheckoutExecution): Promise<PaymentCheckoutExecution>;
 
     /**
      * Handle webhooks
      *
      * @param data
      */
-    abstract handleWebhook(user: PaymentUser, checkout: PaymentCalculatedCheckout | PaymentCompletedCheckout, webhookData: any): Promise<PaymentProviderCheckoutResult | void>
+    abstract handleWebhook(user: PaymentUser, checkout: PaymentCalculatedCheckout | PaymentCheckoutExecution, webhookData: any): Promise<PaymentCheckoutExecution | void>
 
     /**
      * Read user data
