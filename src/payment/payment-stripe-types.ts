@@ -6,14 +6,9 @@ import type {StripeCardElement, StripeCardNumberElement} from "@stripe/stripe-js
 export type PaymentStripeProviderData = {
 
     /**
-     * PaymentIntent generated on server
+     * SetupIntent generated on server
      */
-    clientSecret?: StripeServer.PaymentIntent["client_secret"]
-
-    /**
-     * clientSecretReplacement
-     */
-    clientSecretReplacement?: StripeServer.PaymentIntent["client_secret"],
+    clientSecret?: StripeServer.SetupIntent["client_secret"]
 
     /**
      * Represents the payment method used by the client,
@@ -22,9 +17,14 @@ export type PaymentStripeProviderData = {
     paymentMethodToken?: Token
 
     /**
-     * Should store a payment intent with status completed
+     * Provide the status of the payment intent to your client,
+     * so based on that, if it's require_action, we can trigger 3DS verification
+     * before charging the user
+     *
+     * Otherwise even failed 3ds attempts, will be charged, and they may
+     * cause future payments to be blocked
      */
-    finalPaymentIntent?: StripeServer.PaymentIntent
+    setupIntentStatus?: StripeServer.SetupIntent["status"] | StripeServer.PaymentIntent["status"]
 
     subscription?: StripeServer.Subscription
 }
@@ -33,7 +33,7 @@ export type NarrowedStripeCalculatedCheckout = NarrowCalculatedCheckout<{
     provider: "stripe",
     externalData: PaymentStripeProviderData,
     clientData: {
-        cardElement: StripeCardElement | StripeCardNumberElement,
+        cardElement?: StripeCardElement | StripeCardNumberElement,
     }
 }>;
 
@@ -41,6 +41,6 @@ export type NarrowedStripeCompletedCheckout = NarrowCompletedCheckout<{
     provider: "stripe",
     externalData: PaymentStripeProviderData,
     clientData: {
-        cardElement: StripeCardElement | StripeCardNumberElement,
+        cardElement?: StripeCardElement | StripeCardNumberElement,
     }
 }>;

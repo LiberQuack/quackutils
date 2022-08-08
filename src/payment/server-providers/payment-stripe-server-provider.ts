@@ -1,6 +1,6 @@
 import {Stripe} from "stripe";
 import {AbstractPaymentServerProvider, PaymentExternalProductData} from "./abstract-payment-server-provider.js";
-import {PaymentCheckoutExecution, PaymentEnforceProviderBase, PaymentProduct, PaymentUser} from "../types.js";
+import {PaymentCalculatedCheckout, PaymentCheckoutExecution, PaymentEnforceProviderBase, PaymentProduct, PaymentUser} from "../types.js";
 import {Undefinable} from "../../_/types.js";
 import {NarrowedStripeCalculatedCheckout, NarrowedStripeCompletedCheckout, PaymentStripeProviderData} from "../payment-stripe-types.js";
 import {logger} from "../../logger.js";
@@ -12,7 +12,12 @@ export type PaymentStripeAccount = PaymentEnforceProviderBase<{
 }>
 
 type PaymentStripePreCaptureResult = {
-    requiresClientAction: boolean
+    intentOpts?: Partial<Stripe.SetupIntentCreateParams>
+};
+
+type PaymentStripeProviderOpts = {
+    customizePaymentIntent: (user: PaymentUser, checkout: NarrowedStripeCalculatedCheckout, card?:  Stripe.PaymentMethod.Card) => Promise<PaymentStripePreCaptureResult>,
+    preCaptureCheck?: (user: PaymentUser, checkout: NarrowedStripeCalculatedCheckout, setupIntent: Stripe.SetupIntent) => Promise<void>
 };
 
 //Should reuse something from client provider
@@ -21,7 +26,7 @@ export class PaymentStripeServerProvider extends AbstractPaymentServerProvider<P
     stripe: Stripe
     provider: "stripe" = "stripe";
 
-    constructor(apiKey: string, public opts?: {preCapture: (user: PaymentUser, checkout: NarrowedStripeCalculatedCheckout, paymentIntent: Stripe.PaymentIntent) => Promise<PaymentStripePreCaptureResult>}) {
+    constructor(apiKey: string, public opts?: PaymentStripeProviderOpts) {
         super()
         this.stripe = new Stripe(apiKey, {apiVersion: "2020-08-27"})
     }
@@ -135,64 +140,73 @@ export class PaymentStripeServerProvider extends AbstractPaymentServerProvider<P
         return stripeAccount;
     }
 
-    async prepareCheckout(user: PaymentUser, calculatedCheckout: NarrowedStripeCalculatedCheckout, opts?: {paymentIntentOpts?: Partial<Stripe.PaymentIntentCreateParams> }): Promise<NarrowedStripeCalculatedCheckout> {
+    async prepareCheckout(step: "calc" | "execution", user: PaymentUser, calculatedCheckout: PaymentCalculatedCheckout, opts?: {
+        paymentMethodId: Stripe.PaymentMethod["id"];
+        setupIntentOptions?: Partial<Stripe.SetupIntentCreateParams>;
+    }): Promise<NarrowedStripeCalculatedCheckout> {
+        if (step === "calc") {
+            return {
+                ...calculatedCheckout,
+                provider: "stripe",
+                externalData: {
+                    provider: "stripe",
+                    data: {}
+                }
+            }
+        }
+
         logger.info("stripe-server", "Preparing new checkout", opts ? "with custom payment intent params" : "");
 
         const stripeAccount = await this.ensureStripeAccount(user)
         if (!stripeAccount) throw `Error, did not find a stripe account for user ${JSON.stringify(user)}`
 
-        const paymentIntent = await this.stripe.paymentIntents.create({
+        const setupIntent = await this.stripe.setupIntents.create({
             customer: stripeAccount.customer.id,
-            amount: calculatedCheckout.total * 100,
-            currency: calculatedCheckout.currency,
-            capture_method: "manual",
-            ...opts?.paymentIntentOpts
+            payment_method: opts?.paymentMethodId,
+            usage: "off_session",
+            ...opts?.setupIntentOptions,
+
+
+            // amount: Math.round(calculatedCheckout.total * 100),
+            // currency: calculatedCheckout.currency,
+            // capture_method: "manual",
+            // confirmation_method: "manual",
         });
 
-        const nextCalculatedCheckout:NarrowedStripeCalculatedCheckout = {
+        const preparedCheckout:NarrowedStripeCalculatedCheckout = {
             ...calculatedCheckout,
-            externalId: paymentIntent.id,
+            provider: "stripe",
+            externalId: setupIntent.id,
             externalData: {
                 provider: "stripe",
                 data: {
-                    clientSecret: paymentIntent.client_secret
+                    ...calculatedCheckout.externalData?.data,
+                    setupIntentStatus: setupIntent.status,
+                    clientSecret: setupIntent.client_secret,
                 }
             }
         }
 
-        return nextCalculatedCheckout;
+        return preparedCheckout;
     }
 
-    async checkout(user: PaymentUser, checkoutObj: NarrowedStripeCalculatedCheckout): Promise<PaymentCheckoutExecution> {
+    async checkout(user: PaymentUser, checkoutObj: NarrowedStripeCalculatedCheckout | NarrowedStripeCompletedCheckout): Promise<PaymentCheckoutExecution> {
+        logger.info("stripe-server", `Starting checkout for user ${checkoutObj.userId}`);
+
         if (!("externalData" in checkoutObj)) {
-            throw "Expected externalData on checkout object"
+            throw "Expected externalData on checkout object";
         }
 
-        logger.info("stripe-server", `Starting checkout for user ${checkoutObj.userId}, paymentIntent ${checkoutObj.externalId}`);
+        if ("errorMessage" in checkoutObj) {
+            if (!checkoutObj.externalId) throw "Unexpected error";
+            const paymentIntent = await this.stripe.paymentIntents.cancel(checkoutObj.externalId);
+            return this.buildCheckoutResult(checkoutObj, paymentIntent, undefined, [], [])
+        }
 
         const onlyProducts = checkoutObj.items.map(it => it.type).every(it => it === "product")
 
-        if (onlyProducts) {
-            //Handle second round trip (when 3D)
-            const paymentMethodToken = checkoutObj.externalData?.data?.paymentMethodToken;
-            if (!paymentMethodToken) throw "Expected transaction token";
-            if (!checkoutObj.externalId) throw "Expected external id";
-
-            let paymentIntent = await this.stripe.paymentIntents.retrieve(checkoutObj.externalId, {});
-            const preCaptureResult = await this.opts?.preCapture?.(user, checkoutObj, paymentIntent);
-
-            if (preCaptureResult?.requiresClientAction) {
-                logger.info("stripe-server", "Precatpure callback is setting more actions to be taken on client side");
-                return this.buildCheckoutResult(checkoutObj, paymentIntent, undefined, [], checkoutObj.items.map(it => it.product));
-            }
-
-            if (paymentIntent?.status === "requires_capture") {
-                paymentIntent = await this.stripe.paymentIntents.capture(paymentIntent.id);
-            }
-
-            return this.buildCheckoutResult(checkoutObj, paymentIntent, undefined, [], checkoutObj.items.map(it => it.product));
-        } else {
-            throw "Not supported at the moment"
+        if (!onlyProducts) {
+            throw "Subscriptions are not supported"
             //Reverts plan cancellation
             // let revertResult = await this.revertSubscriptionCancellation(user, checkoutObj);
             // if (revertResult) return revertResult;
@@ -201,6 +215,64 @@ export class PaymentStripeServerProvider extends AbstractPaymentServerProvider<P
             // const subscription = await this.createSubscription(checkoutObj, /*stripeAccount*/null as any);
             // if (subscription) return subscription
         }
+
+        //If externalId is false, it's the first round trip
+        if (checkoutObj.externalId === false) {
+            const paymentMethodToken = checkoutObj.externalData?.data?.paymentMethodToken;
+            if (!paymentMethodToken) throw "Expected transaction payment method token";
+            if (!paymentMethodToken.card) throw "Expected token to be type card";
+
+            const paymentMethod = await this.stripe.paymentMethods.create({type: "card", card: {token: paymentMethodToken.id}});
+            if (!paymentMethod.card) throw "Expected card payment"
+
+            const customization = await this.opts?.customizePaymentIntent?.(user, checkoutObj, paymentMethod.card);
+
+            //TODO: prepareCheckout is creating payment intent, should extract it here
+            checkoutObj = await this.prepareCheckout("execution", user, checkoutObj, {
+                setupIntentOptions: {
+                    ...customization?.intentOpts
+                },
+                paymentMethodId: paymentMethod.id,
+            });
+        }
+
+        if (!checkoutObj.externalId) throw "Intent id not found"
+
+        if (checkoutObj.externalId.startsWith("seti_")) {
+            //TODO: prepareCheckout is creating payment intent above, find some way to reuse that
+            let setupIntent = await this.stripe.setupIntents.retrieve(checkoutObj.externalId, {
+                expand: ["payment_method", "latest_attempt"]
+            });
+
+            if (setupIntent?.status === "requires_confirmation") {
+                setupIntent = await this.stripe.setupIntents.confirm(setupIntent.id);
+            }
+
+            if (setupIntent?.status === "requires_action") {
+                return this.buildCheckoutResult(checkoutObj, setupIntent, undefined, [], []);
+            }
+
+            if (this.opts?.preCaptureCheck) {
+                await this.opts.preCaptureCheck(user, checkoutObj, setupIntent);
+            }
+
+            if (setupIntent?.status === "succeeded") {
+                let paymentIntent = await this.stripe.paymentIntents.create({
+                    customer: setupIntent.customer ? this.getIdFromStringOrObject(setupIntent.customer) : undefined,
+                    payment_method: setupIntent.payment_method ? this.getIdFromStringOrObject(setupIntent.payment_method) : undefined,
+                    amount: Math.round(checkoutObj.total * 100),
+                    currency: checkoutObj.currency,
+                    confirm: true,
+                    capture_method: "automatic",
+                });
+
+                return this.buildCheckoutResult(checkoutObj, paymentIntent, undefined, [], checkoutObj.items.map(it => it.product));
+            }
+
+            return this.buildCheckoutResult(checkoutObj, setupIntent, undefined, [], checkoutObj.items.map(it => it.product));
+        }
+
+        throw "Unexpected error";
     }
 
     protected async revertSubscriptionCancellation(user: PaymentUser, checkoutObj: NarrowedStripeCalculatedCheckout): Promise<PaymentCheckoutExecution | void> {
@@ -275,19 +347,26 @@ export class PaymentStripeServerProvider extends AbstractPaymentServerProvider<P
         return paymentProviderCheckoutResult
     }
 
-    protected buildCheckoutResult(checkoutObj: NarrowedStripeCalculatedCheckout, paymentIntent: Stripe.PaymentIntent, subscription: Stripe.Subscription | undefined, providerProducts: PaymentExternalProductData[], products: PaymentProduct[]): NarrowedStripeCompletedCheckout {
+    protected buildCheckoutResult(checkoutObj: NarrowedStripeCalculatedCheckout | NarrowedStripeCompletedCheckout, intent: Stripe.PaymentIntent | Stripe.SetupIntent, subscription: Stripe.Subscription | undefined, providerProducts: PaymentExternalProductData[], products: PaymentProduct[]): NarrowedStripeCompletedCheckout {
+        const success = intent.status === "succeeded" && intent.object === "payment_intent";
+        const originalErrorMessage = "errorMessage" in checkoutObj ? checkoutObj.errorMessage : undefined;
+        const serverErrorMessage = intent.object === "setup_intent" ? intent.last_setup_error?.message : intent.last_payment_error?.message;
+
         return {
             ...checkoutObj,
-            externalId: paymentIntent.id,
+            externalId: intent.id,
             externalData: {
                 ...checkoutObj.externalData,
                 data: {
                     ...checkoutObj.externalData.data,
-                    finalPaymentIntent: paymentIntent
+                    setupIntentStatus: intent.status,
+                    clientSecret: intent.client_secret,
+                    finalPaymentIntent: intent,
                 }
             },
             externalProductData: providerProducts,
-            success: paymentIntent.status === "succeeded",
+            success: success,
+            errorMessage: success ? undefined : (originalErrorMessage || serverErrorMessage || "Unexpected payment error"),
             subscription: subscription && {
                 provider: this.provider,
                 externalId: subscription.id,
@@ -338,6 +417,10 @@ export class PaymentStripeServerProvider extends AbstractPaymentServerProvider<P
         const {lastResponse, ...customer} = customerResponse
         const stripeAccount: PaymentStripeAccount = {provider: this.provider, customer: customer, paymentSources: []};
         return stripeAccount;
+    }
+
+    private getIdFromStringOrObject<T extends (string| {id:string})>(object: T): string {
+        return typeof object === "object" ? object.id : object;
     }
 
 }

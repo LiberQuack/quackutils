@@ -37,12 +37,13 @@ export abstract class AbstractPaymentClient<P extends AbstractPaymentClientProvi
         const provider = this.getProvider(calculatedCheckout);
 
         return provider.buildUi(calculatedCheckout, opts, async (calculatedCheckout) => {
-            const [paymentUserData, err] = await inlineErr(this.checkout(calculatedCheckout));
+            const [checkoutExecution, err] = await inlineErr(this.checkout(calculatedCheckout));
 
-            if (paymentUserData?.success) {
-                opts.onSuccess(paymentUserData);
+            if (checkoutExecution?.success) {
+                opts.onSuccess(checkoutExecution);
             } else {
-                opts.onError(err ?? "Unexpected error", paymentUserData);
+                const errorMessage = checkoutExecution?.errorMessage || err?.message || err;
+                opts.onError(errorMessage || "Unexpected error", checkoutExecution);
             }
         });
     }
@@ -72,7 +73,7 @@ export abstract class AbstractPaymentClient<P extends AbstractPaymentClientProvi
             currentRoundTrip++;
         }
 
-        throw "Payment failed, try other payment method\nor contact support";
+        throw lastExecution?.errorMessage ?? "Payment failed, try other payment method\nor contact support";
     }
 
     private getProvider<C extends PaymentProviderMinimalProperties>(checkout: C): Extract<P, { provider: typeof checkout}> {

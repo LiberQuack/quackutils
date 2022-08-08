@@ -25,7 +25,7 @@ export abstract class AbstractPaymentServerProvider<PD = any> implements Payment
      * @param user
      * @param calculatedCheckout
      */
-    abstract prepareCheckout(user: PaymentUser, calculatedCheckout: PaymentCalculatedCheckout): Promise<PaymentCalculatedCheckout>;
+    abstract prepareCheckout(step: "calc" | "execution", user: PaymentUser, calculatedCheckout: PaymentCalculatedCheckout): Promise<PaymentCalculatedCheckout>;
 
     /**
      * This method should handle

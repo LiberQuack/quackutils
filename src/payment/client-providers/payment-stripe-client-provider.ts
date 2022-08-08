@@ -23,39 +23,44 @@ export class PaymentStripeClientProvider extends AbstractPaymentClientProvider<P
         const stripe = await this.stripePromise;
         if (!stripe) throw "Could not load stripe";
 
-        const data = checkout.externalData?.data;
-        const clientSecret = data?.clientSecretReplacement ?? data?.clientSecret;
-        if (!clientSecret) throw "Expected data not found";
+        const {paymentMethodToken, clientSecret, setupIntentStatus} = checkout.externalData.data;
 
         const cardElement = checkout.clientData?.cardElement;
         if (!cardElement) throw "Expected stripe elements instance on checkout.clientData"
 
-        const stripePaymentIntentResult = await stripe.confirmCardPayment(clientSecret, {payment_method: {card: cardElement}});
+        if (clientSecret) {
+            if (setupIntentStatus === "requires_action") {
+                const {setupIntent, error} = await stripe.confirmCardSetup(clientSecret);
+                const intentId = setupIntent?.id ?? error?.setup_intent?.id;
+                if (!intentId) throw "Unexpected error";
 
-        const paymentIntentResult = stripePaymentIntentResult?.paymentIntent;
-        const status = paymentIntentResult?.status;
-
-        if (paymentIntentResult && status && ["requires_capture","succeeded"].indexOf(status) > -1) {
-            return {
-                ...checkout,
-                success: true,
-                externalId: paymentIntentResult.id
-            };
+                return {
+                    ...checkout,
+                    success: false,
+                    externalId: intentId,
+                    errorMessage: error?.message
+                }
+            }
         }
 
-        throw (paymentIntentResult?.last_payment_error?.message ?? "Payment failed");
+        if (paymentMethodToken){
+            return {
+                ...checkout,
+                success: false,
+                externalId: false,
+            }
+        }
+
+        throw "Payment failed, unexpected checkout flow";
     }
 
     async buildUi(checkout: NarrowedStripeCalculatedCheckout, opts: {htmlTemplate?: any}, sendCheckoutToServer: (checkout: NarrowedStripeCalculatedCheckout) => void): Promise<HTMLElement> {
-        const clientSecret = checkout.externalData.data.clientSecret;
-        if (!clientSecret) throw "Did not found client secret data"
-
         const {html, render} = await import("lit");
         await import("../../ui/components/payments/stripe/stripe-elements.js");
         await import("../../ui/components/payments/stripe/stripe-form.js");
 
         let stripeFormTemplate = html`
-            <stripe-form .stripeClient="${await this.stripePromise}" .stripeClientSecret="${clientSecret}">
+            <stripe-form .stripeClient="${await this.stripePromise}">
                 ${opts.htmlTemplate ?? html`
                     <stripe-card></stripe-card>
                     <stripe-submit-error></stripe-submit-error>

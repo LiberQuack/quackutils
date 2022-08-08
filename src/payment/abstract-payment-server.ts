@@ -104,7 +104,7 @@ export abstract class AbstractPaymentServer<U extends PaymentUser = any, P exten
      * @param user
      * @param checkout
      */
-    async checkout(user: U, checkout: PaymentCalculatedCheckout): Promise<PaymentCheckoutExecution> {
+    async checkout(user: U, checkout: PaymentCalculatedCheckout | PaymentCheckoutExecution): Promise<PaymentCheckoutExecution> {
         logger.info("payment-server", `Starting checkout for user ${checkout.userId}, provider ${checkout.provider}, products [${checkout.items.map(it => it.productId)}]`)
 
         const checkoutExecution = await this.providerCheckout(user, checkout);

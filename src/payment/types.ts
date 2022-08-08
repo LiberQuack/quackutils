@@ -229,8 +229,6 @@ export type PaymentPartialCheckout = PaymentProviderMinimalProperties & {
  * from being sent to the payment provider for completing the purchase
  */
 export type PaymentCalculatedCheckout = PaymentProviderMinimalProperties & {
-    err?: any;
-
     coupon_codes?: PaymentCoupon["code"][];
     userId: string;
 
@@ -262,8 +260,11 @@ export type PaymentCalculatedCheckout = PaymentProviderMinimalProperties & {
 
     /**
      * External id for retrieving data from payment provider
+     *
+     * Some providers will generate externalId during calculateCheckout,
+     * if that's not the case, set it to false
      */
-    externalId?: string;
+    externalId?: string | false;
 
     /**
      * The sum of products and plans before any discounts
@@ -378,6 +379,12 @@ export type PaymentCheckoutExecution = PaymentCalculatedCheckout & {
     success: boolean;
 
     /**
+     * Human readable error, should be easy and understandable
+     * for your final user
+     */
+    errorMessage?: string;
+
+    /**
      * Subscription details, keep in mind that every time
      * it's renewed, the system should understand it as a
      * new checkout entry
@@ -385,9 +392,9 @@ export type PaymentCheckoutExecution = PaymentCalculatedCheckout & {
     subscription?: PaymentUserSubscriptionProperties
 
     /**
-     * External id for retrieving data from payment provider
+     * Check PaymentCalculatedCheckout["externalId"]
      */
-    externalId: string;
+    externalId: string | false;
 
     //Use when checkout is cancelled | means payment was refunded
     cancelReason?: string;
